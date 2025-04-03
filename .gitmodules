@@ -1,0 +1,3 @@
+[submodule "thirdparty/fzf"]
+	path = thirdparty/fzf
+	url = git@github.com:Rossettaylm/fzf.git
