@@ -1,0 +1,15 @@
+git
+git-lfs
+neovim
+neofetch
+yazi
+alacritty
+ripgrep
+zellij
+bat
+zoxide
+pyright
+cmake
+fd
+font-hack-nerd-font
+tree

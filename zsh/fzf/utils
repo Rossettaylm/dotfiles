@@ -1,0 +1,17 @@
+#!/bin/bash
+# find a alias
+
+export ALIASES=""
+
+get_aliases() {
+  local alias_path="${ZSH_HOME}/aliases.zsh"
+  local cmd=$(bat ${alias_path} | grep -v '^#' | eval "fzf ${DEFAULT_FZF_OPTS} -m --header='[utils for alias]'" | awk -F '[ =]' '{print $2}')
+
+  # for al in $aliases; do
+  #   echo "$al"
+  # done
+  echo $cmd
+
+}
+
+get_aliases
