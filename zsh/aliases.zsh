@@ -65,6 +65,7 @@ alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
 alias gm="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
 alias getcb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py"
+alias gcborigin="python3 $HOME/.config/zsh/fzf/git_checkout_from_origin.py"
 
 # zellij 终端复用
 alias zj="zellij"
