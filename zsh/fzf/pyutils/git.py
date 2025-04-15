@@ -3,9 +3,9 @@ from pyutils import shell as sh
 
 
 class BranchResult(object):
-    has_cur_branch = False
-    cur_branch_name = ""
-    branch_list = []
+    has_cur_branch: bool = False
+    cur_branch_name: str = ""
+    branch_list: list = []
 
     def __init__(self, has_cur_branch=False, cur_branch_name="", branch_list=[]):
         self.has_cur_branch = has_cur_branch
@@ -49,8 +49,7 @@ def get_cur_branch():
 
 
 # 选中分支
-def get_branches(header, use_multi_select=False):
-    show_brs_cmd = "git branch"
+def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
     fzf_cmd = sh.fzf_command(header=header, use_multi_select=use_multi_select)
 
     _, err = sh.run_shell_cmd(show_brs_cmd)
