@@ -24,11 +24,12 @@ def run_shell_cmd(cmd, input=""):
     return (process.stdout.splitlines(), process.stderr.splitlines())
 
 
-def fzf_command(header, use_multi_select=False):
-    return "fzf {default_opts} --header='{header}' {multi_select}".format(
+def fzf_command(header, use_multi_select=False, query=""):
+    return "fzf {default_opts} --header='{header}' {multi_select} --query='{query}'".format(
         default_opts=os.getenv("FZF_DEFAULT_OPTS"),
         header=header,
         multi_select="-m" if use_multi_select else "",
+        query=query,
     )
 
 

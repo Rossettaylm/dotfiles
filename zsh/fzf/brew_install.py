@@ -1,4 +1,5 @@
 import os
+import sys
 from pyutils import shell
 from time import time as get_now_time
 
@@ -29,9 +30,9 @@ def update_cache():
             shell.log_success("更新成功! pkg数:{}".format(len(out)))
 
 
-def brew_install():
+def brew_install(query=""):
     check_cache_available()
-    cmd = shell.fzf_command(header="[brew install]", use_multi_select=True)
+    cmd = shell.fzf_command(header="[brew install]", use_multi_select=True, query=query)
     with open(cache_file, "r") as cache:
         out, err = shell.run_shell_cmd(cmd, input=cache.read())
         if out:
@@ -43,4 +44,7 @@ def brew_install():
 
 
 if __name__ == "__main__":
-    brew_install()
+    query = ""
+    if len(sys.argv) > 1:
+        query = sys.argv[1]
+    brew_install(query)
