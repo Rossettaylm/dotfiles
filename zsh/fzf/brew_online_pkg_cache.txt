@@ -1663,6 +1663,7 @@ enpass-cli
 enscript
 ensmallen
 ent
+ente-cli
 enter-tex
 entityx
 entr
@@ -3497,7 +3498,6 @@ libghthash
 libgig
 libgit2
 libgit2-glib
-libgit2@1.5
 libgit2@1.6
 libgit2@1.7
 libgit2@1.8
@@ -11668,7 +11668,6 @@ hype
 hyper
 hyper@canary
 hyperbackupexplorer
-hypercal
 hyperconnect
 hyperkey
 i1profiler
@@ -13751,7 +13750,7 @@ singlecrystal
 singularity
 sioyek
 sip
-sipgate-clinq
+sipgate
 sipgate-softphone
 sirimote
 sitala
@@ -14462,6 +14461,7 @@ vernier-spectral-analysis
 vero
 versions
 vertcoin-core
+vesktop
 vesta
 veusz
 vezer
