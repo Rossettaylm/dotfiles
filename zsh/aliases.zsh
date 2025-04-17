@@ -64,9 +64,11 @@ alias gco="python3 $ZSH_HOME/fzf/git_checkout_branch.py"
 alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
 alias gm="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
-alias getcb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py"
+alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
 alias gcborigin="python3 $HOME/.config/zsh/fzf/git_checkout_from_origin.py"
 alias gpu="gpu.sh"
+
+alias adbid="adb devices | grep -v List | awk '{print \$1}'"
 
 # zellij 终端复用
 alias zj="zellij"
