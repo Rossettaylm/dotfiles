@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 source $ZSH_HOME/aliases.zsh
-CUR_BRANCH="$(getcb)"
+CUR_BRANCH="$(curb)"
 
 git checkout master
 git pull
