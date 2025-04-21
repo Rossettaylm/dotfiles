@@ -115,9 +115,10 @@ option_as_alt = "Both"
 columns = 106
 lines = 25
 
-# [window.position]
-# x = 800
-# y = 400
+[window.position]
+x = 800
+y = 400
+
 #
 [window.padding]
 x = 15

@@ -4,6 +4,8 @@ from pyutils import shell
 
 
 def main():
+    os.system("git fetch")
+
     result = git.get_branches(
         header="[Checkout-Origin]", use_multi_select=False, show_brs_cmd="git branch -r"
     )
