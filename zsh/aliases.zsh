@@ -59,13 +59,27 @@ alias f="fzf"
 alias bins="python3 $ZSH_HOME/fzf/brew_install.py"
 alias buins="python3 $ZSH_HOME/fzf/brew_uninstall.py"
 
-# git fzf cmd
+
+#   ____ _ _     ____          _____     __ 
+#  / ___(_) |_  | __ ) _   _  |  ___|___/ _|
+# | |  _| | __| |  _ \| | | | | |_ |_  / |_ 
+# | |_| | | |_  | |_) | |_| | |  _| / /|  _|
+#  \____|_|\__| |____/ \__, | |_|  /___|_|  
+#                      |___/                
+# git checkout by fzf
 alias gco="python3 $ZSH_HOME/fzf/git_checkout_branch.py"
+# git remove branch by fzf
 alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
+# git merge by fzf
 alias gm="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
+# get_cur_brranch && copy
 alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
+# merge_master
+alias mma="python3 $HOME/.config/zsh/fzf/merge_master.py"
+# git chekcout -b ... origin/... by fzf
 alias gcborigin="python3 $HOME/.config/zsh/fzf/git_checkout_from_origin.py"
+# git push --set-upstream ${curb}
 alias gpu="gpu.sh"
 
 alias adbid="adb devices | grep -v List | awk '{print \$1}'"
