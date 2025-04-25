@@ -40,6 +40,9 @@ local keymap_table = {
     mode = n_mode,
     desc = "fzflua documention symbols",
   },
+
+  -- figlet
+  { from = "<leader>fl", to = ":r! figlet ", mode = n_mode, desc = "import figlet title" },
 }
 
 for _, mapping in ipairs(keymap_table) do
