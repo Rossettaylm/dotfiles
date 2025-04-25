@@ -79,8 +79,6 @@ alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
 alias mma="python3 $HOME/.config/zsh/fzf/merge_master.py"
 # git chekcout -b ... origin/... by fzf
 alias gcborigin="python3 $HOME/.config/zsh/fzf/git_checkout_from_origin.py"
-# git push --set-upstream ${curb}
-alias gpu="gpu.sh"
 
 alias adbid="adb devices | grep -v List | awk '{print \$1}'"
 
