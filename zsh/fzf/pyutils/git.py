@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from os import system
 from pyutils import shell as sh
 
 
@@ -38,15 +39,9 @@ def branch_preprocess(branches):
 
 
 def get_cur_branch():
-    cmd = "git branch"
-    out, err = sh.run_shell_cmd(cmd)
-    for e in err:
-        sh.log_err(e)
-    for br in out:
-        if isinstance(br, bytes):
-            br = br.decode()
-        if br.startswith("*"):
-            return br.removeprefix("* ")
+    out, _ = sh.run_shell_cmd("git_current_branch")
+    if len(out) == 0:
+        return out[0]
     return ""
 
 
