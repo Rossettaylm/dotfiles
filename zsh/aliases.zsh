@@ -73,10 +73,10 @@ alias gco="python3 $ZSH_HOME/fzf/git_checkout_branch.py"
 # git remove branch by fzf
 alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
 # git merge by fzf
-alias gm="python3 $ZSH_HOME/fzf/git_merge_branch.py"
+alias gmg="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
 # get_cur_brranch && copy
-alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
+alias curb="echo $(git_current_branch) | tee >(clipcopy)"
 # merge_master
 alias mma="python3 $HOME/.config/zsh/fzf/merge_master.py"
 # git chekcout -b ... origin/... by fzf
