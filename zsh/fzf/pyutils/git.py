@@ -39,9 +39,15 @@ def branch_preprocess(branches):
 
 
 def get_cur_branch():
-    out, _ = sh.run_shell_cmd("git_current_branch")
-    if len(out) == 0:
-        return out[0]
+    cmd = "git branch"
+    out, err = sh.run_shell_cmd(cmd)
+    for e in err:
+        sh.log_err(e)
+    for br in out:
+        if isinstance(br, bytes):
+            br = br.decode()
+        if br.startswith("*"):
+            return br.removeprefix("* ")
     return ""
 
 
