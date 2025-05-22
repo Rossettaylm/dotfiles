@@ -13,3 +13,4 @@ cmake
 fd
 font-hack-nerd-font
 tree
+lazygit
