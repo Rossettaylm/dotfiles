@@ -30,7 +30,7 @@ alias make="make -j8"
 # alias qbuild="./rb -qC"
 # 秒编插件 -w 编译失败可选择是否继续编译
 # alias qrunq="./centaur.sh guild -w"
-alias qrunq="./centaur.sh guild -w"
+alias qguild="./centaur.sh guild -w"
 # 带大同插桩的编译
 alias qrundt="./rb -qrun -PDTBuild"
 alias qrun="./rb -qrun"
