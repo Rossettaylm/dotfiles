@@ -76,11 +76,13 @@ alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
 alias gmg="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
 # get_cur_brranch && copy
-alias curb="echo $(git_current_branch) | tee >(clipcopy)"
+alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
 # merge_master
 alias mma="python3 $HOME/.config/zsh/fzf/merge_master.py"
 # git chekcout -b ... origin/... by fzf
 alias gcborigin="python3 $HOME/.config/zsh/fzf/git_checkout_from_origin.py"
+# lazygit
+alias lg="lazygit"
 
 alias adbid="adb devices | grep -v List | awk '{print \$1}'"
 
