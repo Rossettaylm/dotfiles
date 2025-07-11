@@ -12,12 +12,8 @@ def merge_master():
     if cur_branch == "master":
         shell.log_err("已经处于master分支上...")
         return
-    shell.log_plain("checkout from {} to master...".format(cur_branch))
-    os.system("git checkout master")
-    os.system("git pull")
-
-    shell.log_plain("checkout from master to {}...".format(cur_branch))
-    os.system("git checkout {}".format(cur_branch))
+    shell.log_plain("git fetch...")
+    os.system("git fetch")
 
     shell.log_plain("merging...")
     os.system("git merge master")
