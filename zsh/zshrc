@@ -10,7 +10,8 @@ source $HOME/.config/zsh/env.zsh
 # 主题
 # ZSH_THEME="amuse"
 # ZSH_THEME="ys"
-ZSH_THEME="steeef"
+# ZSH_THEME="steeef"
+ZSH_THEME="edvardm"
 # ZSH_THEME="awesomepanda"
 # ZSH_THEME="gozilla"
 
@@ -54,3 +55,6 @@ source $ZSH/oh-my-zsh.sh
 if [[ $(uname) == "Darwin" && -f "$ZSH_HOME/macenv.zsh" ]]; then 
 	source $ZSH_HOME/macenv.zsh 
 fi
+
+# enter zellij
+# [ -f "$ZSH_HOME/zellij.zsh" ] && source $ZSH_HOME/zellij.zsh

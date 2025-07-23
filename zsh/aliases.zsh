@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 
+alias ls="eza --icons --git -1"
 alias ll="ls -lh"
 alias la="ls -a"
 # alias setproxy="export http_proxy='http://127.0.0.1:7890' && export https_proxy='https://127.0.0.1:7890'"
@@ -90,3 +91,10 @@ alias adbid="adb devices | grep -v List | awk '{print \$1}'"
 alias zj="zellij"
 # git push --set-upstream
 alias gpu="$HOME/.config/scripts/gpu"
+# 一些rust软件用于替代原来的系统软件
+# 系统监控,替代top命令
+alias top="btm"
+# tldr 命令手册
+alias man="tldr"
+# dust to du 查看目录文件大小
+alias du="dust -h"

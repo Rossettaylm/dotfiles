@@ -14,3 +14,7 @@ fd
 font-hack-nerd-font
 tree
 lazygit
+bottom
+procs
+eza
+tldr

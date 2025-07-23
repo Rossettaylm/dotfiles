@@ -13,10 +13,10 @@ def merge_master():
         shell.log_err("已经处于master分支上...")
         return
     shell.log_plain("git fetch...")
-    os.system("git fetch")
+    os.system("git fetch origin master")
 
     shell.log_plain("merging...")
-    os.system("git merge master")
+    os.system("git merge origin/master")
 
     shell.log_success("merge suscess")
 
