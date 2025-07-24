@@ -15,6 +15,7 @@ font-hack-nerd-font
 tree
 lazygit
 bottom
+htop
 procs
 eza
 tldr

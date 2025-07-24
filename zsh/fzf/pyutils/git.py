@@ -31,9 +31,11 @@ def branch_preprocess(branches):
     for idx, br in enumerate(branches):
         if isinstance(br, bytes):
             br = br.decode()
+            print(br)
         branches[idx] = br.lstrip(" ")
         if br.startswith("*"):
             has_cur_branch = True
+            cur_branch = br.removeprefix("* ")
 
     return BranchResult(has_cur_branch, cur_branch, branches)
 
