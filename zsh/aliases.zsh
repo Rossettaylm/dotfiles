@@ -78,6 +78,10 @@ alias gmg="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
 # get_cur_brranch && copy
 alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
+# select branch
+alias gb="python3 $HOME/.config/zsh/fzf/git_show_branches.py | tee >(clipcopy)"
+# git pull cur branch
+alias glu="git pull origin $(python3 $HOME/.config/zsh/fzf/get_cur_brranch.py)"
 # merge_master
 alias mma="python3 $HOME/.config/zsh/fzf/merge_master.py"
 # git chekcout -b ... origin/... by fzf
