@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from os import system
+from subprocess import CalledProcessError
 from pyutils import shell as sh
 
 
@@ -53,9 +53,18 @@ def get_cur_branch():
     return ""
 
 
+def get_branches_v2(header, use_multi_select=False, query=""):
+    fzf_cmd = sh.fzf_command_list(header, use_multi_select, query)
+    _, err = sh.run_shell_cmd("git branch")
+    if err:
+        raise CalledProcessError(-1, "git branch", None, "not a git repo")
+    out = sh.run_cmd_chain([["git", "branch"], fzf_cmd])
+    return out
+
+
 # 选中分支
 def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
-    fzf_cmd = sh.fzf_command(header=header, use_multi_select=use_multi_select)
+    fzf_cmd = sh.fzf_command(header, use_multi_select)
 
     _, err = sh.run_shell_cmd(show_brs_cmd)
     if err:
@@ -68,3 +77,8 @@ def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
     result = branch_preprocess(branches)
     result.setCurBranch(get_cur_branch())
     return result
+
+
+def git_log_cmd():
+    gitLogCmd = "git log --pretty=format:'%Cblue%h%Creset-%Cred%an%Creset, %ar:%s'"
+    return gitLogCmd

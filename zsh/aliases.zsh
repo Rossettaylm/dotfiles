@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-alias ls="eza --icons --git -1"
+alias ls="eza --icons --git"
 alias ll="ls -lh"
 alias la="ls -a"
 # alias setproxy="export http_proxy='http://127.0.0.1:7890' && export https_proxy='https://127.0.0.1:7890'"
@@ -80,12 +80,12 @@ alias gcb="git checkout -b"
 alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
 # select branch
 alias gb="python3 $HOME/.config/zsh/fzf/git_show_branches.py | tee >(clipcopy)"
-# git pull cur branch
-alias glu="git pull origin $(python3 $HOME/.config/zsh/fzf/get_cur_brranch.py)"
 # merge_master
 alias mma="python3 $HOME/.config/zsh/fzf/merge_master.py"
 # git chekcout -b ... origin/... by fzf
 alias gcborigin="python3 $HOME/.config/zsh/fzf/git_checkout_from_origin.py"
+# git log for fzf
+alias glog="python3 $HOME/.config/zsh/fzf/git_log.py | tee >(clipcopy)"
 # lazygit
 alias lg="lazygit"
 
@@ -102,3 +102,6 @@ alias top="btm"
 alias man="tldr"
 # dust to du 查看目录文件大小
 alias du="dust -h"
+
+# file_ preview with fzf
+alias fp="$HOME/.config/zsh/fzf/file_preview.sh"
