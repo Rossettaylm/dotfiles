@@ -10,8 +10,8 @@ source $HOME/.config/zsh/env.zsh
 # 主题
 # ZSH_THEME="amuse"
 # ZSH_THEME="ys"
-# ZSH_THEME="steeef"
-ZSH_THEME="edvardm"
+ZSH_THEME="steeef"
+# ZSH_THEME="edvardm"
 # ZSH_THEME="awesomepanda"
 # ZSH_THEME="gozilla"
 
@@ -60,4 +60,4 @@ fi
 # [ -f "$ZSH_HOME/zellij.zsh" ] && source $ZSH_HOME/zellij.zsh
 
 # fzf-git
-[ -f "$ZSH_HOME/fzf-git.sh" ] && source $ZSH_HOME/fzf-git.sh
+# [ -f "$ZSH_HOME/fzf-git.sh" ] && source $ZSH_HOME/fzf-git.sh
