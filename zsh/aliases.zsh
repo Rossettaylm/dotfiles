@@ -71,6 +71,7 @@ alias buins="python3 $ZSH_HOME/fzf/brew_uninstall.py"
 #                      |___/                
 # git checkout by fzf
 alias gco="python3 $ZSH_HOME/fzf/git_checkout_branch.py"
+# alias gco="$HOME/.config/zsh/fzf/gco.sh"
 # git remove branch by fzf
 alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
 # git merge by fzf

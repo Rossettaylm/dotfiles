@@ -69,11 +69,14 @@ if __name__ == "__main__":
     print(result)  # 输出: hello world
 
 
-def fzf_command(header, use_multi_select=False, query="", preview=""):
-    cmd = "fzf {default_opts} --header='{header}' {multi_select} --query='{query}'".format(
+def fzf_command(
+    header, use_multi_select=False, query="", preview="", preview_window="right,70%"
+):
+    cmd = "fzf --ansi {default_opts} --header='{header}' {multi_select} --preview-window='{preview_window}' --query='{query}'".format(
         default_opts=os.getenv("FZF_DEFAULT_OPTS"),
         header=header,
         multi_select="-m" if use_multi_select else "",
+        preview_window=preview_window,
         query=query,
     )
     if preview:

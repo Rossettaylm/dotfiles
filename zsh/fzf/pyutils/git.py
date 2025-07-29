@@ -63,15 +63,19 @@ def get_branches_v2(header, use_multi_select=False, query=""):
     return out
 
 
+# 必须要使用/$()来包裹命令来保证刷新
 def git_branch_fzf_preview_opt():
-    preview_opt = "--preview \"git log --oneline --date=short --pretty='format:%C(auto)%cd %an %h%d %s' $(cut -c3- <<< {} | cut -d' ' -f1) --\""
+    preview_opt = "--preview \"git log --oneline --color=always --date=short --pretty='format:%C(auto)%cd %an %h%d %s' \$(cut -c3- <<< {} | cut -d' ' -f1) --\""
     return preview_opt
 
 
 # 选中分支
 def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
     fzf_cmd = sh.fzf_command(
-        header, use_multi_select, preview=git_branch_fzf_preview_opt()
+        header,
+        use_multi_select,
+        preview=git_branch_fzf_preview_opt(),
+        preview_window="down,70%",
     )
 
     _, err = sh.run_shell_cmd(show_brs_cmd)

@@ -18,7 +18,11 @@ def git_checkout_branch():
         return
     cmd = "git checkout {}".format(branches[0])
     shell.log_plain("checkout to {}...".format(branches[0]))
-    system(cmd)
+    result = system(cmd)
+    if result == 0:
+        shell.log_plain("checkout success✅")
+    else:
+        shell.log_plain("checkout failed❌")
 
 
 if __name__ == "__main__":
