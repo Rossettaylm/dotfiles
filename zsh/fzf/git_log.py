@@ -1,19 +1,20 @@
 #!/usr/bin/python3
 
 import os
-from pyutils.git import git_log_cmd
+import sys
 
 
-def obtain_git_commits():
-    gitLogCmd = git_log_cmd()
-    cutCmd = "cut -d '-' -f 1"
+def obtain_git_commits(branch=""):
+    gitLogCmd = f"git log --oneline --date=short --pretty='format:%C(auto)%cd %an %h%d %s' {branch}"
+    cutCmd = "cut -d '-' -f 3"
     fzfCmd = (
-        r"fzf -m --header='[Git:Log]' --delimiter='-' --preview='git show --pretty="
-        " {1} --color=always' --preview-label='[Git:Files]'"
+        r"fzf -m --header='[Git:Log]' --delimiter=' ' --preview='git show --pretty="
+        " {3} --color=always' --preview-label='[Git:Files]'"
     )
 
     os.system("{} | {} | {}".format(gitLogCmd, fzfCmd, cutCmd))
 
 
 if __name__ == "__main__":
-    obtain_git_commits()
+    branch = sys.argv[1] if len(sys.argv) >= 2 else ""
+    obtain_git_commits(branch)
