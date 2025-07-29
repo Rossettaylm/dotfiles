@@ -6,7 +6,7 @@ import sys
 
 def obtain_git_commits(branch=""):
     gitLogCmd = f"git log --oneline --date=short --pretty='format:%C(auto)%cd %an %h%d %s' {branch}"
-    cutCmd = "cut -d '-' -f 3"
+    cutCmd = "cut -d ' ' -f 3"
     fzfCmd = (
         r"fzf -m --header='[Git:Log]' --delimiter=' ' --preview='git show --pretty="
         " {3} --color=always' --preview-label='[Git:Files]'"
