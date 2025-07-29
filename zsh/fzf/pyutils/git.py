@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from subprocess import CalledProcessError
 from pyutils import shell as sh
+import os
 
 
 class BranchResult(object):
@@ -18,7 +19,7 @@ class BranchResult(object):
 
     def isInvalid(self):
         return (
-            self.has_cur_branch == False
+            not self.has_cur_branch
             and self.cur_branch_name == ""
             and self.branch_list == []
         )
@@ -62,9 +63,16 @@ def get_branches_v2(header, use_multi_select=False, query=""):
     return out
 
 
+def git_branch_fzf_preview_opt():
+    preview_opt = "--preview \"git log --oneline --date=short --pretty='format:%C(auto)%cd %an %h%d %s' $(cut -c3- <<< {} | cut -d' ' -f1) --\""
+    return preview_opt
+
+
 # 选中分支
 def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
-    fzf_cmd = sh.fzf_command(header, use_multi_select)
+    fzf_cmd = sh.fzf_command(
+        header, use_multi_select, preview=git_branch_fzf_preview_opt()
+    )
 
     _, err = sh.run_shell_cmd(show_brs_cmd)
     if err:
@@ -79,6 +87,8 @@ def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
     return result
 
 
-def git_log_cmd():
-    gitLogCmd = "git log --pretty=format:'%Cblue%h%Creset-%Cred%an%Creset, %ar:%s'"
+def git_log_cmd(branch=""):
+    gitLogCmd = (
+        f"git log --oneline --date=short --pretty='format:%C(auto)%cd %h%d %s' {branch}"
+    )
     return gitLogCmd

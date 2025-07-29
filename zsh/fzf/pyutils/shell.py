@@ -69,13 +69,16 @@ if __name__ == "__main__":
     print(result)  # 输出: hello world
 
 
-def fzf_command(header, use_multi_select=False, query=""):
-    return "fzf {default_opts} --header='{header}' {multi_select} --query='{query}'".format(
+def fzf_command(header, use_multi_select=False, query="", preview=""):
+    cmd = "fzf {default_opts} --header='{header}' {multi_select} --query='{query}'".format(
         default_opts=os.getenv("FZF_DEFAULT_OPTS"),
         header=header,
         multi_select="-m" if use_multi_select else "",
         query=query,
     )
+    if preview:
+        cmd = cmd + " " + preview
+    return cmd
 
 
 # fg+ 字体颜色
