@@ -1,5 +1,9 @@
 _fzf_git_checkout_branch() {
   local branch=$(_select_branch)
+  if [[ -z $branch ]]; then
+    echo "cancel checkout⚠️"
+    exit -1
+  fi
   echo "checking out to $branch..."
   git checkout $branch &&
     echo "checkout success✅" ||
