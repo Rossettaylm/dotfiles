@@ -15,8 +15,8 @@ prepend_keymap = [
   # diff
   { on = "<C-d>", run = "plugin diff", desc = "Diff the selected with the hovered file" },
 
-  # copy contents
-  { on = "<C-y>", run = "plugin copy-file-contents", desc = "Copy contents of file" },
+  # need "https://github.com/Slackadays/ClipBoard" "brew install clipboard" 
+  { on = "<C-y>", run = "plugin system-clipboard", desc = "Copy file with clipboard project" },
 
   # ripdrag
   { on = [
@@ -292,6 +292,14 @@ keymap = [
     "g",
     "c",
   ], run = "cd ~/.config", desc = "Goto ~/.config" },
+  { on = [
+    "g",
+    "y",
+  ], run = "cd ~/.config/yazi", desc = "Goto yazi home" },
+  { on = [
+    "g",
+    "p",
+  ], run = "cd ~/Pictures/screenshot/", desc = "Goto screenshot dir" },
   { on = [
     "g",
     "d",

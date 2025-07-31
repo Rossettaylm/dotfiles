@@ -103,6 +103,15 @@ rules = [
     "edit",
     "reveal",
   ] },
+  # 日志
+  { name = "*.qqxlog", use = [
+    "open",
+    "reveal",
+  ] },
+  { name = "*.log", use = [
+    "open",
+    "reveal",
+  ] },
   # Fallback
   { name = "*", use = [
     "edit",
