@@ -44,11 +44,6 @@ rev = "22af003"
 hash = "7cc42012a7c2099f80064d228feb8d44"
 
 [[plugin.deps]]
-use = "AnirudhG07/plugins-yazi:copy-file-contents"
-rev = "71545f4"
-hash = "f8530ee84fee95dbcc26bb1d8d8019c7"
-
-[[plugin.deps]]
 use = "Rossettaylm/hexyl"
 rev = "8471cf5"
 hash = "78d2c8dac3542b5616288f3688d145a8"
@@ -57,6 +52,11 @@ hash = "78d2c8dac3542b5616288f3688d145a8"
 use = "Rossettaylm/system-clipboard"
 rev = "f19b66b"
 hash = "e266f9277bd1f7c0a47a8d3cbf67b86e"
+
+[[plugin.deps]]
+use = "Lil-Dank/lazygit"
+rev = "7a08a09"
+hash = "a1fa2b3e1826c3a34804ea8c548e9f80"
 
 [[flavor.deps]]
 use = "Chromium-3-Oxide/everforest-medium"
