@@ -84,7 +84,7 @@ rules = [
     "play",
     "reveal",
   ] },
-  # Archive
+  # Archive 压缩文件优先解压缩
   { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [
     "extract",
     "reveal",
@@ -176,7 +176,7 @@ preloaders = [
 ]
 
 prepend_previewers = [
-  # Markdown
+  # Markdown 用piper插件打开，不装其他插件了
   { name = "*.md", run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"' },
   # Media previewer MediaInfo
   # Replace magick, image, video with mediainfo
