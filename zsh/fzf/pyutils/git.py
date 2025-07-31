@@ -76,6 +76,7 @@ def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
         use_multi_select,
         preview=git_branch_fzf_preview_opt(),
         preview_window="down,70%",
+        preview_label="[Git:Show]",
     )
 
     _, err = sh.run_shell_cmd(show_brs_cmd)

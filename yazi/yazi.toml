@@ -2,7 +2,7 @@
 # If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
 "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
-[manager]
+[mgr]
 ratio = [1, 4, 3]
 sort_by = "alphabetical"
 sort_sensitive = false
@@ -24,14 +24,14 @@ max_height = 900
 cache_dir = ""
 image_delay = 30
 image_filter = "triangle"
-image_quality = 75
-sixel_fraction = 15
+image_quality = 90
+# sixel_fraction = 15
 ueberzug_scale = 1
 ueberzug_offset = [0, 0, 0, 0]
 
 [opener]
 edit = [
-  { run = '${EDITOR:-vi} "$@"', desc = "$EDITOR", block = true, for = "unix" },
+  { run = '${EDITOR:-nvim} "$@"', desc = "$EDITOR", block = true, for = "unix" },
   { run = 'code %*', orphan = true, desc = "code", for = "windows" },
   { run = 'code -w %*', block = true, desc = "code (block)", for = "windows" },
 ]
@@ -46,9 +46,14 @@ reveal = [
   { run = 'explorer /select,"%1"', orphan = true, desc = "Reveal", for = "windows" },
   { run = '''exiftool "$1"; echo "Press enter to exit"; read _''', block = true, desc = "Show EXIF", for = "unix" },
 ]
+# extract = [
+#   { run = 'ya pub extract --list "$@"', desc = "Extract here", for = "unix" },
+#   { run = 'ya pub extract --list %*', desc = "Extract here", for = "windows" },
+# ]
+# Extract by ouch, depends on ouch(brew install ouch)
 extract = [
-  { run = 'ya pub extract --list "$@"', desc = "Extract here", for = "unix" },
-  { run = 'ya pub extract --list %*', desc = "Extract here", for = "windows" },
+  { run = 'ouch d -y "%*"', desc = "Extract here with ouch", for = "windows" },
+  { run = 'ouch d -y "$@"', desc = "Extract here with ouch", for = "unix" },
 ]
 play = [
   { run = 'mpv --force-window "$@"', orphan = true, for = "unix" },
@@ -100,7 +105,7 @@ rules = [
   ] },
   # Fallback
   { name = "*", use = [
-		"edit",
+    "edit",
     "open",
     "reveal",
   ] },
@@ -110,8 +115,8 @@ rules = [
 micro_workers = 10
 macro_workers = 10
 bizarre_retry = 3
-image_alloc = 536870912  # 512MB
 image_bound = [0, 0]
+image_alloc = 1073741824 # 1024M
 suppress_preload = false
 
 [plugin]
@@ -139,6 +144,15 @@ spotters = [
   # Fallback
   { name = "*", run = "file" },
 ]
+
+prepend_preloaders = [
+  # Replace magick, image, video with mediainfo
+  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "application/subrip", run = "mediainfo" },
+  # Adobe Illustrator, Adobe Photoshop is image/adobe.photoshop, already handled above
+  { mime = "application/postscript", run = "mediainfo" },
+]
+
 preloaders = [
   # Image
   { mime = "image/{avif,hei?,jxl,svg+xml}", run = "magick" },
@@ -153,15 +167,34 @@ preloaders = [
 ]
 
 prepend_previewers = [
-  # markdown
-  { name = "*.md", run = "glow" },
+  # Markdown
+  { name = "*.md", run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"' },
+  # Media previewer MediaInfo
+  # Replace magick, image, video with mediainfo
+  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "application/subrip", run = "mediainfo" },
+  # Adobe Illustrator, Adobe Photoshop is image/adobe.photoshop, already handled above
+  { mime = "application/postscript", run = "mediainfo" },
   # Archive previewer ouch
   { mime = "application/*zip", run = "ouch" },
   { mime = "application/x-tar", run = "ouch" },
   { mime = "application/x-bzip2", run = "ouch" },
   { mime = "application/x-7z-compressed", run = "ouch" },
   { mime = "application/x-rar", run = "ouch" },
+  { mime = "application/vnd.rar", run = "ouch" },
   { mime = "application/x-xz", run = "ouch" },
+  { mime = "application/xz", run = "ouch" },
+  { mime = "application/x-zstd", run = "ouch" },
+  { mime = "application/zstd", run = "ouch" },
+  { mime = "application/java-archive", run = "ouch" },
+  # RichText previewer rich-preview
+  { name = "*.csv", run = "rich-preview" },   # for csv files
+  { name = "*.md", run = "rich-preview" },    # for markdown (.md) files
+  { name = "*.rst", run = "rich-preview" },   # for restructured text (.rst) files
+  { name = "*.ipynb", run = "rich-preview" }, # for jupyter notebooks (.ipynb)
+  { name = "*.json", run = "rich-preview" },  # for json (.json) files
+  { name = "*.xlsx", run = "rich-preview" },  # for xlsx (.xlsx) files
+  #    { name = "*.lang_type", run = "rich-preview"} # for particular language files eg. .py, .go., .lua, etc.
 ]
 
 previewers = [
@@ -199,6 +232,7 @@ append_previewers = [
   # hexyl as a fallback previewer to preview files
   { name = "*", run = "hexyl" },
 ]
+
 
 [input]
 cursor_blink = false
