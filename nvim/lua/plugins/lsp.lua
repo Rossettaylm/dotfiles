@@ -34,7 +34,7 @@ F.configureKeybinds = function()
       vim.keymap.set("n", "gD", ":tab sp<CR><cmd>lua vim.lsp.buf.definition()<cr>", default_opts)
       vim.keymap.set("n", "gi", vim.lsp.buf.implementation, default_opts)
       vim.keymap.set("n", "go", vim.lsp.buf.type_definition, default_opts)
-      vim.keymap.set("n", "gu", vim.lsp.buf.references, default_opts)
+      vim.keymap.set("n", "ga", vim.lsp.buf.references, default_opts)
       vim.keymap.set("n", "gh", vim.lsp.buf.hover, opts_with_desc("show hover documentation"))
       vim.keymap.set("i", "<c-f>", vim.lsp.buf.signature_help, default_opts)
       vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, default_opts)
@@ -43,19 +43,26 @@ F.configureKeybinds = function()
       -- vim.keymap.set('x', '<leader>aw', vim.lsp.buf.range_code_action, opts)
       -- vim.keymap.set('x', "<leader>,", vim.lsp.buf.range_code_action, opts)
       vim.keymap.set("n", "<leader>t", ":Trouble<cr>", default_opts)
-      vim.keymap.set("n", "gp", vim.diagnostic.goto_prev, default_opts)
       vim.keymap.set("n", "ge", vim.diagnostic.goto_next, default_opts)
     end,
   })
+end
+
+local function removeKey(tlb, key)
+  for i, v in ipairs(tlb) do
+    if v[1] == key then
+      table.remove(tlb, i)
+    end
+  end
 end
 
 return {
   "neovim/nvim-lspconfig",
   init = function()
     F.configureKeybinds()
-  end,
-  opts = function()
     local keys = require("lazyvim.plugins.lsp.keymaps").get()
-    keys[#keys + 1] = { "K", false }
+    removeKey(keys, "K")
+    local default_opts = { noremap = true, nowait = true, desc = "" }
+    vim.keymap.set("n", "K", "7k", default_opts)
   end,
 }
