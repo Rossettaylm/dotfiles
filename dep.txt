@@ -19,3 +19,6 @@ htop
 procs
 eza
 tldr
+hexyl
+ouch
+mediainfo
