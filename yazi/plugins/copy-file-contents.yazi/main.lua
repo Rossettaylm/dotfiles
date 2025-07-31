@@ -66,5 +66,5 @@ return {
 		-- Enable notification
 		state.notification = options.notification and true
 	end,
-	entry = entry,
+	entry = entry(),
 }
