@@ -87,6 +87,8 @@ alias mma="python3 $HOME/.config/zsh/fzf/merge_master.py"
 alias gcborigin="python3 $HOME/.config/zsh/fzf/git_checkout_from_origin.py"
 # git log for fzf
 alias glog="python3 $HOME/.config/zsh/fzf/git_log.py | tee >(clipcopy)"
+# git select branch and copy
+alias gsb="python3 $HOME/.config/zsh/fzf/git_select_branch.py | tee >(clipcopy)"
 # lazygit
 alias lg="lazygit"
 
