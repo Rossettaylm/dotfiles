@@ -33,10 +33,11 @@ def branch_preprocess(branches):
         if isinstance(br, bytes):
             br = br.decode()
             print(br)
-        branches[idx] = br.lstrip(" ")
+        branches[idx] = br.removeprefix("  ")
         if br.startswith("*"):
             has_cur_branch = True
             cur_branch = br.removeprefix("* ")
+            branches[idx] = cur_branch
 
     return BranchResult(has_cur_branch, cur_branch, branches)
 
@@ -88,7 +89,7 @@ def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
         "{git_cmd} | {fzf_cmd}".format(git_cmd=show_brs_cmd, fzf_cmd=fzf_cmd)
     )
     result = branch_preprocess(branches)
-    result.setCurBranch(get_cur_branch())
+    # result.setCurBranch(get_cur_branch())
     return result
 
 
