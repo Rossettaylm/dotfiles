@@ -35,7 +35,7 @@ alias qguild="./centaur.sh guild -w"
 # 带大同插桩的编译
 alias qrundt="./rb -qrun -PDTBuild"
 alias qrun="./rb -qrun"
-alias qc="./rb -qC"
+alias qc="./rb -qC && cp $(pwd)/AQQLite/AQQLiteApp/build/intermediates/qqLite/compact/signed/compact.apk $HOME/Downloads/apk/"
 alias qclone="git clone git@REDACTED:mobileqq/AndroidQQ.git"
 # alias adb="$HOME/.config/scripts/adb.sh"
 alias qins="adb install -r AQQLite/AQQLiteApp/build/intermediates/qqLite/compact/signed/compact.apk"
