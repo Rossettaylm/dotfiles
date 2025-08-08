@@ -140,7 +140,19 @@ keymap = [
     "D",
   ], run = "remove --permanently", desc = "Permanently delete selected files" },
   { on = "a", run = "create", desc = "Create a file (ends with / for directories)" },
-  { on = "r", run = "rename --cursor=before_ext", desc = "Rename selected file(s)" },
+  { on = "md", run = "create --dir", desc = "Create a directoriy" },
+  { on = [
+    "r",
+    "n",
+  ], run = "rename --empty=stem --cursor=start", desc = "Rename selected file(s) with name" },
+  { on = [
+    "r",
+    "e",
+  ], run = "rename --empty=ext --cursor=end", desc = "Rename selected file(s) with ext" },
+  { on = [
+    "r",
+    "a",
+  ], run = "rename --empty=all", desc = "Rename selected file(s) all" },
   { on = ";", run = "shell --interactive", desc = "Run a shell command" },
   { on = ":", run = "shell --block --interactive", desc = "Run a shell command (block until finishes)" },
   { on = ".", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
@@ -410,6 +422,7 @@ keymap = [
   { on = "<C-c>", run = "close", desc = "Cancel input" },
   { on = "<Enter>", run = "close --submit", desc = "Submit input" },
   { on = "<Esc>", run = "escape", desc = "Go back the normal mode, or cancel input" },
+  { on = "q", run = "escape", desc = "Go back the normal mode, or cancel input" },
 
   # Mode
   { on = "i", run = "insert", desc = "Enter insert mode" },
