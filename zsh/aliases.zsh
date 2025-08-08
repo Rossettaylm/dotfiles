@@ -104,7 +104,7 @@ alias top="btm"
 # tldr 命令手册
 alias man="tldr"
 # dust to du 查看目录文件大小
-alias du="dust -h"
+alias du="dust"
 
 # file_ preview with fzf
 alias fp="$HOME/.config/zsh/fzf/file_preview.sh"
