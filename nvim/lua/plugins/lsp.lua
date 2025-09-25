@@ -43,6 +43,7 @@ F.configureKeybinds = function()
       -- vim.keymap.set('x', '<leader>aw', vim.lsp.buf.range_code_action, opts)
       -- vim.keymap.set('x', "<leader>,", vim.lsp.buf.range_code_action, opts)
       vim.keymap.set("n", "<leader>t", ":Trouble<cr>", default_opts)
+      vim.keymap.set("n", "<leader>.", vim.lsp.buf.code_action, default_opts)
       vim.keymap.set("n", "ge", vim.diagnostic.goto_next, default_opts)
     end,
   })
