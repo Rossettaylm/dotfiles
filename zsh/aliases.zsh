@@ -108,3 +108,4 @@ alias du="dust"
 
 # file_ preview with fzf
 alias fp="$HOME/.config/zsh/fzf/file_preview.sh"
+alias cr="cargo run"

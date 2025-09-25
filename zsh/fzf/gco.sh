@@ -15,7 +15,7 @@ _select_branch() {
   $(which git) branch |
     $(which fzf) --ansi \
       --border-label '🌲 Branches ' \
-      --preview-window down,border-top,70% \
+      --preview-window right,border-left,70% \
       --color hl:underline,hl+:underline \
       --no-hscroll \
       --preview "git log --oneline --graph --date=short --color=always --pretty='format:%C(auto)%cd %an %h%d %s' \$(cut -c3- <<< {} | cut -d' ' -f1) --" |

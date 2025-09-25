@@ -140,7 +140,10 @@ keymap = [
     "D",
   ], run = "remove --permanently", desc = "Permanently delete selected files" },
   { on = "a", run = "create", desc = "Create a file (ends with / for directories)" },
-  { on = "md", run = "create --dir", desc = "Create a directoriy" },
+  { on = [
+    "m",
+    "d",
+  ], run = "create --dir", desc = "Create a directoriy" },
   { on = [
     "r",
     "n",
@@ -224,16 +227,16 @@ keymap = [
     "s",
     "m",
   ], run = [
-    "sort mtime --reverse=no",
+    "sort mtime --reverse",
     "linemode mtime",
-  ], desc = "Sort by modified time" },
+  ], desc = "Sort by modified time reverse" },
   { on = [
     "s",
     "M",
   ], run = [
-    "sort mtime --reverse",
+    "sort mtime --reverse=no",
     "linemode mtime",
-  ], desc = "Sort by modified time (reverse)" },
+  ], desc = "Sort by modified time" },
   { on = [
     "s",
     "b",
