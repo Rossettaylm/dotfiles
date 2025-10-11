@@ -19,7 +19,6 @@ local keymap_table = {
   { from = ")", to = "$", mode = nv_mode, desc = "Go to line tail" },
   { from = "<leader>sl", to = "<cmd>set splitright<cr><cmd>vsplit<cr>", mode = n_mode, desc = "Split right" },
   { from = "<leader>sj", to = "<cmd>set splitbelow<cr><cmd>split<cr>", mode = n_mode, desc = "Split below" },
-  { from = "<C-i>", to = "<ESC>A {}<ESC>i<CR><ESC>ko", mode = i_mode, desc = "Insert a function block" },
 
   { from = "<S-j>", to = "7j", mode = nv_mode, desc = "Move down quickly" },
   { from = "<S-k>", to = "7k", mode = nv_mode, desc = "Move up quickly" },

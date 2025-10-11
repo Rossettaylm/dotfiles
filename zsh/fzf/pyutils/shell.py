@@ -25,7 +25,7 @@ def run_shell_cmd(cmd, input=""):
     return (process.stdout.splitlines(), process.stderr.splitlines())
 
 
-def run_cmd_chain(commands, init_input=""):
+def run_cmd_chain(commands, init_input="", need_raise_error=False):
     """
     执行一系列命令，将前一个命令的输出作为下一个命令的输入。
 
@@ -52,7 +52,12 @@ def run_cmd_chain(commands, init_input=""):
         stdout, stderr = process.communicate(input=previous_output)
 
         if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
+            if need_raise_error:
+                raise subprocess.CalledProcessError(
+                    process.returncode, cmd, stdout, stderr
+                )
+            else:
+                return None
 
         # 当前命令的输出作为下一个命令的输入
         previous_output = stdout
