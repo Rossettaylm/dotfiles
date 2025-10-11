@@ -77,6 +77,7 @@ alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
 # git merge by fzf
 alias gmg="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
+alias gcbbug="git checkout -b personal/lymanyang_bugfix_$(date -u +%Y%m%d)"
 # get_cur_brranch && copy
 alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
 # select branch
@@ -96,6 +97,7 @@ alias adbid="adb devices | grep -v List | awk '{print \$1}'"
 
 # zellij 终端复用
 alias zj="zellij"
+alias zjs="python3 $HOME/.config/zsh/fzf/zellij_sessions.py"
 # git push --set-upstream
 alias gpu="$HOME/.config/scripts/gpu"
 # 一些rust软件用于替代原来的系统软件
