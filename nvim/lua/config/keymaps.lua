@@ -17,9 +17,8 @@ local keymap_table = {
   { from = "Q", to = "q", mode = n_mode, desc = "Macro mode" },
   { from = "(", to = "^", mode = nv_mode, desc = "Go to line head" },
   { from = ")", to = "$", mode = nv_mode, desc = "Go to line tail" },
-  { from = "sl", to = "<cmd>set splitright<cr><cmd>vsplit<cr>", mode = n_mode, desc = "Split right" },
-  { from = "sj", to = "<cmd>set splitbelow<cr><cmd>split<cr>", mode = n_mode, desc = "Split below" },
-  { from = "<C-i>", to = "<ESC>A {}<ESC>i<CR><ESC>ko", mode = i_mode, desc = "Insert a function block" },
+  { from = "<leader>sl", to = "<cmd>set splitright<cr><cmd>vsplit<cr>", mode = n_mode, desc = "Split right" },
+  { from = "<leader>sj", to = "<cmd>set splitbelow<cr><cmd>split<cr>", mode = n_mode, desc = "Split below" },
 
   { from = "<S-j>", to = "7j", mode = nv_mode, desc = "Move down quickly" },
   { from = "<S-k>", to = "7k", mode = nv_mode, desc = "Move up quickly" },
@@ -40,6 +39,9 @@ local keymap_table = {
     mode = n_mode,
     desc = "fzflua documention symbols",
   },
+
+  -- figlet
+  { from = "<leader>fl", to = ":r! figlet ", mode = n_mode, desc = "import figlet title" },
 }
 
 for _, mapping in ipairs(keymap_table) do
