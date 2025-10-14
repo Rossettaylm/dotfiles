@@ -116,7 +116,7 @@ nnoremap q :q<CR>
 nnoremap <c-q> :quitall!<CR>
 nnoremap S :w<CR>
 inoremap jj <ESC>
-inoremap jk <ESC>A<CR>
+inoremap jk <ESC>A;
 " 反撤回
 nnoremap U <C-R> 
 
