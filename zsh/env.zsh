@@ -36,6 +36,9 @@ export PATH=$HOME/Softwares/ndk_toolchaines_arm64/bin:$PATH
 # cargo
 export PATH=$PATH:$HOME/.cargo/bin
 
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
 
 #zlib ark
 # export LDFLAGS="-L/opt/homebrew/opt/zlib/lib"
