@@ -77,7 +77,7 @@ alias grm="python3 $ZSH_HOME/fzf/git_remove_branch.py"
 # git merge by fzf
 alias gmg="python3 $ZSH_HOME/fzf/git_merge_branch.py"
 alias gcb="git checkout -b"
-alias gcbbug='git checkout origin/master -b feature/lymanyang_bugfix_$(date +%Y%m%d_%H%M%S)'
+alias gcbbug='git checkout origin/master -b personal/lymanyang_bugfix_$(date +%Y%m%d_%H%M%S)'
 # get_cur_brranch && copy
 alias curb="python3 $HOME/.config/zsh/fzf/get_cur_brranch.py | tee >(clipcopy)"
 # select branch
