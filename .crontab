@@ -1,0 +1,4 @@
+# 同步ideavim
+0 8 * * * /Users/lyman/Github/ideavim/sync_ideavimrc.sh >> /Users/lyman/Github/ideavim/cron.log 2>&1
+# .config 目录同步任务 - 每天上午9点执行
+0 9 * * * cd /Users/lyman/.config && /Users/lyman/.config/sync.sh >> /Users/lyman/.config/cron.log 2>&1
