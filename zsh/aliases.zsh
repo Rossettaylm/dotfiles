@@ -111,3 +111,7 @@ alias du="dust"
 # file_ preview with fzf
 alias fp="$HOME/.config/zsh/fzf/file_preview.sh"
 alias cr="cargo run"
+
+# python
+alias python="/opt/homebrew/bin/python3.11"
+alias pip="/opt/homebrew/bin/pip3.11"
