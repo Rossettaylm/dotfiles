@@ -8,16 +8,6 @@ cache_file = os.path.join(
 )
 
 
-def check_cache_available():
-    if os.path.isfile(cache_file):
-        mtime = os.path.getmtime(cache_file)
-        nowtime = get_now_time()
-        if os.path.getsize(cache_file) == 0 or (nowtime - mtime) / (60 * 60 * 24) >= 7:
-            update_cache()
-    else:
-        update_cache()
-
-
 def update_cache():
     with open(cache_file, "w+") as cache:
         shell.log_plain("正在更新pkg cache...")
@@ -32,7 +22,6 @@ def update_cache():
 
 
 def brew_install(query=""):
-    check_cache_available()
     cmd = shell.fzf_command(header="[brew install]", use_multi_select=True, query=query)
     with open(cache_file, "r") as cache:
         out, err = shell.run_shell_cmd(cmd, input=cache.read())
