@@ -4,7 +4,7 @@ from pyutils import shell
 from time import time as get_now_time
 
 cache_file = os.path.join(
-    "{}/fzf".format(os.getenv("ZSH_HOME")), "brew_online_pkg_cache.txt"
+    "{}/.config/zsh/fzf".format(os.getenv("HOME")), "brew_online_pkg_cache.txt"
 )
 
 
