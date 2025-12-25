@@ -1,7 +1,7 @@
 import os
 import sys
+
 from pyutils import shell
-from time import time as get_now_time
 
 cache_file = os.path.join(
     "{}/.config/zsh/fzf".format(os.getenv("HOME")), "brew_online_pkg_cache.txt"
