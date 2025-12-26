@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import shlex
 import subprocess
 from enum import Enum
 
