@@ -40,6 +40,9 @@ export PATH=$PATH:$HOME/.cargo/bin
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
+# yazi
+export PATH=$PATH:$HOME/Softwares/yazi-aarch64-apple-darwin/
+
 #zlib ark
 # export LDFLAGS="-L/opt/homebrew/opt/zlib/lib"
 # export CPPFLAGS="-I/opt/homebrew/opt/zlib/include"
