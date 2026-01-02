@@ -36,6 +36,10 @@ export PATH=$HOME/Softwares/ndk_toolchaines_arm64/bin:$PATH
 # cargo
 export PATH=$PATH:$HOME/.cargo/bin
 
+# yazi
+export PATH=$PATH:$HOME/Softwares/yazi-aarch64-apple-darwin/
+
+
 
 #zlib ark
 # export LDFLAGS="-L/opt/homebrew/opt/zlib/lib"
