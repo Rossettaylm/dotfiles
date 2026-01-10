@@ -48,8 +48,6 @@ export NVM_DIR="$HOME/.nvm"
 export PATH="$PATH:/Applications/DevEco-Studio.app/Contents/tools/ohpm/bin"
 
 
-
-
 #zlib ark
 # export LDFLAGS="-L/opt/homebrew/opt/zlib/lib"
 # export CPPFLAGS="-I/opt/homebrew/opt/zlib/include"
