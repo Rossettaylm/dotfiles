@@ -107,6 +107,9 @@ alias top="btm"
 alias man="tldr"
 # dust to du 查看目录文件大小
 alias du="dust"
+# claude code
+alias cld="claude"
+alias cldi="claude-internal"
 
 # file_ preview with fzf
 alias fp="$HOME/.config/zsh/fzf/file_preview.sh"
