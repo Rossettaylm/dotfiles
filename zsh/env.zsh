@@ -23,7 +23,7 @@ export TERM=xterm-256color
 export PATH="/opt/homebrew/opt/node@18/bin:$PATH"
 
 # java home
-export JAVA_HOME="$SOFTWARES_HOME/TencentJDK17/Contents/Home"
+export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/jbr-17.0.14/Contents/Home"
 export PATH=$JAVA_HOME/bin:$PATH
 
 # Android home
