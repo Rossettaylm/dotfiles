@@ -13,7 +13,7 @@ _fzf_git_checkout_branch() {
 
 _select_branch() {
   $(which git) branch |
-    $(which fzf) --ansi \
+    $(which fzf) --ansi --no-sort \
       --border-label '🌲 Branches ' \
       --preview-window right,border-left,70% \
       --color hl:underline,hl+:underline \
