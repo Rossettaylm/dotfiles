@@ -146,11 +146,11 @@ keybinds clear-defaults=true {
         bind "Alt r" { SwitchToMode "renametab"; TabNameInput 0; }
         bind "Alt t" { NewTab; }
         bind "Alt w" {
-            Run "bash" "/Users/lyman/.config/scripts/zellij-nav.sh" {
+            LaunchOrFocusPlugin "session-manager" {
                 floating true
-                close_on_exit true
-                name "zellij-nav"
+                move_to_focused_tab true
             }
+            SwitchToMode "locked"
         }
     }
     shared_except "locked" "renametab" "renamepane" {
