@@ -98,6 +98,7 @@ alias adbid="adb devices | grep -v List | awk '{print \$1}'"
 
 # zellij 终端复用
 alias zj="zellij"
+alias zja="zellij attach -c"
 alias zjs="python3 $HOME/.config/zsh/fzf/zellij_sessions.py"
 # git push --set-upstream
 alias gpu="$HOME/.config/scripts/gpu"

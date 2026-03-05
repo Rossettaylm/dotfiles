@@ -5,6 +5,9 @@ import subprocess
 from enum import Enum
 
 
+DEFAULT_FZF_OPTS = "--no-sort"
+
+
 class LogLevel(Enum):
     PLAIN = (1,)
     SUCCESS = (2,)
@@ -82,8 +85,9 @@ def fzf_command(
     preview_window="right,70%",
     preview_label="[preview]",
 ):
-    cmd = "fzf --ansi {default_opts} --header='{header}' {multi_select} --preview-window='{preview_window}' --preview-label='{preview_label}' --query='{query}'".format(
+    cmd = "fzf --ansi {default_opts} {internal_opts} --header='{header}' {multi_select} --preview-window='{preview_window}' --preview-label='{preview_label}' --query='{query}'".format(
         default_opts=os.getenv("FZF_DEFAULT_OPTS"),
+        internal_opts=DEFAULT_FZF_OPTS,
         header=header,
         multi_select="-m" if use_multi_select else "",
         preview_window=preview_window,
@@ -103,6 +107,7 @@ def fzf_command_list(
     cmd = ["fzf"]
     if fzf_opts:
         cmd.extend(fzf_opts)
+    cmd.extend(DEFAULT_FZF_OPTS.split())
     cmd.append(
         f"--header={header}",
     )
