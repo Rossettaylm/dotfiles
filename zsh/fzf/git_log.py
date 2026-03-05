@@ -8,7 +8,7 @@ def obtain_git_commits(branch=""):
     gitLogCmd = f"git log --since='2 weeks ago' --oneline --date=short --pretty='format:%C(auto)%cd %an %h%d %s' {branch}"
     cutCmd = "cut -d ' ' -f 3"
     fzfCmd = (
-        r"fzf -m --header='[Git:Log]' --delimiter=' ' --preview='git show --pretty="
+        r"fzf -m --no-sort --header='[Git:Log]' --delimiter=' ' --preview='git show --pretty="
         " {3} --color=always' --preview-label='[Git:Diff]'"
     )
 
