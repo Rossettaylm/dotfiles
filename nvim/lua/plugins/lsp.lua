@@ -59,6 +59,7 @@ end
 
 return {
   "neovim/nvim-lspconfig",
+  cond = not vim.g.vscode,
   init = function()
     F.configureKeybinds()
     local keys = require("lazyvim.plugins.lsp.keymaps").get()
