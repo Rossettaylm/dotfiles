@@ -138,7 +138,7 @@ fetchers = [
   { id = "mime", url = "*", run = "mime", if = "!mime", prio = "high" },
 ]
 spotters = [
-  { url = "*/", run = "folder" },
+  # { url = "*/", run = "folder" },  # 改用 eza
   # Code
   { mime = "text/*", run = "code" },
   { mime = "*/{xml,javascript,wine-extension-ini}", run = "code" },
@@ -205,7 +205,7 @@ prepend_previewers = [
 ]
 
 previewers = [
-  { url = "*/", run = "folder", sync = true },
+  # { url = "*/", run = "folder", sync = true }, # 改用 eza 预览
   # Code
   { mime = "text/*", run = "code" },
   { mime = "*/{xml,javascript,wine-extension-ini}", run = "code" },
@@ -231,8 +231,6 @@ previewers = [
   { mime = "application/ms-opentype", run = "font" },
   # Empty file
   { mime = "inode/empty", run = "empty" },
-  # Fallback
-  { url = "*", run = "file" },
 ]
 
 append_previewers = [

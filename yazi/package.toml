@@ -35,8 +35,8 @@ hash = "f5afc904d5106ee368c8aa2ded43bd74"
 
 [[plugin.deps]]
 use = "boydaihungst/mediainfo"
-rev = "20ecff6"
-hash = "ad48b4d2fd8f429ce87b0fddf7f34c9"
+rev = "6fbed8d"
+hash = "57ae6b43c477e117802f176683b78e74"
 
 [[plugin.deps]]
 use = "h-hg/yamb"
@@ -55,8 +55,8 @@ hash = "e266f9277bd1f7c0a47a8d3cbf67b86e"
 
 [[plugin.deps]]
 use = "Lil-Dank/lazygit"
-rev = "0e56060"
-hash = "ab2e66065a94cca4886b303518e44bd8"
+rev = "8c4086c"
+hash = "85316b5e9abeae2531d3e5d02a094381"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mime-ext"
@@ -75,5 +75,5 @@ hash = "78b1fa05ed32141b25fdbe9849b94b4f"
 
 [[flavor.deps]]
 use = "Chromium-3-Oxide/everforest-medium"
-rev = "0158f0f"
-hash = "a7c36abf0b13289aceb1c20a17c6a63e"
+rev = "5f9200c"
+hash = "d33fbfce4e5dbc044e289d34fdede65d"
