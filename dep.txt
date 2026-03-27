@@ -22,3 +22,4 @@ tldr
 hexyl
 ouch
 mediainfo
+claude-code
