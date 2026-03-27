@@ -87,9 +87,18 @@ def ensure_brew() -> str:
         return brew
 
     print("未找到 Homebrew，开始安装...")
-    install_script = "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+    install_url = "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+    # 用两段管道：curl 下载脚本内容写入 bash stdin，避免 $() 展开问题
+    curl = subprocess.run(
+        ["curl", "-fsSL", install_url],
+        capture_output=True,
+        check=False,
+    )
+    if curl.returncode != 0:
+        sys.exit("下载 Homebrew 安装脚本失败")
     ret = subprocess.run(
-        ["/bin/bash", "-c", f"$(curl -fsSL {install_script})"],
+        ["/bin/bash"],
+        input=curl.stdout,
         check=False,
     )
     if ret.returncode != 0:
