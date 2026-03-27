@@ -11,6 +11,13 @@ REQUIRED_PYTHON = (3, 11)
 # 系统基础路径，确保 readlink/dirname 等基础命令可用
 SYSTEM_PATHS = ["/usr/bin", "/bin", "/usr/sbin", "/sbin", "/usr/local/bin"]
 
+# GitHub 仓库信息
+GITHUB_HOST  = "github.com"
+REPO_OWNER   = "Rossettaylm"
+REPO_NAME    = "config"
+REPO_SSH_URL   = f"git@{GITHUB_HOST}:{REPO_OWNER}/{REPO_NAME}.git"
+REPO_HTTPS_URL = f"https://{GITHUB_HOST}/{REPO_OWNER}/{REPO_NAME}.git"
+
 # Homebrew prefix 和对应的 brew 路径
 BREW_PREFIXES = [
     "/opt/homebrew",                # macOS Apple Silicon
@@ -113,22 +120,71 @@ def resolve_pat(cli_pat: str | None) -> str | None:
     return os.environ.get("GITHUB_PAT") or os.environ.get("GITHUB_TOKEN") or None
 
 
-def update_submodules(pat: str | None = None):
+def probe_ssh_github() -> bool:
+    """探测 SSH 能否连通 GitHub（不依赖任何 PAT）。
+
+    `ssh -T git@github.com` 在认证成功时返回 exit code 1（Hi <user>! ...），
+    鉴权失败时返回 255；两种情况都属于"能不能连上"，只要不是连接失败即可。
+    """
+    ret = subprocess.run(
+        ["ssh", "-T", "-o", "StrictHostKeyChecking=no",
+         "-o", "BatchMode=yes",           # 禁止交互，密钥不存在时立即失败
+         "-o", "ConnectTimeout=5",
+         f"git@{GITHUB_HOST}"],
+        capture_output=True,
+        check=False,
+    )
+    # exit 255 = 连接/鉴权彻底失败；exit 1 = 连上了但 GitHub 不开 shell（正常）
+    reachable = ret.returncode != 255
+    if reachable:
+        print("SSH 连通 GitHub，使用 SSH 协议")
+    else:
+        print("SSH 无法连通 GitHub，回退到 HTTPS + PAT")
+    return reachable
+
+
+def setup_repo_remote(use_ssh: bool, pat: str | None):
+    """按协议偏好设置当前仓库的 origin remote URL。
+
+    - SSH 可用  → git@github.com:owner/repo.git
+    - SSH 不可用 → https://<pat>@github.com/owner/repo.git
+    """
+    repo_root = Path(__file__).parent
+    if use_ssh:
+        url = REPO_SSH_URL
+    else:
+        if not pat:
+            sys.exit("SSH 不可用且未提供 PAT，无法设置 remote URL")
+        url = f"https://{pat}@{GITHUB_HOST}/{REPO_OWNER}/{REPO_NAME}.git"
+
+    subprocess.run(
+        ["git", "remote", "set-url", "origin", url],
+        cwd=repo_root,
+        check=True,
+    )
+    # 打印时隐藏 token
+    display = REPO_SSH_URL if use_ssh else REPO_HTTPS_URL
+    print(f"remote origin 已设为: {display}")
+
+
+def update_submodules(use_ssh: bool, pat: str | None):
     """拉取所有 git submodule。
 
-    若提供 pat，则通过临时 url rewrite 注入 GitHub Personal Access Token，
-    仅在本次 git 调用中生效，不修改任何 git 配置文件。
+    - SSH 可用  → 直接执行，submodule 的 git@github.com: URL 原样生效
+    - SSH 不可用 → 用 -c insteadOf 临时将 SSH / HTTPS URL 均改写为 HTTPS+PAT，
+                   不修改任何 git 配置文件
     """
     repo_root = Path(__file__).parent
     print("正在更新 git submodules...")
 
     cmd = ["git"]
-    if pat:
-        # 同时覆盖 HTTPS 和 SSH 两种 URL，不落盘到 .git/config 或 ~/.gitconfig
-        authed = f"https://{pat}@github.com/"
+    if not use_ssh:
+        if not pat:
+            sys.exit("SSH 不可用且未提供 PAT，无法拉取 submodule")
+        authed = f"https://{pat}@{GITHUB_HOST}/"
         cmd += [
-            "-c", f"url.{authed}.insteadOf=https://github.com/",
-            "-c", f"url.{authed}.insteadOf=git@github.com:",
+            "-c", f"url.{authed}.insteadOf=https://{GITHUB_HOST}/",
+            "-c", f"url.{authed}.insteadOf=git@{GITHUB_HOST}:",
         ]
     cmd += ["submodule", "update", "--init", "--recursive"]
 
@@ -171,7 +227,9 @@ def main():
     ensure_system_paths()
 
     pat = resolve_pat(args.pat)
-    update_submodules(pat)
+    use_ssh = probe_ssh_github()
+    setup_repo_remote(use_ssh, pat)
+    update_submodules(use_ssh, pat)
     init_fzf()
 
     brew = ensure_brew()
