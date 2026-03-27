@@ -1,0 +1,3 @@
+# 允许终端程序读写系统剪贴板（OSC 52 支持）
+clipboard-read = allow
+clipboard-write = allow
