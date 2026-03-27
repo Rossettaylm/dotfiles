@@ -1,8 +1,3 @@
-# ── 剪贴板（OSC 52）─────────────────────────────────
-clipboard-read = allow
-clipboard-write = allow
-clipboard-paste-protection = false
-
 # ── 字体 ─────────────────────────────────────────────
 font-family = "CommitMono Nerd Font"
 font-size = 15
