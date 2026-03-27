@@ -84,8 +84,9 @@ def fzf_command(
     preview="",
     preview_window="right,70%",
     preview_label="[preview]",
+    sort=True,
 ):
-    cmd = "fzf --ansi {default_opts} {internal_opts} --header='{header}' {multi_select} --preview-window='{preview_window}' --preview-label='{preview_label}' --query='{query}'".format(
+    cmd = "fzf --ansi {default_opts} {internal_opts} {sort_opts} --header='{header}' {multi_select} --preview-window='{preview_window}' --preview-label='{preview_label}' --query='{query}'".format(
         default_opts=os.getenv("FZF_DEFAULT_OPTS"),
         internal_opts=DEFAULT_FZF_OPTS,
         header=header,
@@ -93,6 +94,7 @@ def fzf_command(
         preview_window=preview_window,
         query=query,
         preview_label=preview_label,
+        sort_opts="--sort" if sort else "--no-sort",
     )
     if preview:
         cmd = cmd + " " + preview

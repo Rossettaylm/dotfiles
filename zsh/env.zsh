@@ -13,6 +13,7 @@ export FZF_HOME="$HOME/.config/thirdparty/fzf"
 export PATH=$SCRIPTS_HOME:$PATH
 export PATH=$HOME/.local/bin:$PATH
 export PATH=$PATH:$HOME/.cargo/bin
+export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin
 
 export EDITOR=nvim
 export TERM=xterm-256color
