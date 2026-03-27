@@ -157,13 +157,37 @@ def setup_repo_remote(use_ssh: bool, pat: str | None):
 
     - SSH 可用  → git@github.com:owner/repo.git
     - SSH 不可用 → https://<pat>@github.com/owner/repo.git
+
+    若当前 remote URL 已经与目标协议匹配则跳过，避免无必要的写操作及
+    在无 PAT 时因无法构造 HTTPS URL 而中断流程。
     """
     repo_root = Path(__file__).parent
+
+    # 读取当前 remote URL
+    cur = subprocess.run(
+        ["git", "remote", "get-url", "origin"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    current_url = cur.stdout.strip()
+
     if use_ssh:
+        # 当前已是 SSH URL，无需变更
+        if current_url == REPO_SSH_URL:
+            print(f"remote origin 已是 SSH URL，跳过")
+            return
         url = REPO_SSH_URL
     else:
+        # 当前已是合法的 HTTPS URL（不论是否含 token），无需变更
+        if current_url.startswith(f"https://{GITHUB_HOST}/") or \
+                current_url.startswith(f"https://") and f"@{GITHUB_HOST}/" in current_url:
+            print(f"remote origin 已是 HTTPS URL，跳过")
+            return
         if not pat:
-            sys.exit("SSH 不可用且未提供 PAT，无法设置 remote URL")
+            print("SSH 不可用且未提供 PAT，跳过设置 remote URL（保留现有配置）")
+            return
         url = f"https://{pat}@{GITHUB_HOST}/{REPO_OWNER}/{REPO_NAME}.git"
 
     subprocess.run(
