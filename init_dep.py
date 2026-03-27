@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import sys
 import shutil
@@ -105,15 +106,31 @@ def brew_install(brew: str, deps: list[str]):
     subprocess.run([brew, "install", *deps], check=False)
 
 
-def update_submodules():
-    """拉取所有 git submodule"""
+def resolve_pat(cli_pat: str | None) -> str | None:
+    """优先级：命令行 --pat > 环境变量 GITHUB_PAT > GITHUB_TOKEN"""
+    if cli_pat:
+        return cli_pat
+    return os.environ.get("GITHUB_PAT") or os.environ.get("GITHUB_TOKEN") or None
+
+
+def update_submodules(pat: str | None = None):
+    """拉取所有 git submodule。
+
+    若提供 pat，则通过临时 url rewrite 注入 GitHub Personal Access Token，
+    仅在本次 git 调用中生效，不修改任何 git 配置文件。
+    """
     repo_root = Path(__file__).parent
     print("正在更新 git submodules...")
-    ret = subprocess.run(
-        ["git", "submodule", "update", "--init", "--recursive"],
-        cwd=repo_root,
-        check=False,
-    )
+
+    cmd = ["git"]
+    if pat:
+        # 用 -c 临时覆盖，不落盘到 .git/config 或 ~/.gitconfig
+        cmd += [
+            "-c", f"url.https://{pat}@github.com/.insteadOf=https://github.com/",
+        ]
+    cmd += ["submodule", "update", "--init", "--recursive"]
+
+    ret = subprocess.run(cmd, cwd=repo_root, check=False)
     if ret.returncode != 0:
         sys.exit("git submodule 更新失败")
     print("git submodules 更新完成")
@@ -139,10 +156,20 @@ def init_fzf():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="初始化开发环境依赖")
+    parser.add_argument(
+        "--pat",
+        metavar="TOKEN",
+        default=None,
+        help="GitHub Personal Access Token，用于拉取私有/受限 submodule（也可通过 GITHUB_PAT 或 GITHUB_TOKEN 环境变量传入）",
+    )
+    args = parser.parse_args()
+
     check_python_version()
     ensure_system_paths()
 
-    update_submodules()
+    pat = resolve_pat(args.pat)
+    update_submodules(pat)
     init_fzf()
 
     brew = ensure_brew()
