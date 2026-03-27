@@ -300,15 +300,23 @@ def setup_gitconfig():
     已存在相同 key 时直接覆盖，不会产生重复项。
     """
     import configparser
+    import re
 
     print("正在配置 ~/.gitconfig ...")
     parser = configparser.RawConfigParser()
     parser.read_string(GITCONFIG_TEMPLATE)
 
     for section in parser.sections():
+        # 处理带子节的 section，如 filter "lfs" -> filter.lfs
+        m = re.fullmatch(r'(\S+)\s+"([^"]+)"', section)
+        if m:
+            git_section = f"{m.group(1)}.{m.group(2)}"
+        else:
+            git_section = section
+
         for key, value in parser.items(section):
             ret = subprocess.run(
-                ["git", "config", "--global", f"{section}.{key}", value],
+                ["git", "config", "--global", f"{git_section}.{key}", value],
                 check=False,
             )
             if ret.returncode != 0:
