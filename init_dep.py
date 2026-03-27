@@ -124,9 +124,11 @@ def update_submodules(pat: str | None = None):
 
     cmd = ["git"]
     if pat:
-        # 用 -c 临时覆盖，不落盘到 .git/config 或 ~/.gitconfig
+        # 同时覆盖 HTTPS 和 SSH 两种 URL，不落盘到 .git/config 或 ~/.gitconfig
+        authed = f"https://{pat}@github.com/"
         cmd += [
-            "-c", f"url.https://{pat}@github.com/.insteadOf=https://github.com/",
+            "-c", f"url.{authed}.insteadOf=https://github.com/",
+            "-c", f"url.{authed}.insteadOf=git@github.com:",
         ]
     cmd += ["submodule", "update", "--init", "--recursive"]
 
