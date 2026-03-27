@@ -129,8 +129,8 @@ suppress_preload = false
 prepend_fetchers = [
   { id = "git", url = "*", run = "git" },
   { id = "git", url = "*/", run = "git" },
-  { id = "mime", url = "local://*", run = "mime-ext.local", prio = "high" },
-  { id = "mime", url = "remote://*", run = "mime-ext.remote", prio = "high" },
+  # { id = "mime", url = "local://*", run = "mime-ext.local", prio = "high" },
+  # { id = "mime", url = "remote://*", run = "mime-ext.remote", prio = "high" },
 ]
 
 fetchers = [
