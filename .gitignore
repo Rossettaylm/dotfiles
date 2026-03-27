@@ -71,6 +71,10 @@ yazi/*
 !yazi/flavors/
 !yazi/flavors/**
 
+# ── Ghostty ──────────────────────────────────────────
+!ghostty/
+!ghostty/**
+
 # ── Aerospace ────────────────────────────────────────
 !aerospace/
 !aerospace/**
