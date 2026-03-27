@@ -14,7 +14,7 @@ def show_zellij_sessions_in_fzf() -> str:
     if len(result) <= 0:
         return ""
     session_list = result[0].split(" ")
-    if len(session_list) >= 0:
+    if len(session_list) > 0:
         return session_list[0]
     else:
         return ""
