@@ -8,7 +8,6 @@ return {
       "json",
       "lua",
       "markdown",
-      "cmake",
       "python",
       "regex",
       "vim",

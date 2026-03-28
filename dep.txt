@@ -23,3 +23,5 @@ hexyl
 ouch
 mediainfo
 claude-code
+ghostty
+node

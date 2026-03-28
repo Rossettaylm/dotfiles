@@ -68,6 +68,11 @@ use = "yazi-rs/plugins:sudo-demo"
 rev = "1962818"
 hash = "78b1fa05ed32141b25fdbe9849b94b4f"
 
+[[plugin.deps]]
+use = "yazi-rs/plugins:mime-ext"
+rev = "1962818"
+hash = "8b177921e50732b2c8e9d71aa5956270"
+
 [[flavor.deps]]
 use = "Chromium-3-Oxide/everforest-medium"
 rev = "5f9200c"
