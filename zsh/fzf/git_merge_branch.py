@@ -5,7 +5,7 @@ import os
 
 
 def git_merge_branch():
-    branch_result = git.get_branches(header="[git:merge]", use_multi_select=False)
+    branch_result = git.get_branches(header="🔀 [Git: Merge]", use_multi_select=False)
     if branch_result.isInvalid():
         return
     has_cur_branch = branch_result.has_cur_branch

@@ -56,7 +56,7 @@ def get_cur_branch():
 
 
 def get_branches_v2(header, use_multi_select=False, query=""):
-    fzf_cmd = sh.fzf_command_list(header, use_multi_select, query)
+    fzf_cmd = sh.build_fzf_cmd(border_label=header, use_multi_select=use_multi_select, query=query)
     _, err = sh.run_shell_cmd("git branch")
     if err:
         raise CalledProcessError(-1, "git branch", None, "not a git repo")
@@ -65,19 +65,21 @@ def get_branches_v2(header, use_multi_select=False, query=""):
 
 
 # 必须要使用/$()来包裹命令来保证刷新
-def git_branch_fzf_preview_opt():
-    preview_opt = "--preview \"git log --since='4 week ago' --oneline --color=always --date=short --pretty='format:%C(auto)%cd %an %h%d %s' \$(cut -c3- <<< {} | cut -d' ' -f1) --\""
-    return preview_opt
+def git_branch_fzf_preview_cmd():
+    """返回纯预览命令字符串（不含 --preview 标志），传给 build_fzf_cmd 的 preview 参数。"""
+    return "git log --since='4 week ago' --oneline --graph --color=always --date=short --pretty='format:%C(auto)%cd %an %h%d %s' $(cut -c3- <<< {} | cut -d' ' -f1) --"
 
 
 # 选中分支
 def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
-    fzf_cmd = sh.fzf_command(
-        header,
-        use_multi_select,
-        preview=git_branch_fzf_preview_opt(),
-        preview_window="down,70%",
-        preview_label="[Git:Show]",
+    fzf_cmd = sh.build_fzf_cmd(
+        border_label=header,
+        use_multi_select=use_multi_select,
+        preview=git_branch_fzf_preview_cmd(),
+        preview_window="right,border-left,70%",
+        preview_label="[ Git Log ]",
+        extra_args=["--no-hscroll", "--color", "hl:underline,hl+:underline"],
+        as_str=True,
     )
 
     _, err = sh.run_shell_cmd(show_brs_cmd)

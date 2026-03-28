@@ -15,7 +15,7 @@ def confirm_to_remove(branches):
 
 
 def git_remove_branch():
-    res = git.get_branches(header="[git:remove branch]", use_multi_select=True)
+    res = git.get_branches(header="🗑️  [Git: Remove Branch]", use_multi_select=True)
     has_cur_branch = res.has_cur_branch
     branches = res.branch_list
     if has_cur_branch:

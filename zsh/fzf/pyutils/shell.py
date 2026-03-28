@@ -7,6 +7,9 @@ from enum import Enum
 
 DEFAULT_FZF_OPTS = "--no-sort"
 
+_DEFAULT_PROMPT = "  > "
+_DEFAULT_POINTER = "▶"
+
 
 class LogLevel(Enum):
     PLAIN = (1,)
@@ -77,6 +80,60 @@ if __name__ == "__main__":
     print(result)  # 输出: hello world
 
 
+def build_fzf_cmd(
+    border_label: str,
+    header: str = "",
+    use_multi_select: bool = False,
+    query: str = "",
+    prompt: str = _DEFAULT_PROMPT,
+    pointer: str = _DEFAULT_POINTER,
+    sort: bool = True,
+    preview: str = "",
+    preview_window: str = "right,70%",
+    preview_label: str = "[ preview ]",
+    extra_args: list[str] = [],
+    as_str: bool = False,
+):
+    """统一的 fzf 命令构造函数。
+
+    as_str=True  → 返回字符串（用于 shell pipe：cmd1 | fzf ...）
+    as_str=False → 返回列表（用于 subprocess.Popen，避免 shell 转义问题）
+    """
+    fzf_opts = os.getenv("FZF_DEFAULT_OPTS", "").split()
+    args: list[str] = ["fzf", "--ansi"]
+    args.extend(fzf_opts)
+    args.extend(DEFAULT_FZF_OPTS.split())
+    args += ["--sort" if sort else "--no-sort"]
+    args += ["--border-label", f" {border_label} "]
+    args += ["--border-label-pos", "2"]
+    args += ["--prompt", prompt]
+    args += ["--pointer", pointer]
+    if header:
+        args += ["--header", header]
+    if query:
+        args += ["--query", query]
+    if use_multi_select:
+        args.append("-m")
+    if preview:
+        args += ["--preview", preview]
+    args += ["--preview-window", preview_window]
+    args += ["--preview-label", preview_label]
+    if extra_args:
+        args.extend(extra_args)
+
+    if as_str:
+        # shell 管道模式：手动引用含空格的参数
+        parts = []
+        i = 0
+        while i < len(args):
+            parts.append(shlex.quote(args[i]))
+            i += 1
+        return " ".join(parts)
+    return args
+
+
+# ── 向后兼容 wrapper ───────────────────────────────────────────
+
 def fzf_command(
     header,
     use_multi_select=False,
@@ -86,45 +143,30 @@ def fzf_command(
     preview_label="[preview]",
     sort=True,
 ):
-    cmd = "fzf --ansi {default_opts} {internal_opts} {sort_opts} --header='{header}' {multi_select} --preview-window='{preview_window}' --preview-label='{preview_label}' --query='{query}'".format(
-        default_opts=os.getenv("FZF_DEFAULT_OPTS"),
-        internal_opts=DEFAULT_FZF_OPTS,
-        header=header,
-        multi_select="-m" if use_multi_select else "",
-        preview_window=preview_window,
+    """已废弃，保留向后兼容。请使用 build_fzf_cmd(as_str=True)。"""
+    return build_fzf_cmd(
+        border_label=header,
+        use_multi_select=use_multi_select,
         query=query,
+        preview=preview,
+        preview_window=preview_window,
         preview_label=preview_label,
-        sort_opts="--sort" if sort else "--no-sort",
+        sort=sort,
+        as_str=True,
     )
-    if preview:
-        cmd = cmd + " " + preview
-    return cmd
 
 
-# fg+ 字体颜色
 def fzf_command_list(
     header, use_multi_select=False, query="", delemiter="", preview=""
 ):
-    fzf_opts = os.getenv("FZF_DEFAULT_OPTS", "").split(sep=" ")
-    cmd = ["fzf"]
-    if fzf_opts:
-        cmd.extend(fzf_opts)
-    cmd.extend(DEFAULT_FZF_OPTS.split())
-    cmd.append(
-        f"--header={header}",
+    """已废弃，保留向后兼容。请使用 build_fzf_cmd(as_str=False)。"""
+    return build_fzf_cmd(
+        border_label=header,
+        use_multi_select=use_multi_select,
+        query=query,
+        preview=preview,
+        as_str=False,
     )
-    if query:
-        cmd.append("--query")
-        cmd.append(query)
-    if use_multi_select:
-        cmd.append("-m")
-    if delemiter:
-        cmd.append("--delemiter")
-        cmd.append(delemiter)
-    if preview:
-        cmd.append("--preview")
-        cmd.append(preview)
-    return cmd
 
 
 _format_table = {
