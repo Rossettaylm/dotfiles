@@ -1,74 +1,74 @@
 [[plugin.deps]]
+use = "yazi-rs/plugins:piper"
+rev = "1962818"
+hash = "384464b6df8cb807425c521f8cd790f3"
+
+[[plugin.deps]]
 use = "yazi-rs/plugins:smart-enter"
-rev = "71c4fc2"
-hash = "c1a2739e9ef2d837030ccb4267be3ed1"
-
-[[plugin.deps]]
-use = "yazi-rs/plugins:git"
-rev = "71c4fc2"
-hash = "e9cf1bfc03de7fee0f1d4260da0d1dfd"
-
-[[plugin.deps]]
-use = "yazi-rs/plugins:mime-ext"
-rev = "71c4fc2"
-hash = "d81b64a39432fcd6224cd75d296e7510"
-
-[[plugin.deps]]
-use = "Reledia/glow"
-rev = "5ce76dc"
-hash = "52e5f5c602962e7cbf874da28f52ba45"
-
-[[plugin.deps]]
-use = "Reledia/hexyl"
-rev = "39d3d4e"
-hash = "faeeb1cc6fa8b4dc9ec5b31cf44b7c34"
-
-[[plugin.deps]]
-use = "ndtoan96/ouch"
-rev = "b869886"
-hash = "6bc9e0b2139467c8d2cc6c5fb954206c"
-
-[[plugin.deps]]
-use = "h-hg/yamb"
-rev = "108347b"
-hash = "faf1b817347b5b46c96039dab538694b"
+rev = "1962818"
+hash = "187cc58ba7ac3befd49c342129e6f1b6"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:chmod"
-rev = "71c4fc2"
-hash = "4c7e8fd0266eedee7b619d966bd2d025"
+rev = "1962818"
+hash = "f0c8c378184d5f8abd1b095a443d336d"
 
 [[plugin.deps]]
-use = "boydaihungst/restore"
-rev = "ffc209e"
-hash = "4b2069c1c73aa22f0d5c1548e32027a8"
+use = "yazi-rs/plugins:git"
+rev = "1962818"
+hash = "26db011a778f261d730d4f5f8bf24b3f"
 
 [[plugin.deps]]
-use = "llanosrocas/yaziline"
-rev = "864572c"
-hash = "2824dd15741717ccee82e232ccf894d7"
+use = "yazi-rs/plugins:diff"
+rev = "1962818"
+hash = "8b1af6b5a69797ee951f2a80ce570818"
 
-[[flavor.deps]]
-use = "dangooddd/kanagawa"
-rev = "240194c"
-hash = "6687890dce56d85f8708adaaa21a5e59"
+[[plugin.deps]]
+use = "AnirudhG07/rich-preview"
+rev = "7d616ad"
+hash = "d64feec9761392cbc250d199ab4b8a3a"
 
-[[flavor.deps]]
-use = "PinThePenguine/sunset"
-rev = "181acd4"
-hash = "cc4c39af7098f02c42fec223fc1fc967"
+[[plugin.deps]]
+use = "ndtoan96/ouch"
+rev = "406ce6c"
+hash = "f5afc904d5106ee368c8aa2ded43bd74"
 
-[[flavor.deps]]
-use = "kmlupreti/ayu-dark"
-rev = "441a38d"
-hash = "80fbe38dcb5885ab03d1bf84e03da9d2"
+[[plugin.deps]]
+use = "boydaihungst/mediainfo"
+rev = "6fbed8d"
+hash = "57ae6b43c477e117802f176683b78e74"
 
-[[flavor.deps]]
-use = "bennyyip/gruvbox-dark"
-rev = "b4cc9f2"
-hash = "f44c42bcbed3c8564100e45e2fe3649a"
+[[plugin.deps]]
+use = "h-hg/yamb"
+rev = "5f2e22e"
+hash = "699fe07e0d2d1b4af8dafb84168eeb04"
+
+[[plugin.deps]]
+use = "Rossettaylm/hexyl"
+rev = "8471cf5"
+hash = "78d2c8dac3542b5616288f3688d145a8"
+
+[[plugin.deps]]
+use = "Rossettaylm/system-clipboard"
+rev = "f19b66b"
+hash = "e266f9277bd1f7c0a47a8d3cbf67b86e"
+
+[[plugin.deps]]
+use = "Lil-Dank/lazygit"
+rev = "8c4086c"
+hash = "85316b5e9abeae2531d3e5d02a094381"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:mount"
+rev = "1962818"
+hash = "91937a4a9b779eabc6983e258befdfe9"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:sudo-demo"
+rev = "1962818"
+hash = "78b1fa05ed32141b25fdbe9849b94b4f"
 
 [[flavor.deps]]
 use = "Chromium-3-Oxide/everforest-medium"
-rev = "65bc09b"
-hash = "2bc39a2ccc968ba4d50ea060e0722967"
+rev = "5f9200c"
+hash = "d33fbfce4e5dbc044e289d34fdede65d"

@@ -1,0 +1,105 @@
+# 白名单模式：默认忽略所有文件和目录，通过 ! 显式放行需要同步的配置
+*
+!.gitignore
+!.gitmodules
+
+# ── 文档 ──────────────────────────────────────────────
+!CLAUDE.md
+!README.md
+
+# ── 初始化脚本 ────────────────────────────────────────
+!init_dep.py
+!sync.sh
+!dep.txt
+
+# ── Zsh ──────────────────────────────────────────────
+!zsh/
+zsh/*
+!zsh/zshrc
+!zsh/env.zsh
+!zsh/aliases.zsh
+!zsh/functions.zsh
+!zsh/fzf.zsh
+!zsh/mappings.zsh
+!zsh/zoxide.zsh
+!zsh/macenv.zsh
+!zsh/fzf/
+zsh/fzf/*
+!zsh/fzf/*.sh
+!zsh/fzf/*.py
+!zsh/fzf/pyutils/
+zsh/fzf/pyutils/*
+!zsh/fzf/pyutils/*.py
+!zsh/oh-my-zsh/
+zsh/oh-my-zsh/*
+!zsh/oh-my-zsh/custom/
+zsh/oh-my-zsh/custom/*
+!zsh/oh-my-zsh/custom/plugins/
+zsh/oh-my-zsh/custom/plugins/*
+!zsh/oh-my-zsh/custom/plugins/zsh-syntax-highlighting/
+!zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions/
+!zsh/oh-my-zsh/custom/plugins/fzf-tab/
+
+# ── Neovim ───────────────────────────────────────────
+!nvim/
+nvim/*
+!nvim/init.lua
+!nvim/lazy-lock.json
+!nvim/lua/
+!nvim/lua/**
+
+# ── Neovim (VimScript 备份) ───────────────────────────
+!nvim.vim.bak/
+!nvim.vim.bak/**
+
+# ── Alacritty ────────────────────────────────────────
+!alacritty/
+!alacritty/**
+
+# ── Zellij ───────────────────────────────────────────
+!zellij/
+!zellij/**
+
+# ── Yazi ─────────────────────────────────────────────
+!yazi/
+yazi/*
+!yazi/yazi.toml
+!yazi/keymap.toml
+!yazi/theme.toml
+!yazi/plugins/
+!yazi/plugins/**
+!yazi/flavors/
+!yazi/flavors/**
+
+# ── Ghostty ──────────────────────────────────────────
+!ghostty/
+!ghostty/**
+
+# ── Aerospace ────────────────────────────────────────
+!aerospace/
+!aerospace/**
+
+# ── Lazygit ──────────────────────────────────────────
+!lazygit/
+!lazygit/**
+
+# ── Scripts ──────────────────────────────────────────
+!scripts/
+!scripts/**
+
+# ── Neofetch ─────────────────────────────────────────
+!neofetch/
+!neofetch/**
+
+# ── Bottom (系统监视器) ──────────────────────────────
+!bottom/
+!bottom/**
+
+# ── Git 全局配置 (ignore / attributes) ──────────────
+!git/
+!git/**
+
+# ── Thirdparty submodules ────────────────────────────
+!thirdparty/
+thirdparty/*
+!thirdparty/fzf/
