@@ -13,7 +13,7 @@ def main():
     branch = argv[1] if len(argv) > 1 else ""
 
     git_log_cmd = (
-        f"git log --oneline --date=short "
+        f"git log -n 1000 --oneline --date=short "
         f"--pretty='format:%C(auto)%cd %an %h%d %s' {branch}"
     )
     log_lines, err = shell.run_shell_cmd(git_log_cmd)
