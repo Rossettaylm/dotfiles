@@ -3,25 +3,25 @@ draw_bold_text_with_bright_colors = false
 
 [keyboard]
 bindings = [
-{ key = "N", mods = "Command | Shift", action = "SpawnNewInstance" },
-{ key = "W", mods = "Command", action = "Hide" },
-{ key = "T", mods = "Command", action = "CreateNewTab" },
-{ key = "N", mods = "Command", action = "CreateNewWindow" },
-{ key = "[", mods = "Command", action = "SelectPreviousTab" },
-{ key = "]", mods = "Command", action = "SelectNextTab" },
-{ key = "1", mods = "Command", action = "SelectTab1" },
-{ key = "2", mods = "Command", action = "SelectTab2" },
-{ key = "3", mods = "Command", action = "SelectTab3" },
-{ key = "4", mods = "Command", action = "SelectTab4" },
-{ key = "5", mods = "Command", action = "SelectTab5" },
-{ key = "6", mods = "Command", action = "SelectTab6" },
-{ key = "7", mods = "Command", action = "SelectTab7" },
-{ key = "8", mods = "Command", action = "SelectTab8" },
-# vi_mode
-{ key = "i", mods = "Command | Shift", action = "ToggleViMode"},
-{ key = "9", mode = "Vi", action = "FirstOccupied" },
-{ key = "0", mode = "Vi", action = "Last" },
-{ key = "o", mode = "Vi", action = "Open" }
+  { key = "N", mods = "Command | Shift", action = "SpawnNewInstance" },
+  { key = "W", mods = "Command", action = "Hide" },
+  { key = "T", mods = "Command", action = "CreateNewTab" },
+  { key = "N", mods = "Command", action = "CreateNewWindow" },
+  { key = "[", mods = "Command", action = "SelectPreviousTab" },
+  { key = "]", mods = "Command", action = "SelectNextTab" },
+  { key = "1", mods = "Command", action = "SelectTab1" },
+  { key = "2", mods = "Command", action = "SelectTab2" },
+  { key = "3", mods = "Command", action = "SelectTab3" },
+  { key = "4", mods = "Command", action = "SelectTab4" },
+  { key = "5", mods = "Command", action = "SelectTab5" },
+  { key = "6", mods = "Command", action = "SelectTab6" },
+  { key = "7", mods = "Command", action = "SelectTab7" },
+  { key = "8", mods = "Command", action = "SelectTab8" },
+  # vi_mode
+  { key = "i", mods = "Command | Shift", action = "ToggleViMode" },
+  { key = "9", mode = "Vi", action = "FirstOccupied" },
+  { key = "0", mode = "Vi", action = "Last" },
+  { key = "o", mode = "Vi", action = "Open" },
 ]
 
 [general]
@@ -78,24 +78,24 @@ blinking = "Off"
 size = 15.0
 
 [font.italic]
-family = "Hack Nerd Font"
+family = "CommitMono Nerd Font"
 style = "Italic"
 
 [font.normal]
-family = "Hack Nerd Font"
+family = "CommitMono Nerd Font"
 style = "Regular"
 
 [font.bold]
-family = "Hack Nerd Font"
+family = "CommitMono Nerd Font"
 style = "Bold"
 
 [font.bold_italic]
-family = "Hack Nerd Font"
+family = "CommitMono Nerd Font"
 style = "Bold Italic"
 
 [font.offset]
 x = 0
-y = 5
+y = 8
 
 [scrolling]
 history = 100000
@@ -115,9 +115,10 @@ option_as_alt = "Both"
 columns = 106
 lines = 25
 
-# [window.position]
-# x = 800
-# y = 400
+[window.position]
+x = 800
+y = 400
+
 #
 [window.padding]
 x = 15

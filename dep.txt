@@ -13,3 +13,13 @@ cmake
 fd
 font-hack-nerd-font
 tree
+lazygit
+bottom
+htop
+procs
+eza
+tldr
+hexyl
+ouch
+mediainfo
+claude-code
