@@ -64,3 +64,9 @@ keybind = cmd+opt+down=unbind
 keybind = cmd+opt+left=unbind
 keybind = cmd+opt+right=unbind
 
+# ── opt+方向键 → 与 opt+hjkl 发送相同字节，保证 zellij 行为一致 ───
+keybind = opt+up=text:\x1bk
+keybind = opt+down=text:\x1bj
+keybind = opt+left=text:\x1bh
+keybind = opt+right=text:\x1bl
+
