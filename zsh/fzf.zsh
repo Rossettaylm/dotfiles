@@ -22,7 +22,9 @@ _fzf_comprun() {
 }
 
 export FZF_DEFAULT_COMMAND="fd --hidden --exclude '.git'"
-export FZF_DEFAULT_OPTS="--height 80% --layout reverse --border"
+# tomasr/molokai
+export FZF_DEFAULT_OPTS="--height=80% --ansi --no-sort --layout=reverse --border --color=border:#808080,spinner:#E6DB74,hl:#7E8E91,fg:#F8F8F2,header:#7E8E91,info:#A6E22E,pointer:#A6E22E,marker:#F92672,fg+:#F8F8F2,prompt:#F92672,hl+:#F92672"
+
 export FZF_CTRL_T_COMMAND="fd --type f --hidden --exclude '.git'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --exclude '.git'"
 
@@ -30,7 +32,9 @@ export FZF_ALT_C_COMMAND="fd --type d --hidden --exclude '.git'"
 export FZF_CTRL_T_OPTS="${FZF_DEFAULT_OPTS} --preview-label='Files' --preview 'bat -n --color=always {}'" 
 
 # change to ctrl-h override
-export FZF_CTRL_R_OPTS="${FZF_DEFAULT_OPTS} --preview-label='History Commands'" # history
+export FZF_CTRL_R_OPTS="${FZF_DEFAULT_OPTS} --preview-label='History Commands' 
+--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+--header 'Press CTRL-Y to copy command into clipboard'"
 
 # override preview with tree
 export FZF_ALT_C_OPTS="--preview 'tree -C {}' --preview-label='Directorys'"

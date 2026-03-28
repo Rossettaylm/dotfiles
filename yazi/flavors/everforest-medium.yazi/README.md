@@ -13,12 +13,25 @@
 ## 🎨 Installation
 
 ```bash
+ya pkg add Chromium-3-Oxide/everforest-medium
+```
+
+Or:
+
+```bash
 ya pack -a Chromium-3-Oxide/everforest-medium
 ```
 
 ## ⚙️ Usage
 
 Add the these lines to your `theme.toml` configuration file to use it:
+
+```toml
+[flavor]
+dark = "everforest-medium"
+```
+
+For Yazi versions before 0.4:
 
 ```toml
 [flavor]

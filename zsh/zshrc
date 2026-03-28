@@ -11,6 +11,7 @@ source $HOME/.config/zsh/env.zsh
 # ZSH_THEME="amuse"
 # ZSH_THEME="ys"
 ZSH_THEME="steeef"
+# ZSH_THEME="edvardm"
 # ZSH_THEME="awesomepanda"
 # ZSH_THEME="gozilla"
 
@@ -25,6 +26,7 @@ plugins=(
     web-search
     zsh-syntax-highlighting
     zsh-autosuggestions
+    fzf-tab
 )
 
 # ohmyzsh
@@ -50,7 +52,13 @@ source $ZSH/oh-my-zsh.sh
 [ -f "$ZSH_HOME/zoxide.zsh" ] && source $ZSH_HOME/zoxide.zsh
 
 
-# macos env
-if [[ $(uname) == "Darwin" && -f "$ZSH_HOME/macenv.zsh" ]]; then 
-	source $ZSH_HOME/macenv.zsh 
-fi
+# enter zellij
+# [ -f "$ZSH_HOME/zellij.zsh" ] && source $ZSH_HOME/zellij.zsh
+
+# fzf-git
+# [ -f "$ZSH_HOME/fzf-git.sh" ] && source $ZSH_HOME/fzf-git.sh
+#
+# sdkman
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"

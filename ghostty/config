@@ -1,0 +1,48 @@
+# ── 字体 ─────────────────────────────────────────────
+font-family = "CommitMono Nerd Font"
+font-size = 15
+adjust-cell-height = 8
+
+# ── 主题 / 颜色 ───────────────────────────────────────
+background = #15141b
+foreground = #edecee
+
+# normal
+palette = 0=#110f18
+palette = 1=#ff6767
+palette = 2=#61ffca
+palette = 3=#ffca85
+palette = 4=#a277ff
+palette = 5=#a277ff
+palette = 6=#61ffca
+palette = 7=#edecee
+
+# bright
+palette = 8=#4d4d4d
+palette = 9=#ff6767
+palette = 10=#61ffca
+palette = 11=#ffca85
+palette = 12=#a277ff
+palette = 13=#a277ff
+palette = 14=#61ffca
+palette = 15=#edecee
+
+# cursor
+cursor-color = #a277ff
+selection-background = #29263c
+selection-foreground = cell-foreground
+
+# ── 光标 ─────────────────────────────────────────────
+cursor-style = bar
+cursor-style-blink = true
+
+# ── 窗口 ─────────────────────────────────────────────
+background-opacity = 0.8
+background-blur-radius = 20
+macos-option-as-alt = true
+
+# ── 滚动 ─────────────────────────────────────────────
+scrollback-limit = 100000
+
+# ── 其他 ─────────────────────────────────────────────
+bold-is-bright = false
