@@ -112,8 +112,8 @@ alias du="dust"
 alias cld="claude"
 alias cldi="claude-internal"
 
-# file_ preview with fzf
-alias fp="$HOME/.config/zsh/fzf/file_preview.sh"
+# file preview with fzf
+alias fp="python3 $HOME/.config/zsh/fzf/file_preview.py"
 alias cr="cargo run"
 
 # kill process / kill server
