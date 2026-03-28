@@ -6,7 +6,7 @@ import pyutils.git as git
 
 
 def git_checkout_branch():
-    res = git.get_branches("[Git:Checkout]", use_multi_select=False)
+    res = git.get_branches("🌿 [Git: Checkout]", use_multi_select=False)
 
     has_cur_branch = res.has_cur_branch
     branches = res.branch_list

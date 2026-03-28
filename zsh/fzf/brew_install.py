@@ -33,7 +33,7 @@ def update_cache():
 
 def brew_install(query=""):
     check_cache_available()
-    cmd = shell.fzf_command(header="[brew install]", use_multi_select=True, query=query)
+    cmd = shell.build_fzf_cmd(border_label="🍺 [Brew: Install]", use_multi_select=True, query=query, as_str=True)
     with open(cache_file, "r") as cache:
         out, err = shell.run_shell_cmd(cmd, input=cache.read())
         if out:

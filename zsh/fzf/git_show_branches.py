@@ -5,7 +5,7 @@ from pyutils import git
 
 
 def git_show_branches():
-    res = git.get_branches(header="[git:remove branch]", use_multi_select=False)
+    res = git.get_branches(header="🌿 [Git: Show Branches]", use_multi_select=False)
     branches = res.branch_list
 
     if len(branches) != 1:
