@@ -99,6 +99,11 @@ yazi/*
 !git/
 !git/**
 
+# ── Python 编译缓存（黑名单） ─────────────────────────
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
 # ── Thirdparty submodules ────────────────────────────
 !thirdparty/
 thirdparty/*
