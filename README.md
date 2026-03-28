@@ -1,7 +1,7 @@
 # 🎨 Lyman's .config 配置文件集合
 
 > 🌟 **一站式 macOS 开发环境配置仓库**  
-> 📅 **最后更新**: 2025-10-14  
+> 📅 **最后更新**: 2026-03-29
 > 🌿 **当前分支**: macos
 
 ---
@@ -36,8 +36,12 @@
 
 ### 🖥️ **终端相关**
 - **🐚 Zsh** - 强大的 shell 配置，包含别名、函数、环境变量
-- **🎨 Alacritty** - GPU 加速终端模拟器配置
-- **📊 Zellij** - 现代化终端复用器配置
+- **🎨 Ghostty** - GPU 加速终端模拟器配置
+- **📊 Zellij** - 现代化终端复用器，自定义快捷键：
+  - `Alt+h/j/k/l` / `Alt+方向键` — 切换 pane
+  - `Alt+[` / `Alt+]` — 切换 tab
+  - `Alt+p` — 新建 pane
+  - `Alt+t` — 新建 tab
 - **🔍 Neofetch** - 系统信息展示工具
 
 ### 📝 **编辑器配置**
@@ -55,7 +59,8 @@
 ```
 .config/
 ├── 🚀 aerospace/          # AeroSpace 窗口管理器配置
-├── 🎨 alacritty/          # Alacritty 终端配置
+├── 🎨 ghostty/            # Ghostty 终端配置
+├── 🎨 alacritty/          # Alacritty 终端配置（备用）
 ├── 📊 zellij/             # Zellij 终端复用器配置
 ├── ⚡ nvim/               # Neovim 主配置
 ├── 🗂️ yazi/               # Yazi 文件管理器配置
@@ -157,7 +162,7 @@
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    
    # 安装核心工具
-   brew install zsh alacritty neovim yazi lazygit zellij
+   brew install zsh ghostty neovim yazi lazygit zellij
    ```
 
 2. **⚡ 启用配置**
@@ -171,7 +176,7 @@
 
 3. **🎨 个性化定制**
    - 修改 `zsh/aliases.zsh` 添加个人别名
-   - 调整 `alacritty/alacritty.toml` 终端外观
+   - 调整 `ghostty/config` 终端外观
    - 在 `nvim/` 中添加个人插件配置
 
 ---
