@@ -103,3 +103,8 @@ yazi/*
 !thirdparty/
 thirdparty/*
 !thirdparty/fzf/
+
+# -- gh --
+!gh/
+!gh/**
+
