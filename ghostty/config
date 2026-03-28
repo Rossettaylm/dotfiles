@@ -33,8 +33,8 @@ selection-background = #29263c
 selection-foreground = cell-foreground
 
 # ── 光标 ─────────────────────────────────────────────
-cursor-style = bar
-cursor-style-blink = true
+# cursor-style = bar
+# cursor-style-blink = true
 
 # ── 窗口 ─────────────────────────────────────────────
 background-opacity = 0.8
