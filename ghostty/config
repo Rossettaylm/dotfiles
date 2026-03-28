@@ -28,16 +28,17 @@ palette = 14=#61ffca
 palette = 15=#edecee
 
 # cursor
-cursor-color = #a277ff
 selection-background = #29263c
 selection-foreground = cell-foreground
 
 # ── 光标 ─────────────────────────────────────────────
-# cursor-style = bar
-# cursor-style-blink = true
+cursor-style = bar
+cursor-style-blink = false
+cursor-color = #a277ff
 
 # ── 窗口 ─────────────────────────────────────────────
 background-opacity = 0.8
+background-blur = 30
 background-blur-radius = 20
 macos-option-as-alt = true
 
@@ -46,3 +47,20 @@ scrollback-limit = 100000
 
 # ── 其他 ─────────────────────────────────────────────
 bold-is-bright = false
+
+# keybinding
+keybind = global:cmd+\=toggle_quick_terminal
+
+# ── 禁用分屏快捷键（由 aerospace/zellij 管理分屏）─────
+keybind = cmd+d=unbind
+keybind = cmd+shift+d=unbind
+keybind = cmd+shift+enter=unbind
+keybind = cmd+up=unbind
+keybind = cmd+down=unbind
+keybind = cmd+left=unbind
+keybind = cmd+right=unbind
+keybind = cmd+opt+up=unbind
+keybind = cmd+opt+down=unbind
+keybind = cmd+opt+left=unbind
+keybind = cmd+opt+right=unbind
+
