@@ -67,7 +67,7 @@ def get_branches_v2(header, use_multi_select=False, query=""):
 # 必须要使用/$()来包裹命令来保证刷新
 def git_branch_fzf_preview_cmd():
     """返回纯预览命令字符串（不含 --preview 标志），传给 build_fzf_cmd 的 preview 参数。"""
-    return "git log --since='4 week ago' --oneline --graph --color=always --date=short --pretty='format:%C(auto)%cd %an %h%d %s' $(cut -c3- <<< {} | cut -d' ' -f1) --"
+    return "git log --oneline --graph --color=always --date=short --pretty='format:%C(auto)%cd %an %h%d %s' $(cut -c3- <<< {} | cut -d' ' -f1) --"
 
 
 # 选中分支
