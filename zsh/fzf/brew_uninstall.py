@@ -6,7 +6,7 @@ from pyutils import shell
 
 def brew_uninstall(query=""):
     brew_cmd = "brew leaves"
-    fzf_cmd = shell.fzf_command("[brew:uninstall]", use_multi_select=True, query=query)
+    fzf_cmd = shell.build_fzf_cmd(border_label="🗑️  [Brew: Uninstall]", use_multi_select=True, query=query, as_str=True)
     out, err = shell.run_shell_cmd("{} | {}".format(brew_cmd, fzf_cmd))
     if out:
         for uins in out:

@@ -4,7 +4,7 @@ from pyutils.shell import log_err
 
 
 def main():
-    branchResult = get_branches("[Git:Branches]", False)
+    branchResult = get_branches("🌿 [Git: Branches]", False)
     if not branchResult.branch_list:
         log_err("Cancel Select Branch...")
         return
