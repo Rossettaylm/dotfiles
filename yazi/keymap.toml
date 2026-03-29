@@ -171,7 +171,7 @@ keymap = [
   { on = [
     "S",
     "G",
-  ], run = "plugin yafg" },
+  ], run = "shell --block 'cd %d && ~/.config/zsh/fzf/file_preview.py'", desc = "Search file content via rg+fzf" },
 
   # Linemode
   { on = [
