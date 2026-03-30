@@ -69,6 +69,15 @@ test_proxy() {
     fi
 }
 
+ssh() {
+	command ssh "$@"
+	local ret=$?
+	# SSH 断开后重置终端状态，防止转义序列残留导致乱码
+	printf '\033[?1000l\033[?1006l\033[?1049l\033[?25h\033c'
+	stty sane 2>/dev/null
+	return $ret
+}
+
 cmake_build() {
 	# if "build"" is exist or "build" is not empty
 	if [[ -f "./CMakeLists.txt" ]]; then

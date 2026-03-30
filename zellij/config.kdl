@@ -150,7 +150,7 @@ keybinds clear-defaults=true {
         bind "Alt f" { ToggleFloatingPanes; }
         bind "Alt i" { MoveTab "left"; }
         bind "Alt o" { MoveTab "right"; }
-        bind "Alt p" { NewPane; }
+        bind "Alt p" { NewPane "right"; }
         bind "Alt r" { SwitchToMode "renametab"; TabNameInput 0; }
         bind "Alt t" { NewTab; }
         bind "Alt 1" { GoToTab 1; }
