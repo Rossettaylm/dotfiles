@@ -410,6 +410,52 @@ CLAUDE_MD_CONTENT = """\
 """
 
 
+def setup_cron_sync():
+    """设置 crontab 定时任务：每天早上 8 点通过 sync.sh 同步仓库配置。
+
+    - 幂等：若已存在相同任务则跳过
+    - 保留已有 crontab 条目
+    """
+    repo_root = Path(__file__).parent
+    sync_script = repo_root / "sync.sh"
+
+    if not sync_script.exists():
+        print(f"sync.sh 不存在: {sync_script}，跳过 cron 配置")
+        return
+
+    # cron 任务：每天 8:00 执行，cd 到仓库目录后运行 sync.sh
+    cron_comment = "# config-repo auto sync"
+    cron_job = f"0 8 * * * cd {repo_root} && {sync_script} >> {repo_root}/.sync.log 2>&1"
+    cron_entry = f"{cron_comment}\n{cron_job}"
+
+    # 读取现有 crontab
+    ret = subprocess.run(
+        ["crontab", "-l"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    existing = ret.stdout if ret.returncode == 0 else ""
+
+    # 已存在则跳过
+    if str(sync_script) in existing:
+        print("crontab 已包含 sync.sh 定时任务，跳过")
+        return
+
+    # 追加新任务
+    new_crontab = existing.rstrip("\n") + "\n" + cron_entry + "\n"
+    ret = subprocess.run(
+        ["crontab", "-"],
+        input=new_crontab,
+        text=True,
+        check=False,
+    )
+    if ret.returncode != 0:
+        print("设置 crontab 失败，请手动添加")
+        return
+    print(f"已添加 crontab 定时任务：每天 08:00 执行 sync.sh")
+
+
 def init_claude_code():
     """写入 ~/.claude/CLAUDE.md（claude-code 本体由 brew 统一安装）。
 
@@ -459,6 +505,7 @@ def main():
 
     setup_zshrc()
     setup_gitconfig()
+    setup_cron_sync()
     init_claude_code()
 
 
