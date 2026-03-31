@@ -9,6 +9,8 @@
 
 # ── 初始化脚本 ────────────────────────────────────────
 !init_dep.py
+!init_dep/
+!init_dep/**
 !sync.sh
 !dep.txt
 
