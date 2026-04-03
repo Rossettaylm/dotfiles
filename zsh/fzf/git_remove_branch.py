@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import subprocess
 from pyutils import git
 from pyutils import shell
 
@@ -32,11 +33,13 @@ def git_remove_branch():
         return
 
     for br in branches:
-        out, err = shell.run_shell_cmd("git branch -D {}".format(br))
-        if out:
-            shell.log_success(out)
-        if err:
-            shell.log_err(err)
+        ret = subprocess.run(
+            ["git", "branch", "-D", br], capture_output=True, text=True
+        )
+        if ret.stdout.strip():
+            shell.log_success(ret.stdout.strip())
+        if ret.stderr.strip():
+            shell.log_err(ret.stderr.strip())
 
 
 if __name__ == "__main__":

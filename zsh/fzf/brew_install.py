@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 from pyutils import shell
 from time import time as get_now_time
@@ -39,7 +40,7 @@ def brew_install(query=""):
         if out:
             for ins in out:
                 shell.log_success("正在安装{}...".format(ins))
-                os.system("brew install {}".format(ins))
+                subprocess.run(["brew", "install", ins])
         if err:
             shell.log_err(err)
 

@@ -1,10 +1,10 @@
-import os
+import subprocess
 from pyutils import git
 from pyutils import shell
 
 
 def main():
-    os.system("git fetch")
+    subprocess.run(["git", "fetch"])
 
     result = git.get_branches(
         header="🌐 [Git: Checkout from Origin]", use_multi_select=False, show_brs_cmd="git branch -r"
@@ -15,9 +15,8 @@ def main():
         return
     branch = str(branch[0])
     target_branch_name = branch.removeprefix("origin/")
-    cmd = "git checkout -b {} {}".format(target_branch_name, branch)
-    shell.log_success("checkout ing...\n{}".format(cmd))
-    os.system(cmd)
+    shell.log_success("checkout ing...\ngit checkout -b {} {}".format(target_branch_name, branch))
+    subprocess.run(["git", "checkout", "-b", target_branch_name, branch])
 
 
 if __name__ == "__main__":

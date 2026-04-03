@@ -1,9 +1,7 @@
 #!/usr/bin/python3
-import os
+import subprocess
 from pyutils import shell
 from pyutils import git
-
-# valid_options = ["m", "merge", "rebase", "r", "\n", "\r", "\r\n", ""]
 
 
 def merge_master():
@@ -15,23 +13,10 @@ def merge_master():
         shell.log_err("已经处于master分支上...")
         return
     shell.log_plain("git fetch...")
-    os.system("git fetch origin master")
+    subprocess.run(["git", "fetch", "origin", "master"])
 
-    # option = input("rebase(Default) or merge? (r/m)")
-    # if option not in valid_options:
-    #     shell.log_err("错误的输入:{}".format(option))
-    #     return
-    # cmd = (
-    #     "git merge origin/master"
-    #     if option == "m" or option == "merge"
-    #     else "git rebase origin/master"
-    # )
-    # tip = "merging..." if option == "m" or option == "merge" else "rebasing..."
-    tip = "merging..."
-    cmd = "git merge origin/master"
-
-    shell.log_plain(tip)
-    os.system(cmd)
+    shell.log_plain("merging...")
+    subprocess.run(["git", "merge", "origin/master"])
 
 
 if __name__ == "__main__":
