@@ -1,3 +1,4 @@
 [submodule "thirdparty/fzf"]
 	path = thirdparty/fzf
 	url = https://github.com/Rossettaylm/fzf.git
+	branch = master
