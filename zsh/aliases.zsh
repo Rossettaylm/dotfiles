@@ -68,7 +68,7 @@ alias gcborigin="python3 $ZSH_HOME/fzf/git_checkout_from_origin.py"
 alias glog="python3 $ZSH_HOME/fzf/git_log.py | tee >(clipcopy)"
 alias gsb="python3 $ZSH_HOME/fzf/git_select_branch.py | tee >(clipcopy)"
 alias gb="python3 $ZSH_HOME/fzf/git_show_branches.py | tee >(clipcopy)"
-alias curb="python3 $ZSH_HOME/fzf/get_cur_brranch.py | tee >(clipcopy)"
+alias curb="python3 $ZSH_HOME/fzf/get_cur_branch.py | tee >(clipcopy)"
 
 # ── Zellij ────────────────────────────────────────────────────
 alias zj="zellij"
@@ -81,6 +81,7 @@ alias fp="python3 $ZSH_HOME/fzf/file_preview.py"
 alias fpath="echo $PATH | tr ':' '\n' | fzf --header='[Find Path]'"
 alias kp="python3 $ZSH_HOME/fzf/kp"
 alias ks="python3 $ZSH_HOME/fzf/ks"
+alias cmds="python3 $ZSH_HOME/fzf/utils.py"
 
 # ── Android / QQ 工程 ─────────────────────────────────────────
 alias adbid="adb devices | grep -v List | awk '{print \$1}'"

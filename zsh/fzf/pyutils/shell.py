@@ -42,7 +42,7 @@ def run_cmd_chain(commands, init_input="", need_raise_error=False):
         return ""
 
     # 初始化第一个命令的输入为None（从标准输入读取）
-    previous_output = None if init_input.isspace() else None
+    previous_output = None if not init_input or init_input.isspace() else init_input
 
     for cmd in commands:
         # 执行当前命令，将前一个命令的输出作为输入
@@ -100,7 +100,7 @@ def build_fzf_cmd(
     as_str=False → 返回列表（用于 subprocess.Popen，避免 shell 转义问题）
     """
     fzf_opts = os.getenv("FZF_DEFAULT_OPTS", "").split()
-    args: list[str] = ["fzf", "--ansi"]
+    args: list[str] = ["fzf", "--ansi", "--style=full"]
     args.extend(fzf_opts)
     args.extend(DEFAULT_FZF_OPTS.split())
     args += ["--sort" if sort else "--no-sort"]

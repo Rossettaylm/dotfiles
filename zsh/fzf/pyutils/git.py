@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from subprocess import CalledProcessError
 from pyutils import shell as sh
-import os
 
 
 class BranchResult(object):
@@ -9,10 +7,10 @@ class BranchResult(object):
     cur_branch_name: str = ""
     branch_list: list = []
 
-    def __init__(self, has_cur_branch=False, cur_branch_name="", branch_list=[]):
+    def __init__(self, has_cur_branch=False, cur_branch_name="", branch_list=None):
         self.has_cur_branch = has_cur_branch
         self.cur_branch_name = cur_branch_name
-        self.branch_list = branch_list
+        self.branch_list = branch_list if branch_list is not None else []
 
     def setCurBranch(self, name):
         self.cur_branch_name = name
@@ -32,7 +30,6 @@ def branch_preprocess(branches):
     for idx, br in enumerate(branches):
         if isinstance(br, bytes):
             br = br.decode()
-            print(br)
         branches[idx] = br.removeprefix("  ")
         if br.startswith("*"):
             has_cur_branch = True
@@ -53,15 +50,6 @@ def get_cur_branch():
         if br.startswith("*"):
             return br.removeprefix("* ")
     return ""
-
-
-def get_branches_v2(header, use_multi_select=False, query=""):
-    fzf_cmd = sh.build_fzf_cmd(border_label=header, use_multi_select=use_multi_select, query=query)
-    _, err = sh.run_shell_cmd("git branch")
-    if err:
-        raise CalledProcessError(-1, "git branch", None, "not a git repo")
-    out = sh.run_cmd_chain([["git", "branch"], fzf_cmd])
-    return out
 
 
 # 必须要使用/$()来包裹命令来保证刷新

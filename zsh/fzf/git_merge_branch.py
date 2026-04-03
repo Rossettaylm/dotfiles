@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+import subprocess
 from pyutils import git
 from pyutils import shell
-import os
 
 
 def git_merge_branch():
@@ -23,8 +23,7 @@ def git_merge_branch():
     shell.log_plain("[merge] {} to {}?".format(branches[0], cur_branch_name))
     confirm = input("确认merge?(y/n)").strip()
     if confirm == "y":
-        cmd = "git merge {}".format(branches[0])
-        os.system(cmd)
+        subprocess.run(["git", "merge", branches[0]])
     else:
         shell.log_err("取消merge!")
 
