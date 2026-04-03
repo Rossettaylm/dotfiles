@@ -30,6 +30,9 @@ echo "[$CURRENT_DATE] 检测到的变更文件:" >> "$LOG_FILE"
 git status --porcelain >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
+# 更新 fzf submodule 到最新 master
+git submodule update --remote thirdparty/fzf
+
 # 添加到 git 暂存区
 git add .
 
