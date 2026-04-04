@@ -5,6 +5,8 @@ macOS 应用启动器：扫描 /Applications 和 ~/Applications，fzf 选择后 
 """
 import os
 import subprocess
+import sys; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import pyutils.shell as shell
 
 

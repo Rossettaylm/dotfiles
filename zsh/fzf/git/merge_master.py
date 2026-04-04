@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 import subprocess
+import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from pyutils import shell
 from pyutils import git
 

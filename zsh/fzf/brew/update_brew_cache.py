@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 import os
 import shutil
+import sys; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyutils import shell
 
-cache_file = os.path.join(
-    "{}/.config/zsh/fzf".format(os.getenv("HOME")), "brew_online_pkg_cache.txt"
-)
+cache_file = os.path.join(os.path.dirname(__file__), "brew_online_pkg_cache.txt")
 
 # 通过crontab执行只有最小环境变量，优先使用 PATH 中的 brew，回退到常见绝对路径
 _brew_bin = shutil.which("brew") or "/opt/homebrew/bin/brew"
