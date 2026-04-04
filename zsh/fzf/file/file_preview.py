@@ -6,6 +6,8 @@
 import os
 import subprocess
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import pyutils.shell as shell
 
 
