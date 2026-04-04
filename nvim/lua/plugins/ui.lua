@@ -129,4 +129,13 @@ return {
       exclude = { filetypes = { "dashboard" } },
     },
   },
+
+  { -- Neoscroll: 平滑滚动
+    "karb94/neoscroll.nvim",
+    cond = not vim.g.vscode,
+    event = "VeryLazy",
+    opts = {
+      easing = "quadratic",
+    },
+  },
 }
