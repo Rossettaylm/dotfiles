@@ -54,8 +54,13 @@ case $(uname) in
         # eigen
         export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/opt/homebrew/Cellar/eigen/3.4.0.1/include/eigen3
         ;;
-      *)
+      LYMANYANG-MC0)
+        # Android
+        export ANDROID_HOME=$HOME/Library/Android/sdk
+        export PATH=$PATH:$ANDROID_HOME/platform-tools
+        ;;
         # 新 macOS 设备在此添加
+      *)
         ;;
     esac
     ;;
