@@ -6,6 +6,8 @@
 import re
 import subprocess
 import sys
+import os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import pyutils.shell as shell
 
 _ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')

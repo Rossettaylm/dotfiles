@@ -5,7 +5,10 @@
 """
 import re
 import subprocess
+import sys
 from sys import argv
+import os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import pyutils.shell as shell
 
 

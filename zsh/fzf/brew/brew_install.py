@@ -1,12 +1,12 @@
 import os
 import subprocess
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from pyutils import shell
 from time import time as get_now_time
 
-cache_file = os.path.join(
-    "{}/fzf".format(os.getenv("ZSH_HOME")), "brew_online_pkg_cache.txt"
-)
+cache_file = os.path.join(os.path.dirname(__file__), "brew_online_pkg_cache.txt")
 
 
 def check_cache_available():
