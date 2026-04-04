@@ -70,4 +70,11 @@ return {
     dependencies = { "nvim-lua/plenary.nvim" },
     opts = {},
   },
+
+  { -- Nvim-autopairs: 自动补全括号/引号
+    "windwp/nvim-autopairs",
+    cond = not vim.g.vscode,
+    event = "InsertEnter",
+    opts = {},
+  },
 }
