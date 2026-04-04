@@ -2,7 +2,6 @@
 """交互式展示当前终端环境下可用的自定义命令（alias + function + script）"""
 import os
 import re
-import subprocess
 import sys
 
 from pyutils import shell

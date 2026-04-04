@@ -11,7 +11,7 @@ zoxide
 pyright
 cmake
 fd
-font-hack-nerd-font
+font-commit-mono-nerd-font
 tree
 lazygit
 bottom
@@ -25,3 +25,4 @@ mediainfo
 claude-code
 ghostty
 node
+tree-sitter-cli
