@@ -1,36 +1,73 @@
+-- =============================================
+-- 语法解析与高亮: nvim-treesitter (main branch 新 API)
+-- =============================================
 return {
   "nvim-treesitter/nvim-treesitter",
-  opts = {
-    ensure_installed = {
+  build = ":TSUpdate",
+  branch = "main",
+  lazy = false,
+  cond = not vim.g.vscode,
+  config = function()
+    local parsers = {
       "bash",
       "c",
       "cpp",
       "json",
       "lua",
+      "luadoc",
       "markdown",
+      "markdown_inline",
       "python",
+      "query",
       "regex",
       "vim",
+      "vimdoc",
       "yaml",
       "rust",
-    },
+    }
+    require("nvim-treesitter").install(parsers)
 
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = "<cr>",
-        node_incremental = "<cr>",
-        node_decremental = "<BS>",
-      },
-    },
+    ---@param buf integer
+    ---@param language string
+    local function treesitter_try_attach(buf, language)
+      if not vim.treesitter.language.add(language) then
+        return
+      end
+      vim.treesitter.start(buf, language)
+      vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end
 
-    highlight = {
-      enable = true,
-      additional_vim_regex_highlighting = false,
-    },
+    local available_parsers = require("nvim-treesitter").get_available()
+    vim.api.nvim_create_autocmd("FileType", {
+      callback = function(args)
+        local buf, filetype = args.buf, args.match
+        local language = vim.treesitter.language.get_lang(filetype)
+        if not language then
+          return
+        end
 
-    indent = {
-      enable = true,
-    },
-  },
+        local installed_parsers = require("nvim-treesitter").get_installed("parsers")
+        if vim.tbl_contains(installed_parsers, language) then
+          treesitter_try_attach(buf, language)
+        elseif vim.tbl_contains(available_parsers, language) then
+          require("nvim-treesitter").install(language):await(function()
+            treesitter_try_attach(buf, language)
+          end)
+        else
+          treesitter_try_attach(buf, language)
+        end
+      end,
+    })
+
+    -- Incremental selection
+    vim.keymap.set("n", "<cr>", function()
+      require("nvim-treesitter.incremental_selection").init_selection()
+    end, { desc = "Init treesitter selection" })
+    vim.keymap.set("x", "<cr>", function()
+      require("nvim-treesitter.incremental_selection").node_incremental()
+    end, { desc = "Expand treesitter selection" })
+    vim.keymap.set("x", "<BS>", function()
+      require("nvim-treesitter.incremental_selection").node_decremental()
+    end, { desc = "Shrink treesitter selection" })
+  end,
 }

@@ -1,9 +1,30 @@
+-- =============================================
+-- 模糊搜索: fzf-lua (替代 Telescope)
+-- =============================================
 return {
   "ibhagwan/fzf-lua",
   cond = not vim.g.vscode,
+  dependencies = {
+    "nvim-tree/nvim-web-devicons",
+  },
+  cmd = "FzfLua",
   keys = {
-    { "<leader>,", "<cmd>FzfLua files<cr>", desc = "find files" },
-    { "<leader><leader>", "<cmd>FzfLua buffers<cr>", desc = "find buffers" },
-    { "<leader>v", "<cmd>FzfLua registers<cr>", desc = "find registers" },
+    { "<leader>,", "<cmd>FzfLua files<cr>", desc = "Find files" },
+    { "<leader><leader>", "<cmd>FzfLua buffers<cr>", desc = "Find buffers" },
+    { "<leader>v", "<cmd>FzfLua registers<cr>", desc = "Find registers" },
+    { "<leader>sg", "<cmd>FzfLua live_grep<cr>", desc = "Search by grep" },
+    { "<leader>sh", "<cmd>FzfLua help_tags<cr>", desc = "Search help" },
+    { "<leader>sk", "<cmd>FzfLua keymaps<cr>", desc = "Search keymaps" },
+    { "<leader>sd", "<cmd>FzfLua diagnostics_document<cr>", desc = "Search diagnostics" },
+    { "<leader>sr", "<cmd>FzfLua resume<cr>", desc = "Search resume" },
+    { "<leader>s.", "<cmd>FzfLua oldfiles<cr>", desc = "Search recent files" },
+    { "<leader>sc", "<cmd>FzfLua commands<cr>", desc = "Search commands" },
+    { "<leader>sw", "<cmd>FzfLua grep_cword<cr>", desc = "Search current word" },
+    { "<leader>sb", "<cmd>FzfLua lgrep_curbuf<cr>", desc = "Search in current buffer" },
+    { "<leader>ss", "<cmd>FzfLua builtin<cr>", desc = "Search fzf builtins" },
+    { "<leader>o", "<cmd>FzfLua lsp_document_symbols<cr>", desc = "Document symbols" },
+    { "<leader>pa", "<cmd>FzfLua commands<cr>", desc = "Command palette" },
+    { "/", "<cmd>FzfLua lgrep_curbuf<cr>", mode = "n", desc = "Search in current buffer" },
+    { "?", "<cmd>FzfLua lgrep_curbuf<cr>", mode = "n", desc = "Search in current buffer" },
   },
 }
