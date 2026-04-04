@@ -1,5 +1,5 @@
 -- =============================================
--- 界面增强: which-key, lualine, bufferline, nvim-notify
+-- 界面增强: which-key, lualine, bufferline, nvim-notify, indent-blankline
 -- =============================================
 return {
   { -- Which-key: 快捷键提示面板
@@ -19,6 +19,7 @@ return {
         { "[", group = "Prev" },
         { "]", group = "Next" },
         { "<leader>m", group = "Messages" },
+        { "<leader>g", group = "Git" },
       },
     },
     keys = {
@@ -114,6 +115,18 @@ return {
       max_width = 80,
       render = "wrapped-compact",
       stages = "fade",
+    },
+  },
+
+  { -- Indent-blankline: 缩进参考线
+    "lukas-reineke/indent-blankline.nvim",
+    cond = not vim.g.vscode,
+    main = "ibl",
+    event = "VeryLazy",
+    opts = {
+      indent = { char = "│" },
+      scope = { enabled = true },
+      exclude = { filetypes = { "dashboard" } },
     },
   },
 }

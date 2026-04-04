@@ -22,6 +22,7 @@ return {
     { "<leader>sw", "<cmd>FzfLua grep_cword<cr>", desc = "Search current word" },
     { "<leader>sb", "<cmd>FzfLua lgrep_curbuf<cr>", desc = "Search in current buffer" },
     { "<leader>ss", "<cmd>FzfLua builtin<cr>", desc = "Search fzf builtins" },
+    { "<leader>st", "<cmd>TodoFzfLua<cr>", desc = "Search TODOs" },
     { "<leader>o", "<cmd>FzfLua lsp_document_symbols<cr>", desc = "Document symbols" },
     { "<leader>pa", "<cmd>FzfLua commands<cr>", desc = "Command palette" },
     { "/", "<cmd>FzfLua lgrep_curbuf<cr>", mode = "n", desc = "Search in current buffer" },
