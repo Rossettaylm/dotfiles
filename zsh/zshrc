@@ -58,7 +58,8 @@ source $ZSH/oh-my-zsh.sh
 # fzf-git
 # [ -f "$ZSH_HOME/fzf-git.sh" ] && source $ZSH_HOME/fzf-git.sh
 #
-# sdkman
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+# sdkman (lazy load)
 export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
+  sdk() { unfunction sdk 2>/dev/null; source "$SDKMAN_DIR/bin/sdkman-init.sh"; sdk "$@" }
+fi
