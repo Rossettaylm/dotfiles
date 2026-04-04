@@ -28,4 +28,14 @@ return {
     },
     opts = {},
   },
+
+  { -- Lazygit: 在 Neovim 中打开 lazygit
+    "kdheepak/lazygit.nvim",
+    cond = not vim.g.vscode,
+    cmd = { "LazyGit", "LazyGitConfig", "LazyGitCurrentFile", "LazyGitFilter", "LazyGitFilterCurrentFile" },
+    dependencies = { "nvim-lua/plenary.nvim" },
+    keys = {
+      { "<leader>gg", "<cmd>LazyGit<cr>", desc = "Open LazyGit" },
+    },
+  },
 }

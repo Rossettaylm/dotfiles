@@ -16,6 +16,12 @@ return {
         show_help = "<f1>",
       },
     },
+    config = function(_, opts)
+      opts.open_file_function = function(chosen_file)
+        require("config.smart_open").open(chosen_file)
+      end
+      require("yazi").setup(opts)
+    end,
   },
 
   { -- ToggleTerm: 浮动终端 (Ctrl+` 切换)
@@ -68,6 +74,12 @@ return {
     cond = not vim.g.vscode,
     event = "VeryLazy",
     dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {},
+  },
+
+  { -- Mini.ai: 增强文本对象 (函数参数、括号等)
+    "echasnovski/mini.ai",
+    event = "VeryLazy",
     opts = {},
   },
 
