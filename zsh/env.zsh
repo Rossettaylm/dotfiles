@@ -13,15 +13,17 @@ export FZF_HOME="$HOME/.config/thirdparty/fzf"
 export PATH=$SCRIPTS_HOME:$PATH
 export PATH=$HOME/.local/bin:$PATH
 export PATH=$PATH:$HOME/.cargo/bin
-export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin
 
 export EDITOR=nvim
-export TERM=xterm-256color
 
-# nvm
+# nvm (lazy load)
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  nvm()  { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; nvm "$@" }
+  node() { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; node "$@" }
+  npm()  { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; npm "$@" }
+  npx()  { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; npx "$@" }
+fi
 
 # ======== 按 OS 区分 ========
 case $(uname) in
@@ -29,6 +31,7 @@ case $(uname) in
     # --- macOS 通用 ---
     export PATH=$PATH:/opt/homebrew/bin
     export PATH="/opt/homebrew/opt/node@18/bin:$PATH"
+    export PATH=$PATH:/opt/homebrew/opt/llvm/bin
     export XDG_CONFIG_HOME="$HOME/.config"
 
     # 按设备区分
@@ -66,6 +69,7 @@ case $(uname) in
     ;;
   Linux)
     # --- Linux 通用 ---
+    export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin
     export PATH=$PATH:/usr/local/mariadb/bin
 
     # 按设备区分

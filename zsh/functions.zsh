@@ -21,21 +21,19 @@ y() {
 }
 
 update () {
-    DIR=`dirname $(realpath $0)`
-    echo "update $DIR ..."
-    git pull 
+    echo "update $(pwd) ..."
+    git pull
     git status
 }
 
 commit () {
-    DIR=`dirname $(realpath $0)`
-    echo "checking $DIR status"
-    git status 
+    echo "checking $(pwd) status"
+    git status
     printf "Commit and Push your changes? [ y / n ]\n"
     read msg
     if [ "${msg}" = "y" ]; then
         printf "\n>>>>>>>>>>add / commit current changes<<<<<<<<<<\n"
-        git add . 
+        git add .
         git commit -a
         printf "\n>>>>>>>>>> push current changes <<<<<<<<<<\n"
         git push
@@ -114,6 +112,12 @@ function print_success_text() {
 function print_fail_text() {
   local text="$1"
   echo -e "\033[31m${text}\033[0m"
+}
+
+# fzf 选择 adb 设备
+fadb() {
+  local s
+  s=$(python3 $ZSH_HOME/fzf/system/adb_device.py) && export ANDROID_SERIAL="$s" && echo "ANDROID_SERIAL=$s"
 }
 
 # 文本匹配

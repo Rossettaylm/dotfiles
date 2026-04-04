@@ -24,11 +24,9 @@ alias man="tldr"
 alias du="dust"
 
 # ── 导航 ─────────────────────────────────────────────────────
-alias ra="ranger_cd"
-alias sra="sudo -E ranger_cd"
 alias yz="yazi"
 
-if [[ $(which zoxide) && -f $ZSH_HOME/zoxide.zsh ]]; then
+if (( $+commands[zoxide] )) && [[ -f $ZSH_HOME/zoxide.zsh ]]; then
     alias cd=z
 fi
 
@@ -38,15 +36,13 @@ alias ezsh="nvim $ZSH_HOME/zshrc"
 alias na="nvim $ZSH_HOME/aliases.zsh"
 
 # ── 构建工具 ──────────────────────────────────────────────────
-alias xm="xmake"
-alias xmr="xmake build && xmake run"
 alias cmb="cmake_build"
 alias cmr="cmake_run"
 
 # ── 环境 ──────────────────────────────────────────────────────
 alias base="conda activate base"
 alias neo="neofetch"
-alias ppath="echo $PATH | tr ':' '\n'"
+alias ppath='echo $PATH | tr ":" "\n"'
 
 # ── Brew（fzf 交互）──────────────────────────────────────────
 alias bins="python3 $ZSH_HOME/fzf/brew/brew_install.py"
@@ -80,7 +76,7 @@ alias zjs="python3 $ZSH_HOME/fzf/system/zellij_sessions.py"
 # ── fzf 工具 ──────────────────────────────────────────────────
 alias f="fzf"
 alias fp="python3 $ZSH_HOME/fzf/file/file_preview.py"
-alias fpath="echo $PATH | tr ':' '\n' | fzf --header='[Find Path]'"
+alias fpath='echo $PATH | tr ":" "\n" | fzf --header="[Find Path]"'
 alias kp="python3 $ZSH_HOME/fzf/process/kill_process.py"
 alias ks="python3 $ZSH_HOME/fzf/process/kill_socket.py"
 alias cmds="python3 $ZSH_HOME/fzf/utils.py"
@@ -92,7 +88,6 @@ alias fapp="python3 $ZSH_HOME/fzf/system/app_launcher.py"
 
 # ── Android / QQ 工程 ─────────────────────────────────────────
 alias adbid="adb devices | grep -v List | awk '{print \$1}'"
-fadb() { local s; s=$(python3 $ZSH_HOME/fzf/system/adb_device.py) && export ANDROID_SERIAL="$s" && echo "ANDROID_SERIAL=$s"; }
 alias sp="nohup scrcpy > $HOME/templog/scrcpy.log 2>&1 &"
 alias qclone="git clone git@git.woa.com:mobileqq/AndroidQQ.git"
 alias qguild="./centaur.sh guild -w"
@@ -108,3 +103,9 @@ alias qins="adb install -r AQQLite/AQQLiteApp/build/intermediates/qqLite/compact
 alias cr="cargo run"
 alias cld="claude"
 alias cldi="claude-internal"
+
+# ── macOS 专属 ────────────────────────────────────────────────
+if [[ $(uname) == "Darwin" ]]; then
+  alias dislid='sudo pmset -b sleep 0; sudo pmset -b displaysleep 0; sudo pmset -b disablesleep 1'
+  alias enlid='sudo pmset -b sleep 15; sudo pmset -b displaysleep 10; sudo pmset -b disablesleep 0'
+fi
