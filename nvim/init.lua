@@ -76,8 +76,14 @@ if not vim.g.vscode then
   vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
   vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
-  -- Exit terminal mode
-  vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+  -- Exit terminal mode (exclude yazi/toggleterm 等浮动终端工具)
+  vim.keymap.set("t", "<Esc><Esc>", function()
+    local ft = vim.bo.filetype
+    if ft == "yazi" or ft == "toggleterm" then
+      return "<Esc><Esc>"
+    end
+    return "<C-\\><C-n>"
+  end, { expr = true, desc = "Exit terminal mode" })
 
   local nvim_keymap_table = {
     { from = "<C-q>", to = "<cmd>quitall!<cr>", mode = all_mode, desc = "Force quit all" },

@@ -1,15 +1,14 @@
 -- =============================================
--- 主题配色: tokyonight
+-- 主题配色: kanagawa (wave/dragon/lotus)
 -- =============================================
 return {
-  "folke/tokyonight.nvim",
+  "rebelot/kanagawa.nvim",
   priority = 1000,
   config = function()
-    require("tokyonight").setup({
-      styles = {
-        comments = { italic = false },
-      },
+    require("kanagawa").setup({
+      commentStyle = { italic = false },
+      keywordStyle = { italic = false },
     })
-    vim.cmd.colorscheme("tokyonight-night")
+    vim.cmd.colorscheme("kanagawa-wave")
   end,
 }

@@ -1,5 +1,5 @@
 -- =============================================
--- 工具集成: yazi (文件管理器), toggleterm (浮动终端)
+-- 工具集成: yazi, toggleterm, flash, nvim-surround, todo-comments
 -- =============================================
 return {
   { -- Yazi: 终端文件管理器
@@ -43,5 +43,31 @@ return {
       },
       shade_terminals = false,
     },
+  },
+
+  { -- Flash: 快速跳转 (s 触发)
+    "folke/flash.nvim",
+    cond = not vim.g.vscode,
+    event = "VeryLazy",
+    opts = {},
+    keys = {
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash jump" },
+      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash treesitter" },
+      { "<c-s>", mode = "c", function() require("flash").toggle() end, desc = "Toggle Flash search" },
+    },
+  },
+
+  { -- Nvim-surround: 快速操作包围符号 (ys/cs/ds)
+    "kylechui/nvim-surround",
+    event = "VeryLazy",
+    opts = {},
+  },
+
+  { -- Todo-comments: 高亮 TODO/FIXME/HACK 注释
+    "folke/todo-comments.nvim",
+    cond = not vim.g.vscode,
+    event = "VeryLazy",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {},
   },
 }
