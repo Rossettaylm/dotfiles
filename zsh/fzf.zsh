@@ -37,7 +37,7 @@ export FZF_CTRL_R_OPTS="${FZF_DEFAULT_OPTS} --preview-label='History Commands'
 --header 'Press CTRL-Y to copy command into clipboard'"
 
 # override preview with tree
-export FZF_ALT_C_OPTS="--preview 'tree -C {}' --preview-label='Directorys'"
+export FZF_ALT_C_OPTS="--preview 'tree -C {}' --preview-label='Directories'"
 
 # autoload fzf script in $ZSH_HOME/fzf
 _fzf_fpath=${0:h}/fzf
