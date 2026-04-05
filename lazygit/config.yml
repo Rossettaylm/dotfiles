@@ -124,7 +124,7 @@ gui:
   # If true, show the number of lines changed per file in the Files view
   showNumstatInFilesView: false
   # If true, show a random tip in the command log when Lazygit starts
-  showRandomTip: true
+  showRandomTip: false
   # If true, show the command log
   showCommandLog: true
   # If true, show the bottom line that contains keybinding info and useful buttons. If false, this line will be hidden except to display a loader for an in-progress action.
@@ -134,7 +134,7 @@ gui:
   # Nerd fonts version to use.
   # One of: '2' | '3' | empty string (default)
   # If empty, do not show icons.
-  nerdFontsVersion: ""
+  nerdFontsVersion: "3"
   # If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
   showFileIcons: true
   # Length of author name in (non-expanded) commits view. 2 means show initials only.
@@ -167,7 +167,7 @@ gui:
   portraitMode: auto
   # How things are filtered when typing '/'.
   # One of 'substring' (default) | 'fuzzy'
-  filterMode: substring
+  filterMode: fuzzy
   # Config relating to the spinner.
   spinner:
     # The frames of the spinner animation.
@@ -332,10 +332,15 @@ os:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands
   shellFunctionsFile: ""
 # If true, don't display introductory popups upon opening Lazygit.
-disableStartupPopups: false
+disableStartupPopups: true
 # User-configured commands that can be invoked from within Lazygit
 # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md
-customCommands: []
+customCommands:
+  - key: 'Y'
+    description: 'Open yazi file manager'
+    command: 'yazi .'
+    context: 'global'
+    output: terminal
 # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
 services: {}
 # What to do when opening Lazygit outside of a git repo.
@@ -368,8 +373,8 @@ keybinding:
     scrollRight: L
     # gotoTop: <
     # gotoBottom: '>'
-    gotoTop: (
-    gotoBottom: )
+    gotoTop: <
+    gotoBottom: '>'
     gotoTop-alt: <home>
     gotoBottom-alt: <end>
     toggleRangeSelect: v
