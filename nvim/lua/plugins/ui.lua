@@ -68,6 +68,14 @@ return {
 
       -- <leader>mm  打开通知历史（可复制的 buffer）
       vim.keymap.set("n", "<leader>mm", function()
+        -- Toggle: 已打开则关闭
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          local buf = vim.api.nvim_win_get_buf(win)
+          if vim.bo[buf].filetype == "notify_history" then
+            vim.api.nvim_win_close(win, true)
+            return
+          end
+        end
         local history = notify.history()
         if #history == 0 then
           vim.notify("No notification history")
@@ -91,7 +99,7 @@ return {
         vim.bo[buf].filetype = "notify_history"
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
         vim.bo[buf].modifiable = false
-      end, { desc = "Notification history" })
+      end, { desc = "Toggle notification history" })
 
       -- <leader>my  复制最后一条通知到剪贴板
       vim.keymap.set("n", "<leader>my", function()
