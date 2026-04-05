@@ -34,7 +34,8 @@ export FZF_CTRL_T_COMMAND="fd --type f --hidden --exclude '.git'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --exclude '.git'"
 
 # change to ctrl-p override
-export FZF_CTRL_T_OPTS="${FZF_DEFAULT_OPTS} --scheme=path --preview-label='Files' --preview 'bat -n --color=always {}'" 
+export FZF_CTRL_T_OPTS="${FZF_DEFAULT_OPTS} --scheme=path --preview-label='Files' --preview 'bat -n --color=always {}' \
+--bind 'ctrl-o:execute(nvim {})+abort'"
 
 # change to ctrl-h override
 export FZF_CTRL_R_OPTS="${FZF_DEFAULT_OPTS} --preview-label='History Commands' 
