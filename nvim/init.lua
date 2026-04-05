@@ -15,6 +15,4 @@ require("config.lazy")
 -- Conditional loading
 if vim.g.vscode then
   require("config.vscode")
-else
-  require("self-plugins")
 end

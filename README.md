@@ -7,15 +7,15 @@ macOS 开发环境配置仓库，位于 `~/.config`，通过 cron 定时执行 `
 ```
 ~/.config/
 ├── nvim/              # Neovim（Lua，基于 lazy.nvim）
-├── zsh/               # Zsh 模块化配置 + oh-my-zsh
+├── zsh/               # Zsh 模块化配置 + oh-my-zsh（submodule）
 │   └── fzf/           # FZF 交互工具集（Python）
 ├── ghostty/           # Ghostty 终端模拟器
-├── zellij/            # Zellij 终端复用器
+├── zellij/            # Zellij 终端复用器（含主题）
 ├── yazi/              # Yazi 文件管理器
 ├── aerospace/         # AeroSpace 平铺窗口管理器
 ├── lazygit/           # LazyGit 配置
 ├── scripts/           # 实用脚本
-├── init_dep/          # 初始化依赖模块
+├── setup_dep/         # 初始化依赖模块
 ├── git/               # Git 全局配置
 ├── bottom/            # Bottom 系统监视器
 ├── neofetch/          # Neofetch
@@ -23,7 +23,7 @@ macOS 开发环境配置仓库，位于 `~/.config`，通过 cron 定时执行 `
 ├── thirdparty/        # 第三方子模块（fzf）
 ├── sync.sh            # 自动同步脚本
 ├── dep.txt            # Homebrew 依赖清单
-└── init_dep.py        # 一键初始化脚本
+└── setup.py           # 一键初始化脚本
 ```
 
 ## 快速开始
@@ -33,15 +33,17 @@ macOS 开发环境配置仓库，位于 `~/.config`，通过 cron 定时执行 `
 git clone --recursive git@github.com:Rossettaylm/config.git ~/.config
 
 # 2. 一键安装所有依赖
-python3 init_dep.py
+python3 setup.py
 ```
 
-`init_dep.py` 会自动完成：
+`setup.py` 会自动完成：
 - 配置 Git remote 和 SSH/HTTPS 认证
-- 初始化 FZF 子模块和 oh-my-zsh 插件
+- 更新 git submodules（fzf、oh-my-zsh）
+- 初始化 oh-my-zsh 自定义插件（syntax-highlighting、autosuggestions、fzf-tab）
 - 通过 Homebrew 安装 `dep.txt` 中的所有依赖
+- 设置 Shell / Git 全局配置
 - 设置 cron 定时同步任务
-- 安装 Yazi 插件
+- 安装 Claude Code 和 Yazi 插件
 
 ### 手动同步
 
@@ -67,7 +69,7 @@ python3 init_dep.py
 | `plugins/tools.lua` | yazi.nvim + toggleterm + flash + surround + todo-comments |
 | `plugins/trouble.lua` | 诊断列表 |
 | `plugins/dashboard.lua` | 启动页 |
-| `plugins/colorscheme.lua` | 主题配色 |
+| `plugins/colorscheme.lua` | 主题配色（kanagawa-wave，透明背景） |
 | `plugins/markdown.lua` | Markdown 预览与渲染 |
 
 常用快捷键：
@@ -175,7 +177,7 @@ oh-my-zsh 插件：git, sudo, web-search, zsh-syntax-highlighting, zsh-autosugge
 | 终端 | ghostty, zellij |
 | 文件管理 | yazi |
 | Git | git, git-lfs, lazygit |
-| 搜索与替代 | ripgrep, fd, eza, bat, zoxide, tldr |
+| 搜索与替代 | ripgrep, fd, eza, bat, zoxide, tldr, dust |
 | 系统监控 | bottom, htop, procs |
 | 开发工具 | pyright, cmake, node, tree-sitter-cli |
 | 文档与预览 | glow, hexyl, mediainfo, ouch |
@@ -185,7 +187,7 @@ oh-my-zsh 插件：git, sudo, web-search, zsh-syntax-highlighting, zsh-autosugge
 
 `.gitignore` 采用**白名单模式**：默认忽略所有文件（`*`），通过 `!dir/` 显式放行需要同步的配置目录。新增配置时需在 `.gitignore` 中添加对应的 `!` 规则。
 
-自动同步通过 cron 每日执行 `sync.sh`，自动 commit + push 到 GitHub，日志记录到 `.sync.log`。
+自动同步通过 cron 每日执行 `sync.sh`，自动更新 submodules（fzf、oh-my-zsh）、commit + push 到 GitHub，日志记录到 `.sync.log`。
 
 ## 关键环境变量
 
