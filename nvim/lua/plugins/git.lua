@@ -5,6 +5,7 @@ return {
   { -- Gitsigns: 侧边栏变更标记
     "lewis6991/gitsigns.nvim",
     cond = not vim.g.vscode,
+    event = { "BufReadPost", "BufNewFile" },
     opts = {
       signs = {
         add = { text = "+" },
@@ -13,6 +14,7 @@ return {
         topdelete = { text = "‾" },
         changedelete = { text = "~" },
       },
+
       current_line_blame = true,
       current_line_blame_opts = {
         delay = 300,
