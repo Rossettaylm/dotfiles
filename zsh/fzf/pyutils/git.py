@@ -63,6 +63,7 @@ def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
     fzf_cmd = sh.build_fzf_cmd(
         border_label=header,
         use_multi_select=use_multi_select,
+        sort=False,
         preview=git_branch_fzf_preview_cmd(),
         preview_window="right,border-left,70%",
         preview_label="[ Git Log ]",

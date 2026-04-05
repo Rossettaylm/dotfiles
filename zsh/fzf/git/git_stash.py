@@ -22,6 +22,7 @@ def main():
         border_label="📦  [Git Stash]",
         header="  Enter → apply  ·  Ctrl-P → pop  ·  Ctrl-X → drop  ·  Esc quit",
         prompt="  Stash > ",
+        sort=False,
         preview="git stash show -p --color=always $(echo {} | grep -oE 'stash@\\{{[0-9]+\\}}')",
         preview_window="right,border-left,65%",
         preview_label="[ Stash Diff ]",

@@ -310,10 +310,11 @@ quitOnTopLevelReturn: false
 # Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
 os:
   # 在 lazygit.nvim 浮窗中按 e 时：关闭浮窗 → 在父 nvim 打开文件
-  edit: 'nvim --server $NVIM --remote-expr "execute(\"close | edit {{filename}}\")"'
-  editAtLine: 'nvim --server $NVIM --remote-expr "execute(\"close | edit +{{line}} {{filename}}\")"'
-  editAtLineAndWait: 'nvim --server $NVIM --remote-expr "execute(\"close | edit +{{line}} {{filename}}\")"'
-  editInTerminal: false
+  # 终端中直接用 nvim 打开
+  edit: '~/.config/scripts/lazygit_edit.sh {{filename}}'
+  editAtLine: '~/.config/scripts/lazygit_edit.sh +{{line}} {{filename}}'
+  editAtLineAndWait: '~/.config/scripts/lazygit_edit.sh +{{line}} {{filename}}'
+  editInTerminal: true
   openDirInEditor: ""
   editPreset: ""
   # Command for opening a file, as if the file is double-clicked. Should

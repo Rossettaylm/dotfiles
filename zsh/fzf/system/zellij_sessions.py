@@ -39,7 +39,6 @@ def show_zellij_sessions_in_fzf() -> str:
         border_label="🪟  [Zellij Sessions]",
         header="  ↑↓ navigate  ·  Enter attach  ·  Esc quit",
         prompt="  Attach > ",
-        pointer="▶",
         preview=r"echo {} | sed 's/\x1b\[[0-9;]*m//g'",
         preview_window="bottom,4,border-top,wrap",
         preview_label="[ session info ]",
