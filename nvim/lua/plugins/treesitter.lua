@@ -10,7 +10,6 @@ return {
   config = function()
     local parsers = {
       "bash",
-      "c",
       "cpp",
       "json",
       "lua",
@@ -58,16 +57,5 @@ return {
         end
       end,
     })
-
-    -- Incremental selection
-    vim.keymap.set("n", "<cr>", function()
-      require("nvim-treesitter.incremental_selection").init_selection()
-    end, { desc = "Init treesitter selection" })
-    vim.keymap.set("x", "<cr>", function()
-      require("nvim-treesitter.incremental_selection").node_incremental()
-    end, { desc = "Expand treesitter selection" })
-    vim.keymap.set("x", "<BS>", function()
-      require("nvim-treesitter.incremental_selection").node_decremental()
-    end, { desc = "Shrink treesitter selection" })
   end,
 }

@@ -13,6 +13,14 @@ return {
         topdelete = { text = "‾" },
         changedelete = { text = "~" },
       },
+      current_line_blame = true,
+      current_line_blame_opts = {
+        delay = 300,
+        virt_text_pos = "eol",
+      },
+    },
+    keys = {
+      { "<leader>gb", "<cmd>Gitsigns toggle_current_line_blame<cr>", desc = "Toggle git blame" },
     },
   },
 
