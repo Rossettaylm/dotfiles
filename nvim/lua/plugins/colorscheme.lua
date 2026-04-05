@@ -22,6 +22,10 @@ return {
           DiagnosticSignWarn = { bg = "NONE" },
           DiagnosticSignInfo = { bg = "NONE" },
           DiagnosticSignHint = { bg = "NONE" },
+          -- Tabline 透明
+          TabLine = { bg = "NONE" },
+          TabLineFill = { bg = "NONE" },
+          TabLineSel = { bg = "NONE", bold = true },
         }
       end,
     })

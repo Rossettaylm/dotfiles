@@ -32,9 +32,13 @@ function M.open(file, line, col)
     end
   end
 
-  -- 3. 全新文件 → 新 tab 打开（dashboard 上直接覆盖）
+  -- 3. 全新文件 → 可替换的 buffer 直接覆盖，否则新 tab
   local ft = vim.bo.filetype
-  if ft == "dashboard" or ft == "alpha" or ft == "starter" then
+  local bufname = vim.api.nvim_buf_get_name(0)
+  local disposable = ft == "dashboard" or ft == "alpha" or ft == "starter"
+    or ft == "NvimTree" or ft == "neo-tree" or ft == "oil"
+    or (bufname == "" and not vim.bo.modified)
+  if disposable then
     vim.cmd("edit " .. vim.fn.fnameescape(file))
   else
     vim.cmd("tabedit " .. vim.fn.fnameescape(file))
