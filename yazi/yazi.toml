@@ -43,7 +43,6 @@ reveal = [
   { run = 'xdg-open %d1', desc = "Reveal", for = "linux" },
   { run = 'open -R %s1', desc = "Reveal", for = "macos" },
   { run = 'explorer /select,%s1', orphan = true, desc = "Reveal", for = "windows" },
-  { run = 'exiftool %s1; echo "Press enter to exit"; read _', block = true, desc = "Show EXIF", for = "unix" },
 ]
 # extract = [
 #   { run = 'ya pub extract --list %s', desc = "Extract here" },
@@ -52,6 +51,9 @@ reveal = [
 extract = [
   { run = 'ouch d -y %s', desc = "Extract here with ouch", for = "windows" },
   { run = 'ouch d -y %s', desc = "Extract here with ouch", for = "unix" },
+]
+open_with = [
+  { run = '$SCRIPTS_HOME/open_with.sh "$@"', block = true, desc = "Open with...(fzf)", for = "macos" },
 ]
 play = [
   { run = 'mpv --force-window %s', orphan = true, for = "unix" },
@@ -114,6 +116,7 @@ rules = [
   { url = "*", use = [
     "edit",
     "open",
+    "open_with",
     "reveal",
   ] },
 ]

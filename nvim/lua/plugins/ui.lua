@@ -48,11 +48,12 @@ return {
     opts = {
       options = {
         mode = "tabs",
-        separator_style = "slant",
-        show_buffer_close_icons = false,
+        separator_style = "thin",
+        show_buffer_close_icons = true,
         show_close_icon = false,
         diagnostics = "nvim_lsp",
         always_show_bufferline = false,
+        numbers = "ordinal",
       },
     },
   },

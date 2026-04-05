@@ -34,13 +34,27 @@ def update_cache():
 
 def brew_install(query=""):
     check_cache_available()
-    cmd = shell.build_fzf_cmd(border_label="🍺 [Brew: Install]", use_multi_select=True, query=query, as_str=True)
+    cmd = shell.build_fzf_cmd(
+        border_label="🍺 [Brew: Install]",
+        header="enter: brew install │ ctrl-k: brew install --cask",
+        use_multi_select=True,
+        query=query,
+        extra_args=["--expect", "ctrl-k"],
+        as_str=True,
+    )
     with open(cache_file, "r") as cache:
         out, err = shell.run_shell_cmd(cmd, input=cache.read())
         if out:
-            for ins in out:
-                shell.log_success("正在安装{}...".format(ins))
-                subprocess.run(["brew", "install", ins])
+            key_pressed = out[0]
+            packages = out[1:]
+            use_cask = key_pressed == "ctrl-k"
+            for ins in packages:
+                if use_cask:
+                    shell.log_success("正在安装(cask) {}...".format(ins))
+                    subprocess.run(["brew", "install", "--cask", ins])
+                else:
+                    shell.log_success("正在安装{}...".format(ins))
+                    subprocess.run(["brew", "install", ins])
         if err:
             shell.log_err(err)
 
