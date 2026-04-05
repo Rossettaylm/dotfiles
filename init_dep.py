@@ -86,6 +86,10 @@ def main():
     from init_dep.claude_code import init_claude_code
     init_claude_code()
 
+    # ── Yazi plugins ──
+    import subprocess
+    subprocess.run(["ya", "pkg", "install"], check=True)
+
 
 if __name__ == "__main__":
     main()

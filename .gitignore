@@ -65,13 +65,11 @@ nvim/*
 # ── Yazi ─────────────────────────────────────────────
 !yazi/
 yazi/*
+!yazi/init.lua
+!yazi/package.toml
 !yazi/yazi.toml
 !yazi/keymap.toml
 !yazi/theme.toml
-!yazi/plugins/
-!yazi/plugins/**
-!yazi/flavors/
-!yazi/flavors/**
 
 # ── Ghostty ──────────────────────────────────────────
 !ghostty/
