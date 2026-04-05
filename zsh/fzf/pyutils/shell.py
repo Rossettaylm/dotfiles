@@ -5,10 +5,7 @@ import subprocess
 from enum import Enum
 
 
-DEFAULT_FZF_OPTS = "--no-sort"
-
 _DEFAULT_PROMPT = "  > "
-_DEFAULT_POINTER = "▶"
 
 
 class LogLevel(Enum):
@@ -86,7 +83,6 @@ def build_fzf_cmd(
     use_multi_select: bool = False,
     query: str = "",
     prompt: str = _DEFAULT_PROMPT,
-    pointer: str = _DEFAULT_POINTER,
     sort: bool = True,
     preview: str = "",
     preview_window: str = "right,70%",
@@ -102,12 +98,10 @@ def build_fzf_cmd(
     fzf_opts = os.getenv("FZF_DEFAULT_OPTS", "").split()
     args: list[str] = ["fzf", "--ansi", "--style=full"]
     args.extend(fzf_opts)
-    args.extend(DEFAULT_FZF_OPTS.split())
     args += ["--sort" if sort else "--no-sort"]
     args += ["--border-label", f" {border_label} "]
     args += ["--border-label-pos", "2"]
     args += ["--prompt", prompt]
-    args += ["--pointer", pointer]
     if header:
         args += ["--header", header]
     if query:

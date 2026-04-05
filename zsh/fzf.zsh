@@ -22,14 +22,19 @@ _fzf_comprun() {
 }
 
 export FZF_DEFAULT_COMMAND="fd --hidden --exclude '.git'"
-# tomasr/molokai
-export FZF_DEFAULT_OPTS="--height=80% --ansi --no-sort --layout=reverse --border --style=full --color=border:#808080,spinner:#E6DB74,hl:#7E8E91,fg:#F8F8F2,header:#7E8E91,info:#A6E22E,pointer:#A6E22E,marker:#F92672,fg+:#F8F8F2,prompt:#F92672,hl+:#F92672"
+# catppuccin/mocha
+export FZF_DEFAULT_OPTS="--height=80% --ansi --layout=reverse --padding=1 --margin=1 --border --style=full \
+--color=bg+:#313244,bg:-1,spinner:#F5E0DC,hl:#F38BA8 \
+--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
+--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
+--color=selected-bg:#45475A \
+--color=border:#6C7086,label:#CDD6F4"
 
 export FZF_CTRL_T_COMMAND="fd --type f --hidden --exclude '.git'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --exclude '.git'"
 
 # change to ctrl-p override
-export FZF_CTRL_T_OPTS="${FZF_DEFAULT_OPTS} --preview-label='Files' --preview 'bat -n --color=always {}'" 
+export FZF_CTRL_T_OPTS="${FZF_DEFAULT_OPTS} --scheme=path --preview-label='Files' --preview 'bat -n --color=always {}'" 
 
 # change to ctrl-h override
 export FZF_CTRL_R_OPTS="${FZF_DEFAULT_OPTS} --preview-label='History Commands' 

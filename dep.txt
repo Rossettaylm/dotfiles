@@ -2,8 +2,8 @@ git
 git-lfs
 neovim
 neofetch
+ghostty
 yazi
-alacritty
 ripgrep
 zellij
 bat
@@ -21,8 +21,8 @@ eza
 tldr
 hexyl
 ouch
+glow
 mediainfo
 claude-code
-ghostty
 node
 tree-sitter-cli
