@@ -28,18 +28,24 @@ return {
     { "/", "<cmd>FzfLua lgrep_curbuf<cr>", mode = "n", desc = "Search in current buffer" },
     { "?", "<cmd>FzfLua lgrep_curbuf<cr>", mode = "n", desc = "Search in current buffer" },
   },
-  opts = {
-    actions = {
-      files = {
-        ["default"] = function(selected, opts)
-          local smart = require("config.smart_open")
-          local path = require("fzf-lua.path")
-          for _, sel in ipairs(selected) do
-            local entry = path.entry_to_file(sel, opts)
-            smart.open(entry.path, entry.line > 1 and entry.line or nil, entry.col > 1 and entry.col or nil)
-          end
-        end,
+  opts = function()
+    local smart_action = function(selected, o)
+      local smart = require("config.smart_open")
+      local path = require("fzf-lua.path")
+      for _, sel in ipairs(selected) do
+        local entry = path.entry_to_file(sel, o)
+        smart.open(entry.path, entry.line > 1 and entry.line or nil, entry.col > 1 and entry.col or nil)
+      end
+    end
+    return {
+      actions = {
+        files = {
+          ["default"] = smart_action,
+        },
       },
-    },
-  },
+      lsp = {
+        jump1_action = smart_action,
+      },
+    }
+  end,
 }

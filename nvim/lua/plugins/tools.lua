@@ -80,7 +80,16 @@ return {
   { -- Mini.ai: 增强文本对象 (函数参数、括号等)
     "echasnovski/mini.ai",
     event = "VeryLazy",
-    opts = {},
+    dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" },
+    opts = function()
+      local ai = require("mini.ai")
+      return {
+        custom_textobjects = {
+          f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }),
+          c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }),
+        },
+      }
+    end,
   },
 
   { -- Nvim-autopairs: 自动补全括号/引号

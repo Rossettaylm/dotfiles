@@ -38,6 +38,10 @@ vim.o.confirm = true
 vim.o.wrap = true
 vim.o.autochdir = true
 vim.o.termguicolors = true
+vim.o.expandtab = true
+vim.o.tabstop = 2
+vim.o.shiftwidth = 2
+vim.o.softtabstop = 2
 
 vim.diagnostic.config({
   update_in_insert = false,
