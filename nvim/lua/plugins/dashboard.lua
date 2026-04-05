@@ -25,7 +25,7 @@ return {
         mru = { limit = 8, icon = " ", label = "Recent Files", cwd_only = false },
         project = { enable = true, limit = 5, icon = " ", label = "Recent Projects", action = "FzfLua files cwd=" },
         footer = { "", nvim_version },
-	vertical_center = true,
+	      vertical_center = true,
       },
     }
   end,
