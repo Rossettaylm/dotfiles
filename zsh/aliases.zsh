@@ -71,7 +71,9 @@ alias curb="python3 $ZSH_HOME/fzf/git/get_cur_branch.py | tee >(clipcopy)"
 # ── Zellij ────────────────────────────────────────────────────
 alias zj="zellij"
 alias zja="zellij attach -c"
+alias zjr="zellij run -i -- "
 alias zjs="python3 $ZSH_HOME/fzf/system/zellij_sessions.py"
+alias zjt="python3 $ZSH_HOME/fzf/system/zellij_tabs.py"
 
 # ── fzf 工具 ──────────────────────────────────────────────────
 alias f="fzf"

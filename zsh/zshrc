@@ -24,22 +24,26 @@ plugins=(
 		git
     sudo
     web-search
-    zsh-syntax-highlighting
-    zsh-autosuggestions
+    zsh-defer
     fzf-tab
+    extract
 )
 
 # ohmyzsh
 source $ZSH/oh-my-zsh.sh
 
+# 延迟加载：非关键插件和模块（通过 zsh-defer 异步加载，提升启动速度）
+zsh-defer source "$ZSH/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
+zsh-defer source "$ZSH/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
+
 # fzf
 [ -f "$ZSH_HOME/fzf.zsh" ] && source "$ZSH_HOME/fzf.zsh"
 
 # aliases
-[ -f "$ZSH_HOME/aliases.zsh" ] && source "$ZSH_HOME/aliases.zsh"
+[ -f "$ZSH_HOME/aliases.zsh" ] && zsh-defer source "$ZSH_HOME/aliases.zsh"
 
 # functions
-[ -f "$ZSH_HOME/functions.zsh" ] && source "$ZSH_HOME/functions.zsh"
+[ -f "$ZSH_HOME/functions.zsh" ] && zsh-defer source "$ZSH_HOME/functions.zsh"
 
 # mappings
 [ -f "$ZSH_HOME/mappings.zsh" ] && source $ZSH_HOME/mappings.zsh
@@ -48,8 +52,8 @@ source $ZSH/oh-my-zsh.sh
 # [[ -f "/etc/resolv.conf" && `cat /etc/resolv.conf | grep nameserver | wc -l` > 0 ]] && set_proxy
 
 
-# zoxide 
-[ -f "$ZSH_HOME/zoxide.zsh" ] && source $ZSH_HOME/zoxide.zsh
+# zoxide
+[ -f "$ZSH_HOME/zoxide.zsh" ] && zsh-defer source $ZSH_HOME/zoxide.zsh
 
 
 # enter zellij
