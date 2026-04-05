@@ -18,6 +18,7 @@ bottom
 htop
 procs
 eza
+dust
 tldr
 hexyl
 ouch

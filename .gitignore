@@ -8,9 +8,9 @@
 !README.md
 
 # ── 初始化脚本 ────────────────────────────────────────
-!init_dep.py
-!init_dep/
-!init_dep/**
+!setup.py
+!setup_dep/
+!setup_dep/**
 !sync.sh
 !dep.txt
 
@@ -32,15 +32,7 @@ zsh/fzf/*
 !zsh/fzf/pyutils/
 zsh/fzf/pyutils/*
 !zsh/fzf/pyutils/*.py
-!zsh/oh-my-zsh/
-zsh/oh-my-zsh/*
-!zsh/oh-my-zsh/custom/
-zsh/oh-my-zsh/custom/*
-!zsh/oh-my-zsh/custom/plugins/
-zsh/oh-my-zsh/custom/plugins/*
-!zsh/oh-my-zsh/custom/plugins/zsh-syntax-highlighting/
-!zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions/
-!zsh/oh-my-zsh/custom/plugins/fzf-tab/
+!zsh/oh-my-zsh
 
 # ── Neovim ───────────────────────────────────────────
 !nvim/
