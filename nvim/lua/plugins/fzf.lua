@@ -9,7 +9,14 @@ return {
   },
   cmd = "FzfLua",
   keys = {
-    { "<leader>,", "<cmd>FzfLua files<cr>", desc = "Find files" },
+    {
+      "<leader>,",
+      function()
+        local root = vim.fs.root(0, ".git") or vim.uv.cwd()
+        require("fzf-lua").files({ cwd = root })
+      end,
+      desc = "Find files (project root)",
+    },
     { "<leader><leader>", "<cmd>FzfLua buffers<cr>", desc = "Find buffers" },
     { "<leader>v", "<cmd>FzfLua registers<cr>", desc = "Find registers" },
     { "<leader>sg", "<cmd>FzfLua live_grep<cr>", desc = "Search by grep" },
