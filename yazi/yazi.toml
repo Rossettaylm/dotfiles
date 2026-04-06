@@ -141,6 +141,8 @@ fetchers = [
   { id = "mime", url = "*", run = "mime", if = "!mime", prio = "high" },
 ]
 spotters = [
+  # WeChat Mini Program
+  { url = "*.{wxml,wxss}", run = "code" },
   # { url = "*/", run = "folder" },  # 改用 eza
   # Code
   { mime = "text/*", run = "code" },
@@ -176,6 +178,8 @@ preloaders = [
 ]
 
 prepend_previewers = [
+  # WeChat Mini Program (wxml → HTML-like, wxss → CSS-like)
+  { url = "*.{wxml,wxss}", run = "code" },
   # Markdown 用piper插件打开，不装其他插件了
   { url = "*.md", run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"' },
   # Media previewer MediaInfo

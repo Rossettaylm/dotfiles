@@ -23,6 +23,8 @@ return {
       "vimdoc",
       "yaml",
       "rust",
+      "html",
+      "css",
     }
     require("nvim-treesitter").install(parsers)
 
