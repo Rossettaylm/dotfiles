@@ -125,6 +125,16 @@ return {
           },
         },
       },
+
+      -- HTML (+ wxml 微信小程序模板)
+      html = {
+        filetypes = { "html", "wxml" },
+      },
+
+      -- CSS (+ wxss 微信小程序样式)
+      cssls = {
+        filetypes = { "css", "wxss" },
+      },
     }
 
     -- Tools to install via Mason
