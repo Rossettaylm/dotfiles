@@ -16,15 +16,6 @@ export PATH=$PATH:$HOME/.cargo/bin
 
 export EDITOR=nvim
 
-# nvm (lazy load)
-export NVM_DIR="$HOME/.nvm"
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  nvm()  { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; nvm "$@" }
-  node() { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; node "$@" }
-  npm()  { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; npm "$@" }
-  npx()  { unfunction nvm node npm npx 2>/dev/null; \. "$NVM_DIR/nvm.sh"; npx "$@" }
-fi
-
 # ======== 按 OS 区分 ========
 case $(uname) in
   Darwin)

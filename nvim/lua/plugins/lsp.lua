@@ -106,7 +106,7 @@ return {
       rust_analyzer = {
         settings = {
           ["rust-analyzer"] = {
-            checkOnSave = { command = "clippy" },
+            check = { command = "clippy" },
           },
         },
       },
@@ -150,7 +150,7 @@ return {
     -- Enable servers
     for name, server in pairs(servers) do
       vim.lsp.config(name, server)
-      vim.lsp.enable(name)
     end
+    vim.lsp.enable(vim.tbl_keys(servers))
   end,
 }
