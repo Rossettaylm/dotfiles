@@ -71,6 +71,7 @@ return {
     ---@type table<string, vim.lsp.Config>
     local servers = {
       lua_ls = {
+        root_markers = { ".luarc.json", ".luarc.jsonc", ".stylua.toml", "stylua.toml", "init.lua" },
         on_init = function(client)
           if client.workspace_folders then
             local path = client.workspace_folders[1].name
@@ -100,10 +101,13 @@ return {
         },
       },
       -- Python
-      pyright = {},
+      pyright = {
+        root_markers = { "pyrightconfig.json", "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile" },
+      },
 
       -- Rust
       rust_analyzer = {
+        root_markers = { "Cargo.toml", "rust-project.json" },
         settings = {
           ["rust-analyzer"] = {
             check = { command = "clippy" },
@@ -112,7 +116,9 @@ return {
       },
 
       -- TypeScript / JavaScript
-      ts_ls = {},
+      ts_ls = {
+        root_markers = { "tsconfig.json", "jsconfig.json", "package.json" },
+      },
 
       -- Shell (bash/zsh)
       bashls = {},
@@ -143,6 +149,7 @@ return {
       "stylua",
       "ruff", -- Python linter/formatter
       "shfmt", -- Shell formatter
+      "prettierd", -- JS/TS/JSON/HTML/CSS formatter
     })
     require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
     require("mason-lspconfig").setup()

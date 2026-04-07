@@ -10,7 +10,9 @@ return {
   config = function()
     local parsers = {
       "bash",
-      "cpp",
+      "css",
+      "html",
+      "javascript",
       "json",
       "lua",
       "luadoc",
@@ -19,12 +21,11 @@ return {
       "python",
       "query",
       "regex",
+      "rust",
+      "typescript",
       "vim",
       "vimdoc",
       "yaml",
-      "rust",
-      "html",
-      "css",
     }
     require("nvim-treesitter").install(parsers)
 
