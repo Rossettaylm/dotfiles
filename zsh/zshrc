@@ -10,9 +10,13 @@ source $HOME/.config/zsh/env.zsh
 # 主题
 # ZSH_THEME="amuse"
 # ZSH_THEME="ys"
-ZSH_THEME="steeef"
+# ZSH_THEME="steeef"
 # ZSH_THEME="edvardm"
-# ZSH_THEME="awesomepanda"
+if [[ -n "$SSH_CONNECTION" ]]; then
+  ZSH_THEME="ys"
+else
+  ZSH_THEME="awesomepanda"
+fi
 # ZSH_THEME="gozilla"
 
 # 刷新自动补全
