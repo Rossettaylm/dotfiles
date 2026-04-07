@@ -121,7 +121,10 @@ return {
       },
 
       -- Shell (bash/zsh)
-      bashls = {},
+      bashls = {
+        filetypes = { "sh", "bash", "zsh" },
+        root_markers = { ".git", ".bashrc", ".zshrc", "zshrc" },
+      },
 
       -- JSON
       jsonls = {
