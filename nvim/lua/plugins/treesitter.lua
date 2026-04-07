@@ -31,11 +31,15 @@ return {
     ---@param buf integer
     ---@param language string
     local function treesitter_try_attach(buf, language)
-      if not vim.treesitter.language.add(language) then
+      local ok = pcall(vim.treesitter.language.inspect, language)
+      if not ok then
         return
       end
       vim.treesitter.start(buf, language)
-      vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+      vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+      vim.wo[0].foldmethod = "expr"
+      vim.wo[0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      vim.wo[0].foldlevel = 99
     end
 
     local available_parsers = require("nvim-treesitter").get_available()
@@ -47,7 +51,7 @@ return {
           return
         end
 
-        local installed_parsers = require("nvim-treesitter").get_installed("parsers")
+        local installed_parsers = require("nvim-treesitter").get_installed()
         if vim.tbl_contains(installed_parsers, language) then
           treesitter_try_attach(buf, language)
         elseif vim.tbl_contains(available_parsers, language) then

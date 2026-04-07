@@ -20,6 +20,10 @@ return {
         delay = 300,
         virt_text_pos = "eol",
       },
+      watch_gitdir = {
+        enable = false,
+        follow_files = true,
+      },
     },
     keys = {
       { "<leader>gb", "<cmd>Gitsigns toggle_current_line_blame<cr>", desc = "Toggle git blame" },
