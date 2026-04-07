@@ -8,6 +8,7 @@ ripgrep
 zellij
 bat
 zoxide
+stylua
 pyright
 cmake
 fd
