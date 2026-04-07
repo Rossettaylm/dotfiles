@@ -8,15 +8,23 @@ vim.o.mouse = "a"
 vim.o.showmode = false
 vim.o.clipboard = "unnamedplus"
 if os.getenv("SSH_TTY") then
+  local osc52 = require("vim.ui.clipboard.osc52")
+  local cached = {}
   vim.g.clipboard = {
     name = "OSC 52",
     copy = {
-      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+      ["+"] = function(lines)
+        cached = lines
+        osc52.copy("+")(lines)
+      end,
+      ["*"] = function(lines)
+        cached = lines
+        osc52.copy("*")(lines)
+      end,
     },
     paste = {
-      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
-      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+      ["+"] = function() return cached end,
+      ["*"] = function() return cached end,
     },
   }
 end
