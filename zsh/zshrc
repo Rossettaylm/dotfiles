@@ -13,7 +13,7 @@ source $HOME/.config/zsh/env.zsh
 # ZSH_THEME="steeef"
 # ZSH_THEME="edvardm"
 if [[ -n "$SSH_CONNECTION" ]]; then
-  ZSH_THEME="edvardm"
+  ZSH_THEME="steeef"
 else
   ZSH_THEME="awesomepanda"
 fi
