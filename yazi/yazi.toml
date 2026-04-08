@@ -138,12 +138,14 @@ prepend_fetchers = [
 
 fetchers = [
   # Mimetype
-  { id = "mime", url = "*", run = "mime", if = "!mime", prio = "high" },
+  { id = "mime", url = "*/",         run = "mime.dir",    prio = "high" },
+  { id = "mime", url = "local://*",  run = "mime.local",  prio = "high" },
+  { id = "mime", url = "remote://*", run = "mime.remote", prio = "high" },
 ]
 spotters = [
   # WeChat Mini Program
   { url = "*.{wxml,wxss}", run = "code" },
-  # { url = "*/", run = "folder" },  # 改用 eza
+  { url = "*/", run = "folder" },
   # Code
   { mime = "text/*", run = "code" },
   { mime = "*/{xml,javascript,wine-extension-ini}", run = "code" },
@@ -212,7 +214,7 @@ prepend_previewers = [
 ]
 
 previewers = [
-  # { url = "*/", run = "folder", sync = true }, # 改用 eza 预览
+  { url = "*/", run = "folder" },
   # Code
   { mime = "text/*", run = "code" },
   { mime = "*/{xml,javascript,wine-extension-ini}", run = "code" },
