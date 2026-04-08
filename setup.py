@@ -110,16 +110,16 @@ def main():
         step_fail(f"FZF 安装失败: {e}")
         sys.exit(1)
 
-    # ── 3. oh-my-zsh 自定义插件 ──
-    step_start("oh-my-zsh 自定义插件")
+    # ── 3. Zsh 插件（submodule） ──
+    step_start("Zsh 插件（submodule）")
     try:
-        from setup_dep.omz import init_omz_plugins
-        init_omz_plugins()
-        step_ok("oh-my-zsh 插件安装完成")
+        from setup_dep.plugins import init_plugins
+        init_plugins(repo_root)
+        step_ok("Zsh 插件初始化完成")
     except SystemExit:
         raise
     except Exception as e:
-        step_fail(f"oh-my-zsh 插件安装失败: {e}")
+        step_fail(f"Zsh 插件初始化失败: {e}")
         sys.exit(1)
 
     # ── 4. Homebrew ──
