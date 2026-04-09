@@ -1,6 +1,12 @@
 #!/usr/bin/env zsh
 # Zsh 插件加载（submodule 手动管理 + OMZ 轻量替代）
 
+# 防止 source ~/.zshrc 时重复加载插件
+if (( _ZSH_PLUGINS_LOADED )); then
+  return
+fi
+_ZSH_PLUGINS_LOADED=1
+
 # ── submodule 插件 ────────────────────────────────────────
 
 # zsh-defer：先加载，后续非关键插件用它异步初始化
