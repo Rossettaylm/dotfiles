@@ -1,72 +1,51 @@
- # _________  _   _ ____   ____ 
-# |__  / ___|| | | |  _ \ / ___|
-  # / /\___ \| |_| | |_) | |    
- # / /_ ___) |  _  |  _ <| |___ 
-# /____|____/|_| |_|_| \_\\____|
-                              
+# _________  _   _ ____   ____
+#|__  / ___|| | | |  _ \ / ___|
+#  / /\___ \| |_| | |_) | |
+# / /_ ___) |  _  |  _ <| |___
+#/____|____/|_| |_|_| \_\\____|
+
 # 加载环境变量
 source $HOME/.config/zsh/env.zsh
 
-# 主题
-# ZSH_THEME="amuse"
-# ZSH_THEME="ys"
-# ZSH_THEME="steeef"
-# ZSH_THEME="edvardm"
-if [[ -n "$SSH_CONNECTION" ]]; then
-  ZSH_THEME="edvardm"
+# ── 补全系统 ──────────────────────────────────────────────
+autoload -Uz compinit
+# 每天只重建一次补全缓存，加快启动
+if [[ -n "${ZDOTDIR:-$HOME}/.zcompdump"(#qN.mh+24) ]]; then
+  compinit
 else
-  ZSH_THEME="awesomepanda"
+  compinit -C
 fi
-# ZSH_THEME="gozilla"
-
-# 刷新自动补全
 zstyle ':completion:*' rehash true
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'  # 大小写不敏感
 
-# 插件 
-# 系统目录 $ZSH/plugins 自定义目录$ZSH/custom/plugins
-plugins=(
-		git
-    sudo
-    web-search
-    zsh-defer
-    fzf-tab
-    extract
-)
+# ── 插件 ──────────────────────────────────────────────────
+source "$ZSH_HOME/plugins.zsh"
 
-# ohmyzsh
-source $ZSH/oh-my-zsh.sh
+# ── Prompt ────────────────────────────────────────────────
+source "$ZSH_HOME/prompt.zsh"
 
-# 延迟加载：非关键插件和模块（通过 zsh-defer 异步加载，提升启动速度）
-zsh-defer source "$ZSH/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
-zsh-defer source "$ZSH/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
+# ── 模块加载 ──────────────────────────────────────────────
+# fzf（需要立即加载，保证 Ctrl-T / Ctrl-R 可用）
+[ -f "$ZSH_HOME/fzf.zsh" ]      && source "$ZSH_HOME/fzf.zsh"
 
-# fzf
-[ -f "$ZSH_HOME/fzf.zsh" ] && source "$ZSH_HOME/fzf.zsh"
+# mappings（按键绑定需立即生效）
+[ -f "$ZSH_HOME/mappings.zsh" ] && source "$ZSH_HOME/mappings.zsh"
 
-# aliases
-[ -f "$ZSH_HOME/aliases.zsh" ] && zsh-defer source "$ZSH_HOME/aliases.zsh"
-
-# functions
+# 延迟加载：别名、函数、zoxide（不影响交互启动体验）
+[ -f "$ZSH_HOME/aliases.zsh" ]   && zsh-defer source "$ZSH_HOME/aliases.zsh"
 [ -f "$ZSH_HOME/functions.zsh" ] && zsh-defer source "$ZSH_HOME/functions.zsh"
+[ -f "$ZSH_HOME/zoxide.zsh" ]    && zsh-defer source "$ZSH_HOME/zoxide.zsh"
 
-# mappings
-[ -f "$ZSH_HOME/mappings.zsh" ] && source $ZSH_HOME/mappings.zsh
-
-# wsl proxy
-# [[ -f "/etc/resolv.conf" && `cat /etc/resolv.conf | grep nameserver | wc -l` > 0 ]] && set_proxy
-
-
-# zoxide
-[ -f "$ZSH_HOME/zoxide.zsh" ] && zsh-defer source $ZSH_HOME/zoxide.zsh
-
+# ── 其他可选配置 ──────────────────────────────────────────
 
 # enter zellij
-# [ -f "$ZSH_HOME/zellij.zsh" ] && source $ZSH_HOME/zellij.zsh
+# [ -f "$ZSH_HOME/zellij.zsh" ] && source "$ZSH_HOME/zellij.zsh"
 
-# fzf-git
-# [ -f "$ZSH_HOME/fzf-git.sh" ] && source $ZSH_HOME/fzf-git.sh
-#
-# sdkman (lazy load)
+# wsl proxy
+# [[ -f "/etc/resolv.conf" && $(cat /etc/resolv.conf | grep nameserver | wc -l) > 0 ]] && set_proxy
+
+# sdkman（懒加载）
 export SDKMAN_DIR="$HOME/.sdkman"
 if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
   sdk() { unfunction sdk 2>/dev/null; source "$SDKMAN_DIR/bin/sdkman-init.sh"; sdk "$@" }

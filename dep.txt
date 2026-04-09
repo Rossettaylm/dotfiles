@@ -1,5 +1,6 @@
 git
 git-lfs
+starship
 neovim
 neofetch
 ghostty
