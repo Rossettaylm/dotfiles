@@ -49,6 +49,9 @@ alias bins="python3 $ZSH_HOME/fzf/brew/brew_install.py"
 alias buins="python3 $ZSH_HOME/fzf/brew/brew_uninstall.py"
 
 # ── Git ───────────────────────────────────────────────────────
+alias gl="git pull"
+alias gp="git push"
+alias gst="git status"
 alias gg="git clone"
 alias gcb="git checkout -b"
 alias gcbbug="git checkout -b personal/lymanyang_bugfix_$(date -u +%Y%m%d)"

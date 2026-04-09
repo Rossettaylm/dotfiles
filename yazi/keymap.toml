@@ -166,6 +166,10 @@ keymap = [
     "z",
     "i",
   ], run = "plugin zoxide", desc = "Jump to a directory via zoxide" },
+  { on = [
+    "z",
+    "s",
+  ], run = "plugin sftp-fzf", desc = "Jump to SFTP server via fzf" },
   # { on = "Z",         run = "plugin fzf",                  desc = "Jump to a file/directory via fzf" },
   { on = "<C-p>", run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
   { on = [
