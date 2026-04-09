@@ -25,6 +25,8 @@ zsh/*
 !zsh/mappings.zsh
 !zsh/zoxide.zsh
 !zsh/macenv.zsh
+!zsh/plugins.zsh
+!zsh/prompt.zsh
 !zsh/fzf/
 zsh/fzf/*
 !zsh/fzf/*.sh
@@ -32,7 +34,9 @@ zsh/fzf/*
 !zsh/fzf/pyutils/
 zsh/fzf/pyutils/*
 !zsh/fzf/pyutils/*.py
-!zsh/oh-my-zsh
+
+# ── Zsh 插件（submodule） ──────────────────────────────────
+!zsh/plugins/
 
 # ── Neovim ───────────────────────────────────────────
 !nvim/
@@ -105,3 +109,6 @@ thirdparty/*
 !gh/
 !gh/**
 
+# -- starship
+!starship/
+!starship/**
