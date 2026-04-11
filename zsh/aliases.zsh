@@ -10,7 +10,7 @@
 alias ls="eza --icons --git"
 alias ll="ls -lh"
 alias la="ls -a"
-alias e="exit"
+alias q="exit"
 alias c="clear"
 alias sudo="sudo -E"
 alias who="who -H"
@@ -73,10 +73,10 @@ alias curb="python3 $ZSH_HOME/fzf/git/get_cur_branch.py | tee >(clipcopy)"
 
 # ── Zellij ────────────────────────────────────────────────────
 alias zj="zellij"
-alias zja="zellij attach -c"
-alias zjr="zellij run -i -- "
-alias zjs="python3 $ZSH_HOME/fzf/system/zellij_sessions.py"
-alias zjt="python3 $ZSH_HOME/fzf/system/zellij_tabs.py"
+alias za="zellij attach -c"
+alias zr="zellij run -i -- "
+alias zs="python3 $ZSH_HOME/fzf/system/zellij_sessions.py"
+alias zt="python3 $ZSH_HOME/fzf/system/zellij_tabs.py"
 
 # ── fzf 工具 ──────────────────────────────────────────────────
 alias f="fzf"

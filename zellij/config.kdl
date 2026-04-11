@@ -88,10 +88,14 @@ keybinds clear-defaults=true {
         bind "tab" { MovePane; }
     }
     scroll {
-        bind "Alt left" { MoveFocus "left"; SwitchToMode "locked"; }
-        bind "Alt down" { MoveFocus "down"; SwitchToMode "locked"; }
-        bind "Alt up" { MoveFocus "up"; SwitchToMode "locked"; }
-        bind "Alt right" { MoveFocus "right"; SwitchToMode "locked"; }
+        bind "Alt Shift left" { Resize "Increase left"; }
+        bind "Alt Shift down" { Resize "Increase down"; }
+        bind "Alt Shift up" { Resize "Increase up"; }
+        bind "Alt Shift right" { Resize "Increase right"; }
+        bind "Alt Shift h" { Resize "Increase left"; }
+        bind "Alt Shift j" { Resize "Increase down"; }
+        bind "Alt Shift k" { Resize "Increase up"; }
+        bind "Alt Shift l" { Resize "Increase right"; }
         bind "Alt h" { MoveFocus "left"; SwitchToMode "locked"; }
         bind "Alt j" { MoveFocus "down"; SwitchToMode "locked"; }
         bind "Alt k" { MoveFocus "up"; SwitchToMode "locked"; }
@@ -141,6 +145,14 @@ keybinds clear-defaults=true {
         bind "Alt j" { MoveFocus "down"; }
         bind "Alt k" { MoveFocus "up"; }
         bind "Alt l" { MoveFocus "right"; }
+        bind "Alt Shift left" { Resize "Increase left"; }
+        bind "Alt Shift down" { Resize "Increase down"; }
+        bind "Alt Shift up" { Resize "Increase up"; }
+        bind "Alt Shift right" { Resize "Increase right"; }
+        bind "Alt Shift h" { Resize "Increase left"; }
+        bind "Alt Shift j" { Resize "Increase down"; }
+        bind "Alt Shift k" { Resize "Increase up"; }
+        bind "Alt Shift l" { Resize "Increase right"; }
         bind "Alt +" { Resize "Increase"; }
         bind "Alt -" { Resize "Decrease"; }
         bind "Alt =" { Resize "Increase"; }

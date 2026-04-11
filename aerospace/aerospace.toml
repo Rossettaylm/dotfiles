@@ -122,6 +122,10 @@ automatically-unhide-macos-hidden-apps = false
     # See: https://nikitabobko.github.io/AeroSpace/commands#resize
     ctrl-cmd-minus = 'resize smart -50'
     ctrl-cmd-equal = 'resize smart +50'
+    ctrl-alt-shift-h = 'resize width -50'
+    ctrl-alt-shift-l = 'resize width +50'
+    ctrl-alt-shift-k = 'resize height -50'
+    ctrl-alt-shift-j = 'resize height +50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     ctrl-cmd-1 = 'workspace 1'
