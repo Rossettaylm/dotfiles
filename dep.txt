@@ -29,3 +29,4 @@ mediainfo
 claude-code
 node
 tree-sitter-cli
+git-delta
