@@ -9,6 +9,7 @@ return {
     { "mason-org/mason.nvim", opts = {} },
     "mason-org/mason-lspconfig.nvim",
     { "WhoIsSethDaniel/mason-tool-installer.nvim" },
+    { "b0o/SchemaStore.nvim", lazy = true },
     { "j-hui/fidget.nvim", opts = {} },
   },
   config = function()
@@ -89,10 +90,10 @@ return {
             },
             workspace = {
               checkThirdParty = false,
-              library = vim.tbl_extend("force", vim.api.nvim_get_runtime_file("", true), {
+              library = {
+                vim.env.VIMRUNTIME,
                 "${3rd}/luv/library",
-                "${3rd}/busted/library",
-              }),
+              },
             },
           })
         end,
@@ -131,6 +132,7 @@ return {
         settings = {
           json = {
             validate = { enable = true },
+            schemas = require("schemastore").json.schemas(),
           },
         },
       },

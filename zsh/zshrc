@@ -22,15 +22,15 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'  # 大小写不敏感
 # ── 插件 ──────────────────────────────────────────────────
 source "$ZSH_HOME/plugins.zsh"
 
+# ── 按键绑定（必须在 starship 之前，避免 zle-keymap-select 递归）──
+[ -f "$ZSH_HOME/mappings.zsh" ] && source "$ZSH_HOME/mappings.zsh"
+
 # ── Prompt ────────────────────────────────────────────────
 source "$ZSH_HOME/prompt.zsh"
 
 # ── 模块加载 ──────────────────────────────────────────────
 # fzf（需要立即加载，保证 Ctrl-T / Ctrl-R 可用）
 [ -f "$ZSH_HOME/fzf.zsh" ]      && source "$ZSH_HOME/fzf.zsh"
-
-# mappings（按键绑定需立即生效）
-[ -f "$ZSH_HOME/mappings.zsh" ] && source "$ZSH_HOME/mappings.zsh"
 
 # 延迟加载：别名、函数、zoxide（不影响交互启动体验）
 [ -f "$ZSH_HOME/aliases.zsh" ]   && zsh-defer source "$ZSH_HOME/aliases.zsh"
