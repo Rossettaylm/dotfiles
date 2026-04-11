@@ -1,26 +1,26 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:piper"
-rev = "1962818"
+rev = "babfd0f"
 hash = "384464b6df8cb807425c521f8cd790f3"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-enter"
-rev = "1962818"
+rev = "babfd0f"
 hash = "187cc58ba7ac3befd49c342129e6f1b6"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:chmod"
-rev = "1962818"
+rev = "babfd0f"
 hash = "f0c8c378184d5f8abd1b095a443d336d"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "1962818"
+rev = "babfd0f"
 hash = "26db011a778f261d730d4f5f8bf24b3f"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:diff"
-rev = "1962818"
+rev = "babfd0f"
 hash = "8b1af6b5a69797ee951f2a80ce570818"
 
 [[plugin.deps]]
@@ -35,8 +35,8 @@ hash = "f5afc904d5106ee368c8aa2ded43bd74"
 
 [[plugin.deps]]
 use = "boydaihungst/mediainfo"
-rev = "6fbed8d"
-hash = "57ae6b43c477e117802f176683b78e74"
+rev = "49f5ab7"
+hash = "50e52ba0cfe459f584fcf3c6157f30bc"
 
 [[plugin.deps]]
 use = "h-hg/yamb"
@@ -50,8 +50,8 @@ hash = "78d2c8dac3542b5616288f3688d145a8"
 
 [[plugin.deps]]
 use = "Rossettaylm/system-clipboard"
-rev = "f19b66b"
-hash = "e266f9277bd1f7c0a47a8d3cbf67b86e"
+rev = "d1103d4"
+hash = "866f28140eedcf7d309400b4517ad7a4"
 
 [[plugin.deps]]
 use = "Rossettaylm/lazygit"
@@ -60,18 +60,18 @@ hash = "f5697db39c3fa633eb08287620a72e6d"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mount"
-rev = "1962818"
-hash = "91937a4a9b779eabc6983e258befdfe9"
+rev = "babfd0f"
+hash = "77e20b071404f97c09d3f9afdb9482e0"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:sudo-demo"
-rev = "1962818"
+rev = "babfd0f"
 hash = "99aa06d3014798d86001c324468d497f"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mime-ext"
-rev = "1962818"
-hash = "8b177921e50732b2c8e9d71aa5956270"
+rev = "babfd0f"
+hash = "31994c9caec5bdcafd994e9b00c632a4"
 
 [[flavor.deps]]
 use = "Chromium-3-Oxide/everforest-medium"
