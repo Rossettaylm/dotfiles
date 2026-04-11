@@ -1,6 +1,43 @@
 # Sets user-defined palette
 palette = "catppuccin_mocha"
 
+format = """
+$os\
+$sudo\
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$cmd_duration\
+$status\
+$time\
+$line_break\
+$character"""
+
+[os]
+disabled = false
+style = "bold text"
+
+[os.symbols]
+Macos = "\uf179 "
+Linux = "\uf17c "
+
+[sudo]
+disabled = false
+style = "bold red"
+symbol = "🔒"
+
+[status]
+disabled = false
+style = "bold red"
+
+[time]
+disabled = false
+style = "bold dimmed text"
+format = "[$time]($style)"
+time_format = "%H:%M:%S"
+
 [character]
 # Note the use of Catppuccin color 'maroon'
 success_symbol = "[[♥ ](green) ❯](maroon)"
