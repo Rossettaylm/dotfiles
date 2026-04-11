@@ -1,6 +1,6 @@
 #!/bin/bash
 # lazygit edit wrapper: detect if inside neovim or terminal
-if [ -n "$NVIM" ]; then
+if [ -n "$NVIM" ] && [ -z "$YAZI_LEVEL" ]; then
     # Inside neovim: close lazygit float and open file in parent nvim
     if [[ "$1" == +* ]]; then
         line="${1#+}"
