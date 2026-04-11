@@ -54,9 +54,9 @@ rev = "f19b66b"
 hash = "e266f9277bd1f7c0a47a8d3cbf67b86e"
 
 [[plugin.deps]]
-use = "Lil-Dank/lazygit"
-rev = "8c4086c"
-hash = "85316b5e9abeae2531d3e5d02a094381"
+use = "Rossettaylm/lazygit"
+rev = "c460316"
+hash = "f5697db39c3fa633eb08287620a72e6d"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mount"
