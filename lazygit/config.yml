@@ -184,7 +184,7 @@ git:
       # diff-so-fancy
       # delta --dark --paging=never
       # ydiff -p cat -s --wrap --width={{columnWidth}}
-      pager: ""
+      pager: delta --dark --paging=never --side-by-side --line-numbers --syntax-theme="Catppuccin Mocha"
       # If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
       useConfig: false
       # e.g. 'difft --color=always'
@@ -367,10 +367,10 @@ keybinding:
     toggleRangeSelect: v
     rangeSelectDown: <s-down>
     rangeSelectUp: <s-up>
-    prevBlock: <c-k>
-    nextBlock: <c-j>
-    # prevBlock-alt: h
-    # nextBlock-alt: l
+    prevBlock: <left>
+    nextBlock: <right>
+    prevBlock-alt: h
+    nextBlock-alt: l
     # nextBlock-alt2: <tab>
     # prevBlock-alt2: <backtab>
     jumpToBlock:
@@ -400,8 +400,8 @@ keybinding:
     scrollDownMain: <down>
     # scrollUpMain-alt1: K
     # scrollDownMain-alt1: J
-    scrollUpMain-alt2: <c-u>
-    scrollDownMain-alt2: <c-d>
+    scrollUpMain-alt2: <c-k>
+    scrollDownMain-alt2: <c-j>
     executeShellCommand: ':'
     createRebaseOptionsMenu: m
     # 'Files' appended for legacy reasons
@@ -410,8 +410,6 @@ keybinding:
     pullFiles: p
     refresh: R
     createPatchOptionsMenu: <c-p>
-    # prevTab: h
-    # nextTab: l
     prevTab: '['
     nextTab: ']'
     nextScreenMode: +
