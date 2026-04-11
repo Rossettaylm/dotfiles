@@ -19,7 +19,7 @@ prepend_keymap = [
   { on = "<C-y>", run = "plugin system-clipboard", desc = "Copy file with clipboard project" },
 
   # lazygit
-  { on = "<C-g>", run = "plugin lazygit", desc = "open lazygit" },
+  { on = ["g", "l"], run = "plugin lazygit", desc = "open lazygit" },
 
   # yamb
   { on = [
