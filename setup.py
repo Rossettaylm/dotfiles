@@ -194,6 +194,18 @@ def main():
         step_fail("Yazi 插件安装失败")
         sys.exit(1)
 
+    # ── 9. Zellij 插件 ──
+    step_start("Zellij 插件")
+    try:
+        from setup_dep.zellij_plugins import init_zellij_plugins
+        init_zellij_plugins()
+        step_ok("Zellij 插件安装完成")
+    except SystemExit:
+        raise
+    except Exception as e:
+        step_fail(f"Zellij 插件安装失败: {e}")
+        sys.exit(1)
+
     # ── 完成 ──
     print(f"\n{BOLD}{GREEN}{'=' * 48}")
     print("  ALL DONE — 开发环境初始化完成")
