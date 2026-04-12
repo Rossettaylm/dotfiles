@@ -1,0 +1,36 @@
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
+                format_left   "{mode}#[bg=#211E2E,fg=#E0DEF4] {session} "
+                format_center "{tabs}"
+                format_right  "{datetime}"
+
+                // 模式指示器
+                mode_normal        "#[bg=#31748F,fg=#211E2E,bold] NORMAL #[bg=#211E2E,fg=#31748F]"
+                mode_locked        "#[bg=#31748F,fg=#211E2E,bold] LOCKED #[bg=#211E2E,fg=#31748F]"
+                mode_resize        "#[bg=#F6C177,fg=#211E2E,bold] RESIZE #[bg=#211E2E,fg=#F6C177]"
+                mode_pane          "#[bg=#C4A7E7,fg=#211E2E,bold] PANE   #[bg=#211E2E,fg=#C4A7E7]"
+                mode_tab           "#[bg=#9CCFD8,fg=#211E2E,bold] TAB    #[bg=#211E2E,fg=#9CCFD8]"
+                mode_scroll        "#[bg=#EBBCBA,fg=#211E2E,bold] SCROLL #[bg=#211E2E,fg=#EBBCBA]"
+                mode_enter_search  "#[bg=#EBBCBA,fg=#211E2E,bold] SEARCH #[bg=#211E2E,fg=#EBBCBA]"
+                mode_search        "#[bg=#EBBCBA,fg=#211E2E,bold] SEARCH #[bg=#211E2E,fg=#EBBCBA]"
+                mode_rename_tab    "#[bg=#F6C177,fg=#211E2E,bold] RENAME #[bg=#211E2E,fg=#F6C177]"
+                mode_rename_pane   "#[bg=#F6C177,fg=#211E2E,bold] RENAME #[bg=#211E2E,fg=#F6C177]"
+                mode_move          "#[bg=#EB6F92,fg=#211E2E,bold] MOVE   #[bg=#211E2E,fg=#EB6F92]"
+                mode_session       "#[bg=#C4A7E7,fg=#211E2E,bold] SESSION#[bg=#211E2E,fg=#C4A7E7]"
+                mode_tmux          "#[bg=#EB6F92,fg=#211E2E,bold] TMUX   #[bg=#211E2E,fg=#EB6F92]"
+
+                // tabs：普通暗色，活跃用 pine 背景突出
+                tab_normal         "#[bg=#211E2E,fg=#6E6A86]  {index} {name} "
+                tab_active         "#[bg=#31748F,fg=#211E2E,bold]  {index} {name} "
+
+                // datetime
+                datetime           "#[bg=#211E2E,fg=#9CCFD8,bold] {format} "
+                datetime_format    "%H:%M"
+                datetime_timezone  "Asia/Shanghai"
+            }
+        }
+    }
+}
