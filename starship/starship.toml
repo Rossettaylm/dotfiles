@@ -20,8 +20,8 @@ disabled = false
 style = "bold text"
 
 [os.symbols]
-Macos = "\uf179 "
-Linux = "\uf17c "
+Macos = " \uf179 "
+Linux = " \uf17c "
 
 [sudo]
 disabled = false
@@ -30,7 +30,7 @@ symbol = "🔒"
 
 [status]
 disabled = false
-style = "bold red"
+style = "red"
 
 [time]
 disabled = false
@@ -40,9 +40,9 @@ time_format = "%H:%M:%S"
 
 [character]
 # Note the use of Catppuccin color 'maroon'
-success_symbol = "[[♥ ](green) ❯](maroon)"
-error_symbol = "[❯](red)"
-vimcmd_symbol = "[[⚡](green) ❮](maroon)"
+success_symbol = "[[ ♥ ](green) ❯](maroon)"
+error_symbol = "[[ ✗ ](red) ❯](red)"
+vimcmd_symbol = "[[ ⚡](green) ❮](maroon)"
 
 [directory]
 truncation_length = 4
