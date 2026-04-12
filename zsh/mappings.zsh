@@ -23,6 +23,7 @@ bindkey -M viins '^W' backward-kill-word      # ctrl+w 删除前一个词
 bindkey -M viins '^U' backward-kill-line      # ctrl+u 清除光标前整行
 bindkey -M viins '^A' beginning-of-line       # ctrl+a 跳到行首
 bindkey -M viins '^E' end-of-line             # ctrl+e 跳到行尾
+bindkey -M viins '^F' autosuggest-accept      # ctrl+f 接受 autosuggestion 补全
 
 # -- normal 模式 --
 bindkey -M vicmd '(' beginning-of-line        # ( 跳到行首（同 nvim ( → ^）

@@ -10,7 +10,7 @@
 alias ls="eza --icons --git"
 alias ll="ls -lh"
 alias la="ls -a"
-alias q="exit"
+alias e="exit"
 alias c="clear"
 alias sudo="sudo -E"
 alias who="who -H"
