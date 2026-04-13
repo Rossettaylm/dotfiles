@@ -76,7 +76,7 @@ alias zj="zellij"
 alias za="zellij attach -c"
 alias zr="zellij run -i -- "
 alias zs="python3 $ZSH_HOME/fzf/system/zellij_sessions.py"
-alias zt="python3 $ZSH_HOME/fzf/system/zellij_tabs.py"
+alias zd="python3 $ZSH_HOME/fzf/system/zellij_delete_session.py"
 
 # ── fzf 工具 ──────────────────────────────────────────────────
 alias f="fzf"
