@@ -4,6 +4,9 @@ import os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyutils import shell
 
+_dir = os.path.dirname(__file__)
+preview_script = os.path.join(_dir, "brew_preview.sh")
+
 
 def brew_uninstall(query=""):
     ret = subprocess.run(["brew", "leaves"], capture_output=True, text=True)
@@ -11,7 +14,14 @@ def brew_uninstall(query=""):
         shell.log_err("没有已安装的包")
         return
 
-    fzf_cmd = shell.build_fzf_cmd(border_label="🗑️  [Brew: Uninstall]", use_multi_select=True, query=query, as_str=True)
+    fzf_cmd = shell.build_fzf_cmd(
+        border_label="🗑️  [Brew: Uninstall]",
+        use_multi_select=True,
+        query=query,
+        preview=f"bash {preview_script} {{}}",
+        preview_label="[ 📦 Package Info ]",
+        as_str=True,
+    )
     out, err = shell.run_shell_cmd(fzf_cmd, input=ret.stdout)
     if out:
         for uins in out:

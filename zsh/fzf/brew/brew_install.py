@@ -5,8 +5,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyutils import shell
 from time import time as get_now_time
+from update_brew_cache import update_cache
 
-cache_file = os.path.join(os.path.dirname(__file__), "brew_online_pkg_cache.txt")
+_dir = os.path.dirname(__file__)
+cache_file = os.path.join(_dir, "brew_online_pkg_cache.txt")
+preview_script = os.path.join(_dir, "brew_preview.sh")
 
 
 def check_cache_available():
@@ -19,19 +22,6 @@ def check_cache_available():
         update_cache()
 
 
-def update_cache():
-    with open(cache_file, "w+") as cache:
-        shell.log_plain("正在更新pkg cache...")
-        out, err = shell.run_shell_cmd("brew search ''")
-        if out:
-            for line in out:
-                cache.write(line + "\n")
-        if err:
-            shell.log_err(err)
-        else:
-            shell.log_success("更新成功! pkg数:{}".format(len(out)))
-
-
 def brew_install(query=""):
     check_cache_available()
     cmd = shell.build_fzf_cmd(
@@ -39,6 +29,8 @@ def brew_install(query=""):
         header="enter: brew install │ ctrl-k: brew install --cask",
         use_multi_select=True,
         query=query,
+        preview=f"bash {preview_script} {{}}",
+        preview_label="[ 📦 Package Info ]",
         extra_args=["--expect", "ctrl-k"],
         as_str=True,
     )

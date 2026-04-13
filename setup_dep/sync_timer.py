@@ -9,12 +9,17 @@ import subprocess
 from pathlib import Path
 
 
+def _ensure_cron_entry(existing: str, marker: str, cron_line: str, description: str) -> tuple[str, bool]:
+    """确保 crontab 中存在指定条目，返回 (新 crontab 内容, 是否有变更)。"""
+    if marker in existing:
+        return existing, False
+    entry = f"{marker}\n{cron_line}"
+    new_crontab = existing.rstrip("\n") + "\n" + entry + "\n"
+    return new_crontab, True
+
+
 def _setup_cron_macos(repo_root: Path, sync_script: Path):
     """macOS: 通过 crontab 设置定时任务"""
-    cron_comment = "# config-repo auto sync"
-    cron_job = f"0 8 * * * cd {repo_root} && {sync_script} >> {repo_root}/.sync.log 2>&1"
-    cron_entry = f"{cron_comment}\n{cron_job}"
-
     ret = subprocess.run(
         ["crontab", "-l"],
         capture_output=True,
@@ -22,22 +27,42 @@ def _setup_cron_macos(repo_root: Path, sync_script: Path):
         check=False,
     )
     existing = ret.stdout if ret.returncode == 0 else ""
+    changed = False
 
-    if str(sync_script) in existing:
-        print("crontab 已包含 sync.sh 定时任务，跳过")
+    # 1) dotfiles sync — 每天 08:00
+    existing, c = _ensure_cron_entry(
+        existing,
+        marker="# config-repo auto sync",
+        cron_line=f"0 8 * * * cd {repo_root} && {sync_script} >> {repo_root}/.sync.log 2>&1",
+        description="每天 08:00 执行 sync.sh",
+    )
+    changed |= c
+
+    # 2) brew cache 更新 — 每周一 06:00
+    brew_cache_script = repo_root / "zsh" / "fzf" / "brew" / "update_brew_cache.py"
+    brew_cache_log = repo_root / ".brew_cache.log"
+    existing, c = _ensure_cron_entry(
+        existing,
+        marker="# brew cache weekly update",
+        cron_line=f"0 6 * * 1 python3 {brew_cache_script} >> {brew_cache_log} 2>&1",
+        description="每周一 06:00 更新 brew cache",
+    )
+    changed |= c
+
+    if not changed:
+        print("crontab 定时任务已存在，跳过")
         return
 
-    new_crontab = existing.rstrip("\n") + "\n" + cron_entry + "\n"
     ret = subprocess.run(
         ["crontab", "-"],
-        input=new_crontab,
+        input=existing,
         text=True,
         check=False,
     )
     if ret.returncode != 0:
         print("设置 crontab 失败，请手动添加")
         return
-    print("已添加 crontab 定时任务：每天 08:00 执行 sync.sh")
+    print("已添加 crontab 定时任务")
 
 
 def _setup_systemd_timer(repo_root: Path, sync_script: Path):
