@@ -122,10 +122,12 @@ automatically-unhide-macos-hidden-apps = false
     # See: https://nikitabobko.github.io/AeroSpace/commands#resize
     ctrl-cmd-minus = 'resize smart -50'
     ctrl-cmd-equal = 'resize smart +50'
-    ctrl-alt-shift-h = 'resize width -50'
-    ctrl-alt-shift-l = 'resize width +50'
-    ctrl-alt-shift-k = 'resize height -50'
-    ctrl-alt-shift-j = 'resize height +50'
+    ctrl-cmd-enter = 'fullscreen'
+    ctrl-cmd-f = 'layout floating tiling'
+    ctrl-cmd-left = 'move left'
+    ctrl-cmd-right = 'move right'
+    ctrl-cmd-up = 'move up'
+    ctrl-cmd-down = 'move down'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     ctrl-cmd-1 = 'workspace 1'
@@ -142,7 +144,7 @@ automatically-unhide-macos-hidden-apps = false
     ctrl-cmd-c = 'workspace C'
     ctrl-cmd-d = 'workspace D'
     ctrl-cmd-e = 'workspace E'
-    ctrl-cmd-f = 'workspace F'
+
     ctrl-cmd-g = 'workspace G'
     ctrl-cmd-i = 'workspace I'
     ctrl-cmd-m = 'workspace M'
@@ -175,7 +177,7 @@ automatically-unhide-macos-hidden-apps = false
     ctrl-cmd-shift-c = 'move-node-to-workspace C'
     ctrl-cmd-shift-d = 'move-node-to-workspace D'
     ctrl-cmd-shift-e = 'move-node-to-workspace E'
-    ctrl-cmd-shift-f = 'move-node-to-workspace F'
+
     ctrl-cmd-shift-g = 'move-node-to-workspace G'
     ctrl-cmd-shift-i = 'move-node-to-workspace I'
     ctrl-cmd-shift-m = 'move-node-to-workspace M'
@@ -221,3 +223,44 @@ automatically-unhide-macos-hidden-apps = false
     down = 'volume down'
     up = 'volume up'
     shift-down = ['volume set 0', 'mode main']
+
+# Float specific apps by default
+[[on-window-detected]]
+if.app-id = 'com.apple.systempreferences'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.calculator'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.ActivityMonitor'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.agilebits.onepassword7'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.1password.1password'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.tencent.xinWeChat'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.tencent.WeWorkMac'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Preview'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.AppStore'
+run = 'layout floating'

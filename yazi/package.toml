@@ -36,7 +36,7 @@ hash = "f5afc904d5106ee368c8aa2ded43bd74"
 [[plugin.deps]]
 use = "boydaihungst/mediainfo"
 rev = "49f5ab7"
-hash = "50e52ba0cfe459f584fcf3c6157f30bc"
+hash = "6e3b5e58f985cc2d625e0030dc35b1b2"
 
 [[plugin.deps]]
 use = "h-hg/yamb"
