@@ -16,27 +16,8 @@
 
 # ── Zsh ──────────────────────────────────────────────
 !zsh/
-zsh/*
-!zsh/zshrc
-!zsh/env.zsh
-!zsh/aliases.zsh
-!zsh/functions.zsh
-!zsh/fzf.zsh
-!zsh/mappings.zsh
-!zsh/zoxide.zsh
-!zsh/macenv.zsh
-!zsh/plugins.zsh
-!zsh/prompt.zsh
-!zsh/fzf/
-zsh/fzf/*
-!zsh/fzf/*.sh
-!zsh/fzf/*.py
-!zsh/fzf/pyutils/
-zsh/fzf/pyutils/*
-!zsh/fzf/pyutils/*.py
-
-# ── Zsh 插件（submodule） ──────────────────────────────────
-!zsh/plugins/
+!zsh/**
+zsh/plugins/
 
 # ── Neovim ───────────────────────────────────────────
 !nvim/
@@ -100,6 +81,8 @@ yazi/*
 **/__pycache__/
 **/*.pyc
 **/*.pyo
+**/.claude/
+**/*_cache*
 
 # ── Thirdparty submodules ────────────────────────────
 !thirdparty/
