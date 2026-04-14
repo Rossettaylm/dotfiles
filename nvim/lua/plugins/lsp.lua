@@ -30,11 +30,15 @@ return {
         map("gs", "<cmd>FzfLua lsp_typedefs<cr>", "Go to type definition / super class")
         map("ga", "<cmd>FzfLua lsp_references<cr>", "Find all references")
         map("gh", vim.lsp.buf.hover, "Show hover documentation")
+        map("<leader>ps", "<cmd>FzfLua lsp_live_workspace_symbols<cr>", "Lsp Workspace symbols")
 
         map("<leader>rn", vim.lsp.buf.rename, "Rename symbol")
         map("<leader>.", "<cmd>FzfLua lsp_code_actions<cr>", "Code actions")
         map("ge", function() vim.diagnostic.jump({ count = 1 }) end, "Next diagnostic")
         map("gE", function() vim.diagnostic.jump({ count = -1 }) end, "Previous diagnostic")
+        map("go", function()
+          vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" }, diagnostics = {} }, apply = true })
+        end, "Optimize imports")
 
         -- Highlight references on cursor hold
         local client = vim.lsp.get_client_by_id(event.data.client_id)
