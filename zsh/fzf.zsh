@@ -15,6 +15,7 @@ _fzf_comprun() {
     cd)           fzf --preview 'tree -C {} | head -200' --preview-label='Directories'          "$@" ;;
     export|unset) fzf --preview "eval 'echo \$'{}" --preview-label='Environment Variables'      "$@" ;;
     ssh)          fzf --preview 'dig {}' --preview-label='Hosts'                                "$@" ;;
+    vi)           fzf --preview 'bat -n --color=always {}' --preview-label='Files'              "$@" ;;
     nvim)         fzf --preview 'bat -n --color=always {}' --preview-label='Files'              "$@" ;;
     kill)         fzf --preview-label='Processes'                                               "$@" ;;
     *)            fzf --preview 'bat -n --color=always {}' --preview-label='Search'             "$@" ;;

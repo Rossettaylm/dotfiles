@@ -92,6 +92,19 @@ return {
     end,
   },
 
+  { -- Grug-far: 全局搜索替换
+    "MagicDuck/grug-far.nvim",
+    cond = not vim.g.vscode,
+    cmd = "GrugFar",
+    keys = {
+      { "<leader>rr", function() require("grug-far").open() end, desc = "Open grug-far (search & replace)" },
+      { "<leader>rw", function() require("grug-far").open({ prefills = { search = vim.fn.expand("<cword>") } }) end, desc = "Search & replace current word" },
+      { "<leader>rf", function() require("grug-far").open({ prefills = { paths = vim.fn.expand("%") } }) end, desc = "Search & replace in current file" },
+      { "<leader>rw", function() require("grug-far").with_visual_selection() end, mode = "v", desc = "Search & replace visual selection" },
+    },
+    opts = {},
+  },
+
   { -- Nvim-autopairs: 自动补全括号/引号
     "windwp/nvim-autopairs",
     cond = not vim.g.vscode,
