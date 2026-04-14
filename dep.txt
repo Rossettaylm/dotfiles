@@ -17,7 +17,7 @@ font-commit-mono-nerd-font
 tree
 lazygit
 bottom
-htop
+btop
 procs
 eza
 dust
@@ -30,3 +30,4 @@ claude-code
 node
 tree-sitter-cli
 git-delta
+clipboard
