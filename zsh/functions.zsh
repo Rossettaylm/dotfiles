@@ -123,3 +123,6 @@ fzg() {
       --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
       --bind 'enter:become(nvim {1} +{2})'
 }
+
+# git log
+glog() { python3 $ZSH_HOME/fzf/git/git_log.py "$@" | tee >(cb); }
