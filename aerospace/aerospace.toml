@@ -64,6 +64,10 @@ automatically-unhide-macos-hidden-apps = false
     outer.top =        0
     outer.right =      0
 
+# Assign workspace 10 to secondary monitor (right side)
+[workspace-to-monitor-force-assignment]
+10 = 'secondary'
+
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 # 'main' binding mode must be always presented
@@ -139,28 +143,7 @@ automatically-unhide-macos-hidden-apps = false
     ctrl-cmd-7 = 'workspace 7'
     ctrl-cmd-8 = 'workspace 8'
     ctrl-cmd-9 = 'workspace 9'
-    ctrl-cmd-a = 'workspace A' # In your config, you can drop workspace bindings that you don't need
-    ctrl-cmd-b = 'workspace B'
-    ctrl-cmd-c = 'workspace C'
-    ctrl-cmd-d = 'workspace D'
-    ctrl-cmd-e = 'workspace E'
-
-    ctrl-cmd-g = 'workspace G'
-    ctrl-cmd-i = 'workspace I'
-    ctrl-cmd-m = 'workspace M'
-    ctrl-cmd-n = 'workspace N'
-    ctrl-cmd-o = 'workspace O'
-    ctrl-cmd-p = 'workspace P'
-    ctrl-cmd-q = 'workspace Q'
-    ctrl-cmd-r = 'workspace R'
-    ctrl-cmd-s = 'workspace S'
-    ctrl-cmd-t = 'workspace T'
-    ctrl-cmd-u = 'workspace U'
-    ctrl-cmd-v = 'workspace V'
-    ctrl-cmd-w = 'workspace W'
-    ctrl-cmd-x = 'workspace X'
-    ctrl-cmd-y = 'workspace Y'
-    ctrl-cmd-z = 'workspace Z'
+    ctrl-cmd-0 = 'workspace 10'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     ctrl-cmd-shift-1 = 'move-node-to-workspace 1'
@@ -172,28 +155,7 @@ automatically-unhide-macos-hidden-apps = false
     ctrl-cmd-shift-7 = 'move-node-to-workspace 7'
     ctrl-cmd-shift-8 = 'move-node-to-workspace 8'
     ctrl-cmd-shift-9 = 'move-node-to-workspace 9'
-    ctrl-cmd-shift-a = 'move-node-to-workspace A'
-    ctrl-cmd-shift-b = 'move-node-to-workspace B'
-    ctrl-cmd-shift-c = 'move-node-to-workspace C'
-    ctrl-cmd-shift-d = 'move-node-to-workspace D'
-    ctrl-cmd-shift-e = 'move-node-to-workspace E'
-
-    ctrl-cmd-shift-g = 'move-node-to-workspace G'
-    ctrl-cmd-shift-i = 'move-node-to-workspace I'
-    ctrl-cmd-shift-m = 'move-node-to-workspace M'
-    ctrl-cmd-shift-n = 'move-node-to-workspace N'
-    ctrl-cmd-shift-o = 'move-node-to-workspace O'
-    ctrl-cmd-shift-p = 'move-node-to-workspace P'
-    ctrl-cmd-shift-q = 'move-node-to-workspace Q'
-    ctrl-cmd-shift-r = 'move-node-to-workspace R'
-    ctrl-cmd-shift-s = 'move-node-to-workspace S'
-    ctrl-cmd-shift-t = 'move-node-to-workspace T'
-    ctrl-cmd-shift-u = 'move-node-to-workspace U'
-    ctrl-cmd-shift-v = 'move-node-to-workspace V'
-    ctrl-cmd-shift-w = 'move-node-to-workspace W'
-    ctrl-cmd-shift-x = 'move-node-to-workspace X'
-    ctrl-cmd-shift-y = 'move-node-to-workspace Y'
-    ctrl-cmd-shift-z = 'move-node-to-workspace Z'
+    ctrl-cmd-shift-0 = 'move-node-to-workspace 10'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'

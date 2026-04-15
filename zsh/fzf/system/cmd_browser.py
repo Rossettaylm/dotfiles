@@ -69,9 +69,7 @@ def main():
     if process.returncode != 0 or not stdout.strip():
         exit(0)
 
-    selected = stdout.strip()
-    subprocess.run(["pbcopy"], input=selected, text=True)
-    shell.log_success(f"已复制 '{selected}' 到剪贴板")
+    print(stdout.strip(), end="")
 
 
 if __name__ == "__main__":
