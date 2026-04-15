@@ -90,7 +90,7 @@ alias fenv="python3 $ZSH_HOME/fzf/system/env_browser.py"
 alias ffile="python3 $ZSH_HOME/fzf/file/recent_files.py"
 alias fman="python3 $ZSH_HOME/fzf/system/tldr_browser.py"
 alias fapp="python3 $ZSH_HOME/fzf/system/app_launcher.py"
-alias fcmd="python3 $ZSH_HOME/fzf/system/cmd_browser.py"
+alias fcmd='print -z -- $(python3 $ZSH_HOME/fzf/system/cmd_browser.py)'
 
 # ── Android / QQ 工程 ─────────────────────────────────────────
 alias adbid="adb devices | grep -v List | awk '{print \$1}'"
@@ -109,6 +109,8 @@ alias qins="adb install -r AQQLite/AQQLiteApp/build/intermediates/qqLite/compact
 alias cr="cargo run"
 alias cld="claude"
 alias cldi="claude-internal"
+alias ski="python3 $ZSH_HOME/fzf/claude/skill_install.py"
+alias skm="python3 $ZSH_HOME/fzf/claude/skill_manage.py"
 
 # ── macOS 专属 ────────────────────────────────────────────────
 if [[ $(uname) == "Darwin" ]]; then
