@@ -49,6 +49,17 @@ def _setup_cron_macos(repo_root: Path, sync_script: Path):
     )
     changed |= c
 
+    # 3) claude skill cache 更新 — 每周四 06:00
+    skill_cache_script = repo_root / "zsh" / "fzf" / "claude" / "update_skill_cache.py"
+    skill_cache_log = Path.home() / "templog" / "update_skill_cache.log"
+    existing, c = _ensure_cron_entry(
+        existing,
+        marker="# claude skill cache weekly update",
+        cron_line=f"0 6 * * 4 python3 {skill_cache_script} >> {skill_cache_log} 2>&1",
+        description="每周四 06:00 更新 claude skill cache",
+    )
+    changed |= c
+
     if not changed:
         print("crontab 定时任务已存在，跳过")
         return

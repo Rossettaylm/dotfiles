@@ -9,8 +9,11 @@ preview_script = os.path.join(_dir, "brew_preview.sh")
 
 
 def brew_uninstall(query=""):
-    ret = subprocess.run(["brew", "leaves"], capture_output=True, text=True)
-    if not ret.stdout.strip():
+    formula = subprocess.run(["brew", "leaves"], capture_output=True, text=True)
+    cask = subprocess.run(["brew", "list", "--cask"], capture_output=True, text=True)
+    cask_lines = [f"{c} [cask]" for c in cask.stdout.strip().splitlines() if c]
+    combined = (formula.stdout.strip() + "\n" + "\n".join(cask_lines)).strip()
+    if not combined:
         shell.log_err("没有已安装的包")
         return
 
@@ -18,15 +21,16 @@ def brew_uninstall(query=""):
         border_label="🗑️  [Brew: Uninstall]",
         use_multi_select=True,
         query=query,
-        preview=f"bash {preview_script} {{}}",
+        preview=f"bash {preview_script} {{1}}",
         preview_label="[ 📦 Package Info ]",
         as_str=True,
     )
-    out, err = shell.run_shell_cmd(fzf_cmd, input=ret.stdout)
+    out, err = shell.run_shell_cmd(fzf_cmd, input=combined + "\n")
     if out:
         for uins in out:
-            shell.log_success("正在卸载{}...".format(uins))
-            subprocess.run(["brew", "uninstall", uins])
+            pkg = uins.split()[0]
+            shell.log_success("正在卸载{}...".format(pkg))
+            subprocess.run(["brew", "uninstall", pkg])
     if err:
         shell.log_err(err)
 
