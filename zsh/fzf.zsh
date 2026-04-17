@@ -64,4 +64,5 @@ fi
 
 # Key bindings
 # ------------
-source "${FZF_HOME}/shell/key-bindings.zsh"
+# 禁用 fzf 对 Ctrl-H 的历史绑定（vendored fzf 已改为 ^H），交给 atuin
+FZF_CTRL_R_COMMAND= source "${FZF_HOME}/shell/key-bindings.zsh"
