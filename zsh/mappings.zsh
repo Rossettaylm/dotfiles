@@ -18,7 +18,6 @@ zle -N zle-line-init      _vi_cursor_update
 bindkey -M viins 'jj' vi-cmd-mode            # jj 退出 insert 模式（同 nvim）
 bindkey -M viins 'jk' vi-add-eol             # jk 跳到行尾（同 nvim jk → <esc>A）
 bindkey -M viins '^?' backward-delete-char    # backspace 可删除进入 insert 前的字符
-bindkey -M viins '^H' backward-delete-char    # ctrl+h 同上
 bindkey -M viins '^W' backward-kill-word      # ctrl+w 删除前一个词
 bindkey -M viins '^U' backward-kill-line      # ctrl+u 清除光标前整行
 bindkey -M viins '^A' beginning-of-line       # ctrl+a 跳到行首

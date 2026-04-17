@@ -46,6 +46,7 @@ case $(uname) in
 
         # ohpm (HarmonyOS Package Manager)
         export PATH="$PATH:/Applications/DevEco-Studio.app/Contents/tools/ohpm/bin"
+        export PATH=$PATH:/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains
 
         # eigen
         export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/opt/homebrew/Cellar/eigen/3.4.0.1/include/eigen3

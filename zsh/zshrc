@@ -29,8 +29,10 @@ source "$ZSH_HOME/plugins.zsh"
 source "$ZSH_HOME/prompt.zsh"
 
 # ── 模块加载 ──────────────────────────────────────────────
-# fzf（需要立即加载，保证 Ctrl-T / Ctrl-R 可用）
+# fzf（需要立即加载，保证 Ctrl-T / Alt-C 可用；Ctrl-R 已禁用）
 [ -f "$ZSH_HOME/fzf.zsh" ]      && source "$ZSH_HOME/fzf.zsh"
+# atuin：必须在 fzf 之后加载，Ctrl-H 呼出历史面板
+[ -f "$ZSH_HOME/atuin.zsh" ]    && source "$ZSH_HOME/atuin.zsh"
 
 # 延迟加载：别名、函数、zoxide（不影响交互启动体验）
 [ -f "$ZSH_HOME/aliases.zsh" ]   && zsh-defer source "$ZSH_HOME/aliases.zsh"
