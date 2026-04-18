@@ -22,7 +22,7 @@ max_width = 600
 max_height = 900
 cache_dir = ""
 image_delay = 30
-image_filter = "triangle"
+image_filter = "lanczos3"
 image_quality = 90
 # sixel_fraction = 15
 ueberzug_scale = 1
@@ -149,29 +149,17 @@ spotters = [
   # Code
   { mime = "text/*", run = "code" },
   { mime = "*/{xml,javascript,wine-extension-ini}", run = "code" },
-  # Image
-  { mime = "image/{avif,hei?,jxl,svg+xml}", run = "magick" },
-  { mime = "image/*", run = "image" },
-  # Video
-  { mime = "video/*", run = "video" },
   # Fallback
   { url = "*", run = "file" },
 ]
 
 prepend_preloaders = [
-  # Replace magick, image, video with mediainfo
   { mime = "{audio,video,image}/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
-  # Adobe Illustrator, Adobe Photoshop is image/adobe.photoshop, already handled above
   { mime = "application/postscript", run = "mediainfo" },
 ]
 
 preloaders = [
-  # Image
-  { mime = "image/{avif,hei?,jxl,svg+xml}", run = "magick" },
-  { mime = "image/*", run = "image" },
-  # Video
-  { mime = "video/*", run = "video" },
   # PDF
   { mime = "application/pdf", run = "pdf" },
   # Font
@@ -184,11 +172,9 @@ prepend_previewers = [
   { url = "*.{wxml,wxss}", run = "code" },
   # Markdown 用piper插件打开，不装其他插件了
   { url = "*.md", run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"' },
-  # Media previewer MediaInfo
-  # Replace magick, image, video with mediainfo
+  # Media previewer MediaInfo (audio only)
   { mime = "{audio,video,image}/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
-  # Adobe Illustrator, Adobe Photoshop is image/adobe.photoshop, already handled above
   { mime = "application/postscript", run = "mediainfo" },
   # Archive previewer ouch
   { mime = "application/*zip", run = "ouch" },
