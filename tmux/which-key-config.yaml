@@ -42,11 +42,11 @@ items:
         key: l
         command: select-pane -R
       - separator: true
-      - name: Split ↓
-        key: d
+      - name: "Split ─"
+        key: "-"
         command: "split-window -v -c #{pane_current_path}"
-      - name: Split →
-        key: r
+      - name: "Split │"
+        key: "/"
         command: "split-window -h -c #{pane_current_path}"
       - name: New pane
         key: "n"
