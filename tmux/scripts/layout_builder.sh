@@ -112,6 +112,11 @@ case "$dir" in
     fi
     run_tmux select-pane -t "$current_id"
     ;;
+  swap)
+    current_id=$(tmux display-message -p '#{pane_id}')
+    run_tmux swap-pane -s "$id1" -t "$id2"
+    run_tmux select-pane -t "$current_id"
+    ;;
   *)
     tmux display-message "Unknown layout direction: ${dir}"
     exit 1
