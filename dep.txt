@@ -6,6 +6,7 @@ neofetch
 ghostty
 yazi
 ripgrep
+tmux
 zellij
 bat
 zoxide
@@ -31,3 +32,7 @@ node
 tree-sitter-cli
 git-delta
 clipboard
+chafa
+ffmpegthumbnailer
+imagemagick
+poppler

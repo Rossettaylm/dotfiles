@@ -14,3 +14,6 @@
 [submodule "zsh/plugins/zsh-defer"]
 	path = zsh/plugins/zsh-defer
 	url = https://github.com/romkatv/zsh-defer.git
+[submodule "thirdparty/tpm"]
+	path = thirdparty/tpm
+	url = https://github.com/tmux-plugins/tpm

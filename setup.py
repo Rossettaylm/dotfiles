@@ -194,7 +194,19 @@ def main():
         step_fail("Yazi 插件安装失败")
         sys.exit(1)
 
-    # ── 9. Zellij 插件 ──
+    # ── 9. Tmux 插件 ──
+    step_start("Tmux 插件")
+    try:
+        from setup_dep.tmux import init_tmux
+        init_tmux()
+        step_ok("Tmux 插件安装完成")
+    except SystemExit:
+        raise
+    except Exception as e:
+        step_fail(f"Tmux 插件安装失败: {e}")
+        sys.exit(1)
+
+    # ── 10. Zellij 插件 ──
     step_start("Zellij 插件")
     try:
         from setup_dep.zellij_plugins import init_zellij_plugins
