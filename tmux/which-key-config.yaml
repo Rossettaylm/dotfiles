@@ -24,7 +24,7 @@ macros:
 
 items:
   # ─── 子模式入口 ───
-  - name: +Pane 面板
+  - name: +Pane
     key: p
     menu:
       - name: Left
@@ -63,11 +63,27 @@ items:
         key: Tab
         command: select-pane -t :.+
       - separator: true
+      - name: Layout →
+        key: e
+        command: 'run "~/.config/tmux/scripts/layout_builder.sh right"'
+      - name: Layout ←
+        key: E
+        command: 'run "~/.config/tmux/scripts/layout_builder.sh left"'
+      - name: Layout ↑
+        key: a
+        command: 'run "~/.config/tmux/scripts/layout_builder.sh up"'
+      - name: Layout ↓
+        key: A
+        command: 'run "~/.config/tmux/scripts/layout_builder.sh down"'
+      - name: Watch cmd
+        key: W
+        command: 'run -b "bash ~/.config/tmux/scripts/watch_pane.sh #{pane_id} #{window_id}"'
+      - separator: true
       - name: Kill
         key: x
         command: kill-pane
 
-  - name: +Tab 窗口
+  - name: +Tab
     key: t
     menu:
       - name: Prev
@@ -116,7 +132,7 @@ items:
         key: x
         command: "confirm-before -p \"kill window #W? (y/n)\" kill-window"
 
-  - name: +Resize 大小
+  - name: +Resize
     key: r
     menu:
       - name: Left
@@ -153,7 +169,7 @@ items:
         command: resize-pane -R 5
         transient: true
 
-  - name: +Move 移动
+  - name: +Move
     key: m
     menu:
       - name: Swap up
@@ -175,11 +191,11 @@ items:
         key: p
         command: swap-pane -U
 
-  - name: Copy 滚动
+  - name: Copy
     key: s
     command: copy-mode
 
-  - name: +Session 会话
+  - name: +Session
     key: o
     menu:
       - name: Detach
