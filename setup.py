@@ -183,7 +183,19 @@ def main():
         step_fail(f"Claude Code 配置失败: {e}")
         sys.exit(1)
 
-    # ── 8. Yazi 插件 ──
+    # ── 8. AI 通知 Hooks ──
+    step_start("AI 通知 Hooks")
+    try:
+        from setup_dep.ai_hooks import inject_ai_hooks
+        inject_ai_hooks()
+        step_ok("AI Hooks 注入完成")
+    except SystemExit:
+        raise
+    except Exception as e:
+        step_fail(f"AI Hooks 注入失败: {e}")
+        sys.exit(1)
+
+    # ── 9. Yazi 插件 ──
     step_start("Yazi 插件")
     try:
         subprocess.run(["ya", "pkg", "install"], check=True)
@@ -194,7 +206,7 @@ def main():
         step_fail("Yazi 插件安装失败")
         sys.exit(1)
 
-    # ── 9. Tmux 插件 ──
+    # ── 10. Tmux 插件 ──
     step_start("Tmux 插件")
     try:
         from setup_dep.tmux import init_tmux
@@ -206,7 +218,7 @@ def main():
         step_fail(f"Tmux 插件安装失败: {e}")
         sys.exit(1)
 
-    # ── 10. Zellij 插件 ──
+    # ── 11. Zellij 插件 ──
     step_start("Zellij 插件")
     try:
         from setup_dep.zellij_plugins import init_zellij_plugins
