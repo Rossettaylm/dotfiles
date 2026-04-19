@@ -3,7 +3,7 @@
 # 被 Claude Code / CodeBuddy Code 的 Stop / Notification hook 调用
 #
 # 用法: ai_notify.sh <event> [message]
-#   event: "stop" | "notification"
+#   event: "stop" | "subagent_stop" | "notification"
 #   message: 自定义通知内容（可选）
 #
 # Notification 事件会通过 stdin 传入 JSON（含 .message 字段）
@@ -17,6 +17,11 @@ case "$EVENT" in
   stop)
     TITLE="AI Task Done"
     MSG="${MSG:-任务已完成，等待你的指令}"
+    SOUND="Glass"
+    ;;
+  subagent_stop)
+    TITLE="AI Sub-task Done"
+    MSG="${MSG:-子任务已完成，等待你的指令}"
     SOUND="Glass"
     ;;
   notification)

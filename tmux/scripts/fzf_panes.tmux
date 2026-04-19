@@ -30,9 +30,9 @@ do_action() {
         '(( start>0 )) && echo $start || echo 0) -t {1}'
     preview_cmd=$*
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
-    selected=$(FZF_DEFAULT_COMMAND=$cmd fzf -m --preview="$preview_cmd" \
+    selected=$(FZF_DEFAULT_COMMAND=$cmd fzf -m --ansi --preview="$preview_cmd" \
         --preview-window='right:60%' --reverse --info=inline --header-lines=1 \
-        --delimiter='\s{2,}' --with-nth=2..-1 --nth=1,2,3 \
+        --delimiter='\s{2,}' --with-nth=2..-1 --nth=1,2,3,5 \
         --bind="alt-p:toggle-preview" \
         --bind="ctrl-r:reload($cmd)" \
         --bind="ctrl-x:execute-silent(tmux kill-pane -t {1})+reload($cmd)" \
@@ -87,12 +87,12 @@ do_action() {
 }
 
 panes_src() {
-    printf "%-6s  %-7s  %5s  %s\n" \
-        'PANEID' 'SESSION' 'PANE' 'CMD'
+    printf "%-6s  %-7s  %-8s  %5s  %-20s  %s\n" \
+        'PANEID' 'SESSION' 'WINDOW' 'PANE' 'PATH' 'CMD'
     panes_info=$(tmux list-panes -aF \
-        '#D #{=|6|…:session_name} #I.#P #{pane_tty} #T' |
+        '#D #{=|6|…:session_name} #{=|8|…:window_name} #I.#P #{pane_current_path} #{pane_tty} #T' |
         sed -E "/^$TMUX_PANE /d")
-    ttys=$(awk '{printf("%s,", $4)}' <<<"$panes_info" | sed 's/,$//')
+    ttys=$(awk '{printf("%s,", $6)}' <<<"$panes_info" | sed 's/,$//')
     ps_info=$(ps -t$ttys -o stat,tty,command |
         awk '$1~/\+/ {$1="";print $0}')
     ids=()
@@ -100,13 +100,17 @@ panes_src() {
 
     print_pane_line() {
         local pane_line=$1
-        local prefix=${2:-}
+        local color=${2:-}
         local pane_info=($pane_line)
         local pane_id=${pane_info[0]}
         local session=${pane_info[1]}
-        local pane=${pane_info[2]}
-        local tty=${pane_info[3]#/dev/}
-        local title=${pane_info[@]:4}
+        local window=${pane_info[2]}
+        local pane=${pane_info[3]}
+        local pane_path=${pane_info[4]}
+        local tty=${pane_info[5]#/dev/}
+        local title=${pane_info[@]:6}
+        # shorten home prefix to ~
+        pane_path=${pane_path/#$HOME/\~}
         while read ps_line; do
             local p_info=($ps_line)
             if [[ $tty == ${p_info[0]} ]]; then
@@ -115,8 +119,14 @@ panes_src() {
                     local cmd_arr=($cmd)
                     cmd="${cmd_arr[0]} $title"
                 fi
-                printf "%-6s  %-7s  %5s  %s%s\n" \
-                    $pane_id $session $pane "$prefix" "$cmd"
+                local line
+                printf -v line "%-6s  %-7s  %-8s  %5s  %-20s  %s" \
+                    $pane_id $session $window $pane "$pane_path" "$cmd"
+                if [[ -n $color ]]; then
+                    printf "\033[%sm* %s\033[0m\n" "$color" "$line"
+                else
+                    printf "%s\n" "$line"
+                fi
                 break
             fi
         done <<<"$ps_info"
@@ -131,7 +141,7 @@ panes_src() {
             pane_id=${pane_info[0]}
             if [[ $ai_pending == $pane_id ]]; then
                 ids+=($ai_pending)
-                print_pane_line "$pane_line" "* "
+                print_pane_line "$pane_line" "1;33"
             fi
         done <<<"$panes_info"
     fi
