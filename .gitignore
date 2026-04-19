@@ -38,6 +38,7 @@ nvim/*
 # ── Tmux ─────────────────────────────────────────────
 !tmux/
 !tmux/**
+tmux/plugins/
 
 # ── Zellij ───────────────────────────────────────────
 !zellij/
@@ -92,6 +93,7 @@ yazi/*
 !thirdparty/
 thirdparty/*
 !thirdparty/fzf/
+!thirdparty/tpm/
 
 # -- gh --
 !gh/

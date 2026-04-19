@@ -1,0 +1,200 @@
+# yaml-language-server: $schema=config.schema.yaml
+# tmux-which-key 配置 — 匹配 Zellij 风格子模式
+command_alias_start_index: 200
+
+keybindings:
+  prefix_table: Space
+
+title:
+  style: align=centre,bold
+  prefix: "Ctrl-g"
+  prefix_style: fg=cyan,align=centre,bold
+
+position:
+  x: C
+  y: C
+
+custom_variables: []
+
+macros:
+  - name: reload-config
+    commands:
+      - source-file ~/.config/tmux/tmux.conf
+      - display "Config reloaded"
+
+items:
+  # ─── 子模式入口 ───
+  - name: +Pane 面板
+    key: p
+    menu:
+      - name: Left
+        key: h
+        command: select-pane -L
+      - name: Down
+        key: j
+        command: select-pane -D
+      - name: Up
+        key: k
+        command: select-pane -U
+      - name: Right
+        key: l
+        command: select-pane -R
+      - separator: true
+      - name: Split ↓
+        key: d
+        command: "split-window -v -c #{pane_current_path}"
+      - name: Split →
+        key: r
+        command: "split-window -h -c #{pane_current_path}"
+      - name: New pane
+        key: "n"
+        command: "split-window -c #{pane_current_path}"
+      - separator: true
+      - name: Zoom
+        key: f
+        command: resize-pane -Z
+      - name: Popup
+        key: w
+        command: "popup -d #{pane_current_path} -w 80% -h 80% -E"
+      - name: Rename
+        key: c
+        command: "command-prompt -I \"#T\" \"select-pane -T '%%'\""
+      - name: Next pane
+        key: Tab
+        command: select-pane -t :.+
+      - separator: true
+      - name: Kill
+        key: x
+        command: kill-pane
+
+  - name: +Tab 窗口
+    key: t
+    menu:
+      - name: Prev
+        key: h
+        command: previous-window
+      - name: Next
+        key: l
+        command: next-window
+      - name: New
+        key: "n"
+        command: "new-window -c #{pane_current_path}"
+      - separator: true
+      - name: Rename
+        key: r
+        command: "command-prompt -I \"#W\" \"rename-window '%%'\""
+      - name: Break pane
+        key: b
+        command: break-pane
+      - name: Sync panes
+        key: s
+        command: setw synchronize-panes
+      - name: Last window
+        key: Tab
+        command: last-window
+      - separator: true
+      - name: "Win 1"
+        key: "1"
+        command: select-window -t 1
+      - name: "Win 2"
+        key: "2"
+        command: select-window -t 2
+      - name: "Win 3"
+        key: "3"
+        command: select-window -t 3
+      - name: "Win 4"
+        key: "4"
+        command: select-window -t 4
+      - name: "Win 5"
+        key: "5"
+        command: select-window -t 5
+      - name: "Win 6"
+        key: "6"
+        command: select-window -t 6
+      - separator: true
+      - name: Kill
+        key: x
+        command: "confirm-before -p \"kill window #W? (y/n)\" kill-window"
+
+  - name: +Resize 大小
+    key: r
+    menu:
+      - name: Left
+        key: h
+        command: resize-pane -L 2
+        transient: true
+      - name: Down
+        key: j
+        command: resize-pane -D 2
+        transient: true
+      - name: Up
+        key: k
+        command: resize-pane -U 2
+        transient: true
+      - name: Right
+        key: l
+        command: resize-pane -R 2
+        transient: true
+      - separator: true
+      - name: Left ×5
+        key: H
+        command: resize-pane -L 5
+        transient: true
+      - name: Down ×5
+        key: J
+        command: resize-pane -D 5
+        transient: true
+      - name: Up ×5
+        key: K
+        command: resize-pane -U 5
+        transient: true
+      - name: Right ×5
+        key: L
+        command: resize-pane -R 5
+        transient: true
+
+  - name: +Move 移动
+    key: m
+    menu:
+      - name: Swap up
+        key: h
+        command: swap-pane -U
+      - name: Swap down
+        key: j
+        command: swap-pane -D
+      - name: Swap up
+        key: k
+        command: swap-pane -U
+      - name: Swap down
+        key: l
+        command: swap-pane -D
+      - name: Next
+        key: "n"
+        command: swap-pane -D
+      - name: Prev
+        key: p
+        command: swap-pane -U
+
+  - name: Copy 滚动
+    key: s
+    command: copy-mode
+
+  - name: +Session 会话
+    key: o
+    menu:
+      - name: Detach
+        key: d
+        command: detach-client
+      - name: Choose tree
+        key: w
+        command: choose-tree -Zs
+
+  - separator: true
+
+  - name: Kill session
+    key: q
+    command: "confirm-before -p \"kill session? (y/n)\" kill-session"
+
+  - name: Reload config
+    key: R
+    macro: reload-config

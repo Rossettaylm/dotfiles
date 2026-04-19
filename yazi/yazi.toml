@@ -18,8 +18,8 @@ mouse_events = ["click", "scroll"]
 [preview]
 wrap = "no"
 tab_size = 2
-max_width = 600
-max_height = 900
+max_width = 1920
+max_height = 1080
 cache_dir = ""
 image_delay = 30
 image_filter = "lanczos3"
@@ -154,7 +154,7 @@ spotters = [
 ]
 
 prepend_preloaders = [
-  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "audio/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
 ]
@@ -173,7 +173,7 @@ prepend_previewers = [
   # Markdown 用piper插件打开，不装其他插件了
   { url = "*.md", run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"' },
   # Media previewer MediaInfo (audio only)
-  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "audio/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
   # Archive previewer ouch
