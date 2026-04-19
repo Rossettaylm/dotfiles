@@ -7,7 +7,7 @@ keybindings:
 
 title:
   style: align=centre,bold
-  prefix: "Ctrl-g"
+  prefix: "Ctrl-Backslash"
   prefix_style: fg=cyan,align=centre,bold
 
 position:
@@ -19,7 +19,9 @@ custom_variables: []
 macros:
   - name: reload-config
     commands:
+      - run-shell "python3 ~/.config/tmux/scripts/gen_keybinds.py"
       - source-file ~/.config/tmux/tmux.conf
+      - run-shell "~/.config/tmux/plugins/tmux-which-key/plugin.sh.tmux"
       - display "Config reloaded"
 
 items:
@@ -75,6 +77,9 @@ items:
       - name: Layout ↓
         key: A
         command: 'run "~/.config/tmux/scripts/layout_builder.sh down"'
+      - name: Toggle layout
+        key: s
+        command: 'run "~/.config/tmux/scripts/layout_builder.sh toggle"'
       - name: Watch cmd
         key: W
         command: 'run -b "bash ~/.config/tmux/scripts/watch_pane.sh #{pane_id} #{window_id}"'
@@ -127,6 +132,15 @@ items:
       - name: "Win 6"
         key: "6"
         command: select-window -t 6
+      - name: "Win 7"
+        key: "7"
+        command: select-window -t 7
+      - name: "Win 8"
+        key: "8"
+        command: select-window -t 8
+      - name: "Win 9"
+        key: "9"
+        command: select-window -t 9
       - separator: true
       - name: Kill
         key: x
@@ -190,6 +204,9 @@ items:
       - name: Prev
         key: p
         command: swap-pane -U
+      - name: Next pane
+        key: Tab
+        command: swap-pane -D
 
   - name: Copy
     key: s
