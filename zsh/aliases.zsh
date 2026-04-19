@@ -115,6 +115,7 @@ alias qins="adb install -r AQQLite/AQQLiteApp/build/intermediates/qqLite/compact
 alias cr="cargo run"
 alias cld="claude"
 alias cldi="claude-internal"
+alias cbd="codebuddy"
 alias ski="python3 $ZSH_HOME/fzf/claude/skill_install.py"
 alias skm="python3 $ZSH_HOME/fzf/claude/skill_manage.py"
 
