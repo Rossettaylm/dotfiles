@@ -99,6 +99,19 @@ case "$dir" in
     run_tmux join-pane -h -s "$right_id" -t "$left_id"
     run_tmux select-pane -t "$new_id"
     ;;
+  toggle)
+    current_id=$(tmux display-message -p '#{pane_id}')
+    if [ "$top1" -eq "$top2" ]; then
+      # currently horizontal (side by side) -> switch to vertical (stacked)
+      run_tmux break-pane -d -s "$right_id"
+      run_tmux join-pane -v -s "$right_id" -t "$left_id"
+    else
+      # currently vertical (stacked) -> switch to horizontal (side by side)
+      run_tmux break-pane -d -s "$bottom_id"
+      run_tmux join-pane -h -s "$bottom_id" -t "$top_id"
+    fi
+    run_tmux select-pane -t "$current_id"
+    ;;
   *)
     tmux display-message "Unknown layout direction: ${dir}"
     exit 1
