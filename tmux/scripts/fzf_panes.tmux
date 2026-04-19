@@ -51,6 +51,9 @@ do_action() {
         done <<<"$selected"
     done
 
+    # Clear AI pending pane after selection
+    tmux set -gu '@ai_pending_pane' 2>/dev/null || true
+
     id_n=${#ids[@]}
     id1=${ids[0]}
     if ((id_n == 1)); then
@@ -97,6 +100,7 @@ panes_src() {
 
     print_pane_line() {
         local pane_line=$1
+        local prefix=${2:-}
         local pane_info=($pane_line)
         local pane_id=${pane_info[0]}
         local session=${pane_info[1]}
@@ -111,15 +115,30 @@ panes_src() {
                     local cmd_arr=($cmd)
                     cmd="${cmd_arr[0]} $title"
                 fi
-                printf "%-6s  %-7s  %5s  %s\n" \
-                    $pane_id $session $pane "$cmd"
+                printf "%-6s  %-7s  %5s  %s%s\n" \
+                    $pane_id $session $pane "$prefix" "$cmd"
                 break
             fi
         done <<<"$ps_info"
     }
 
-    # First: output panes in MRU order
+    # First: output AI pending pane (if any) at the top
+    ai_pending=$(tmux show -gqv '@ai_pending_pane' 2>/dev/null || true)
+    if [[ -n $ai_pending ]]; then
+        while read pane_line; do
+            [[ -z $pane_line ]] && continue
+            pane_info=($pane_line)
+            pane_id=${pane_info[0]}
+            if [[ $ai_pending == $pane_id ]]; then
+                ids+=($ai_pending)
+                print_pane_line "$pane_line" "* "
+            fi
+        done <<<"$panes_info"
+    fi
+
+    # Then: output panes in MRU order
     for id in $(tmux show -gqv '@mru_pane_ids'); do
+        [[ $id == "$ai_pending" ]] && continue
         while read pane_line; do
             pane_info=($pane_line)
             pane_id=${pane_info[0]}
