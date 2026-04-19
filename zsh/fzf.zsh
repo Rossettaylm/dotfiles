@@ -24,7 +24,7 @@ _fzf_comprun() {
 
 export FZF_DEFAULT_COMMAND="fd --hidden --exclude '.git'"
 # catppuccin/mocha
-export FZF_DEFAULT_OPTS="--height=80% --ansi --layout=reverse --padding=1 --margin=1 --border --style=full \
+export FZF_DEFAULT_OPTS="--height=80% --ansi --layout=reverse --padding=1 --margin=1 --border \
 --color=bg+:#313244,bg:-1,spinner:#F5E0DC,hl:#F38BA8 \
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
 --color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
