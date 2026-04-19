@@ -78,6 +78,12 @@ alias zr="zellij run -i -- "
 alias zs="python3 $ZSH_HOME/fzf/system/zellij_sessions.py"
 alias zd="python3 $ZSH_HOME/fzf/system/zellij_delete_session.py"
 
+# ── Tmux ──────────────────────────────────────────────────────
+alias tm="tmux"
+alias ta="tmux new-session -A -s"
+alias ts="python3 $ZSH_HOME/fzf/system/tmux_sessions.py"
+alias td="python3 $ZSH_HOME/fzf/system/tmux_delete_session.py"
+
 # ── fzf 工具 ──────────────────────────────────────────────────
 alias f="fzf"
 alias fp="python3 $ZSH_HOME/fzf/file/file_preview.py"

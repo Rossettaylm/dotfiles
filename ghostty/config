@@ -50,6 +50,8 @@ bold-is-bright = false
 
 # keybinding
 keybind = global:cmd+\=toggle_quick_terminal
+# Alt+[ 发送 ESC [ 与 CSI 引导序列冲突，会干扰 yazi/tmux/zsh-vi-mode
+keybind = alt+[=ignore
 
 # ── 禁用分屏快捷键（由 aerospace/zellij 管理分屏）─────
 keybind = cmd+d=unbind
