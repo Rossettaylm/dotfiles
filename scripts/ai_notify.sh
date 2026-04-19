@@ -43,10 +43,12 @@ frontmost=$(osascript -e \
   2>/dev/null || true)
 if [[ "$frontmost" != "ghostty" ]]; then
   SHOULD_NOTIFY=true
-elif [[ -n "${TMUX:-}" ]]; then
+elif [[ -n "${TMUX:-}" && -n "${TMUX_PANE:-}" ]]; then
   # Ghostty 在前台，检查 client 是否正在看 AI pane 所在的 session:window
-  my_session=$(tmux display-message -p '#{session_name}' 2>/dev/null || true)
-  my_window=$(tmux display-message -p '#{window_index}' 2>/dev/null || true)
+  # 注意：display-message -p 不带 -t 会返回 client active pane 而非脚本所在 pane，
+  # 必须用 -t "$TMUX_PANE" 获取脚本实际所在的 session/window
+  my_session=$(tmux display-message -t "$TMUX_PANE" -p '#{session_name}' 2>/dev/null || true)
+  my_window=$(tmux display-message -t "$TMUX_PANE" -p '#{window_index}' 2>/dev/null || true)
   # client 当前 attach 的 session
   client_session=$(tmux list-clients -F '#{client_session}' 2>/dev/null | head -1 || true)
   if [[ "$my_session" != "$client_session" ]]; then
@@ -54,7 +56,7 @@ elif [[ -n "${TMUX:-}" ]]; then
     SHOULD_NOTIFY=true
   else
     # 同一 session，检查 active window
-    active_window=$(tmux display-message -t "${client_session}" -p '#{window_index}' 2>/dev/null || true)
+    active_window=$(tmux list-windows -t "${client_session}" -F '#{window_index}' -f '#{window_active}' 2>/dev/null | head -1 || true)
     if [[ "$my_window" != "$active_window" ]]; then
       SHOULD_NOTIFY=true
     fi
@@ -65,9 +67,12 @@ if [[ "$SHOULD_NOTIFY" == "true" ]]; then
 fi
 
 # 标记当前 pane 为 AI 待切换（fzf_panes 会优先展示）
-if [[ -n "${TMUX:-}" ]]; then
-  ai_pane=$(tmux display-message -p '#D' 2>/dev/null || true)
+# 仅在 AI pane 不可见时才更新 MRU 和 pending 标记（与系统通知逻辑一致）
+if [[ -n "${TMUX:-}" && -n "${TMUX_PANE:-}" && "$SHOULD_NOTIFY" == "true" ]]; then
+  ai_pane="$TMUX_PANE"
   if [[ -n "$ai_pane" ]]; then
     tmux set -g '@ai_pending_pane' "$ai_pane" 2>/dev/null || true
+    # 更新 MRU，将 AI pane 提到最前
+    bash "$(dirname "$0")/../tmux/scripts/fzf_panes.tmux" update_mru_pane_ids 2>/dev/null || true
   fi
 fi
