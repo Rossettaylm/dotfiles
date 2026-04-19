@@ -31,8 +31,8 @@ do_action() {
     preview_cmd=$*
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
     selected=$(FZF_DEFAULT_COMMAND=$cmd fzf -m --preview="$preview_cmd" \
-        --preview-window='down:80%' --reverse --info=inline --header-lines=1 \
-        --delimiter='\s{2,}' --with-nth=2..-1 --nth=1,2,9 \
+        --preview-window='right:60%' --reverse --info=inline --header-lines=1 \
+        --delimiter='\s{2,}' --with-nth=2..-1 --nth=1,2,3 \
         --bind="alt-p:toggle-preview" \
         --bind="ctrl-r:reload($cmd)" \
         --bind="ctrl-x:execute-silent(tmux kill-pane -t {1})+reload($cmd)" \
@@ -48,7 +48,7 @@ do_action() {
             pane_info=($pane_line)
             pane_id=${pane_info[0]}
             [[ $id == $pane_id ]] && ids+=($id)
-        done <<<$selected
+        done <<<"$selected"
     done
 
     id_n=${#ids[@]}
@@ -84,43 +84,67 @@ do_action() {
 }
 
 panes_src() {
-    printf "%-6s  %-7s  %5s  %8s  %4s  %4s  %-8s  %-7s  %s\n" \
-        'PANEID' 'SESSION' 'PANE' 'PID' '%CPU' '%MEM' 'TIME' 'TTY' 'CMD'
+    printf "%-6s  %-7s  %5s  %s\n" \
+        'PANEID' 'SESSION' 'PANE' 'CMD'
     panes_info=$(tmux list-panes -aF \
         '#D #{=|6|…:session_name} #I.#P #{pane_tty} #T' |
         sed -E "/^$TMUX_PANE /d")
-    ttys=$(awk '{printf("%s,", $4)}' <<<$panes_info | sed 's/,$//')
-    ps_info=$(ps -t$ttys -o stat,pid,pcpu,pmem,time,tty,command |
+    ttys=$(awk '{printf("%s,", $4)}' <<<"$panes_info" | sed 's/,$//')
+    ps_info=$(ps -t$ttys -o stat,tty,command |
         awk '$1~/\+/ {$1="";print $0}')
     ids=()
     hostname=$(hostname)
+
+    print_pane_line() {
+        local pane_line=$1
+        local pane_info=($pane_line)
+        local pane_id=${pane_info[0]}
+        local session=${pane_info[1]}
+        local pane=${pane_info[2]}
+        local tty=${pane_info[3]#/dev/}
+        local title=${pane_info[@]:4}
+        while read ps_line; do
+            local p_info=($ps_line)
+            if [[ $tty == ${p_info[0]} ]]; then
+                local cmd=${p_info[@]:1}
+                if [[ $cmd =~ ^n?vim && $title != $hostname ]]; then
+                    local cmd_arr=($cmd)
+                    cmd="${cmd_arr[0]} $title"
+                fi
+                printf "%-6s  %-7s  %5s  %s\n" \
+                    $pane_id $session $pane "$cmd"
+                break
+            fi
+        done <<<"$ps_info"
+    }
+
+    # First: output panes in MRU order
     for id in $(tmux show -gqv '@mru_pane_ids'); do
         while read pane_line; do
             pane_info=($pane_line)
             pane_id=${pane_info[0]}
             if [[ $id == $pane_id ]]; then
                 ids+=($id)
-                session=${pane_info[1]}
-                pane=${pane_info[2]}
-                tty=${pane_info[3]#/dev/}
-                title=${pane_info[@]:4}
-                while read ps_line; do
-                    p_info=($ps_line)
-                    if [[ $tty == ${p_info[4]} ]]; then
-                        printf "%-6s  %-7s  %5s  %8s  %4s  %4s  %-8s  %-7s  " \
-                            $pane_id $session $pane ${p_info[@]::5}
-                        cmd=${p_info[@]:5}
-                        if [[ $cmd =~ ^n?vim && $title != $hostname ]]; then
-                            cmd_arr=($cmd)
-                            cmd="${cmd_arr[0]} $title"
-                        fi
-                        echo $cmd
-                        break
-                    fi
-                done <<<$ps_info
+                print_pane_line "$pane_line"
             fi
-        done <<<$panes_info
+        done <<<"$panes_info"
     done
+
+    # Then: output any panes not yet in MRU list
+    while read pane_line; do
+        [[ -z $pane_line ]] && continue
+        pane_info=($pane_line)
+        pane_id=${pane_info[0]}
+        found=0
+        for id in "${ids[@]}"; do
+            [[ $id == $pane_id ]] && found=1 && break
+        done
+        if (( found == 0 )); then
+            ids+=($pane_id)
+            print_pane_line "$pane_line"
+        fi
+    done <<<"$panes_info"
+
     tmux set -g '@mru_pane_ids' "${ids[*]}"
 }
 
