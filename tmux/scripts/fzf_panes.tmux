@@ -45,7 +45,9 @@ do_action() {
     ids=()
     for id in ${ids_o[@]}; do
         while read pane_line; do
-            pane_info=($pane_line)
+            # Strip ANSI escape codes before field parsing
+            clean_line=$(printf '%s' "$pane_line" | sed $'s/\033\\[[0-9;]*m//g')
+            pane_info=($clean_line)
             pane_id=${pane_info[0]}
             [[ $id == $pane_id ]] && ids+=($id)
         done <<<"$selected"
@@ -123,7 +125,7 @@ panes_src() {
                 printf -v line "%-6s  %-7s  %-8s  %5s  %-20s  %s" \
                     $pane_id $session $window $pane "$pane_path" "$cmd"
                 if [[ -n $color ]]; then
-                    printf "\033[%sm* %s\033[0m\n" "$color" "$line"
+                    printf "\033[%sm%s\033[0m\n" "$color" "$line"
                 else
                     printf "%s\n" "$line"
                 fi
