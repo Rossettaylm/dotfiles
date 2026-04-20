@@ -88,20 +88,22 @@ sessions_src() {
 
     local printed=()
 
-    print_line "$current_session"
-    printed+=("$current_session")
-
+    # last session first (most likely switch target)
     if [[ -n $last_session && $last_session != "$current_session" ]]; then
         print_line "$last_session"
         printed+=("$last_session")
     fi
 
+    # other sessions alphabetically
     while read -r name; do
         local skip=0
-        for p in "${printed[@]}"; do [[ $p == "$name" ]] && skip=1 && break; done
+        for p in "${printed[@]}" "$current_session"; do [[ $p == "$name" ]] && skip=1 && break; done
         (( skip )) && continue
         print_line "$name"
     done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null | sort)
+
+    # current session last
+    print_line "$current_session"
 }
 
 $@
