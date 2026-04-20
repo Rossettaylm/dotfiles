@@ -66,16 +66,16 @@ items:
         command: select-pane -t :.+
       - separator: true
       - name: Layout →
-        key: e
+        key: r
         command: 'run "~/.config/tmux/scripts/layout_builder.sh right"'
       - name: Layout ←
-        key: E
+        key: R
         command: 'run "~/.config/tmux/scripts/layout_builder.sh left"'
       - name: Layout ↑
-        key: a
+        key: t
         command: 'run "~/.config/tmux/scripts/layout_builder.sh up"'
       - name: Layout ↓
-        key: A
+        key: T
         command: 'run "~/.config/tmux/scripts/layout_builder.sh down"'
       - name: Toggle layout
         key: s
