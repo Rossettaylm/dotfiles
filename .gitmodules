@@ -17,6 +17,3 @@
 [submodule "thirdparty/tpm"]
 	path = thirdparty/tpm
 	url = https://github.com/tmux-plugins/tpm
-[submodule "thirdparty/agent-tracker"]
-	path = thirdparty/agent-tracker
-	url = https://github.com/Rossettaylm/agent-tracker.git
