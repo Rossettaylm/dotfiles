@@ -19,11 +19,6 @@ case "$EVENT" in
     MSG="${MSG:-任务已完成，等待你的指令}"
     SOUND="Glass"
     ;;
-  subagent_stop)
-    TITLE="AI Sub-task Done"
-    MSG="${MSG:-子任务已完成，等待你的指令}"
-    SOUND="Glass"
-    ;;
   notification)
     TITLE="AI Notification"
     if [[ -z "$MSG" ]]; then
