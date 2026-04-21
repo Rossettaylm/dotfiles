@@ -94,6 +94,7 @@ yazi/*
 thirdparty/*
 !thirdparty/fzf/
 !thirdparty/tpm/
+!thirdparty/agent-tracker/
 
 # -- gh --
 !gh/
