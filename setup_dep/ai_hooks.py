@@ -17,17 +17,6 @@ HOOKS_CONFIG = {
             ]
         }
     ],
-    "SubagentStop": [
-        {
-            "hooks": [
-                {
-                    "type": "command",
-                    "command": f"bash {HOOK_SCRIPT} subagent_stop",
-                    "async": True,
-                }
-            ]
-        }
-    ],
     "Notification": [
         {
             "hooks": [
@@ -49,10 +38,10 @@ TARGETS = [
 
 
 def inject_ai_hooks():
-    """向目标 settings.json 注入 Stop / SubagentStop / Notification hooks（幂等）。
+    """向目标 settings.json 注入 Stop / Notification hooks（幂等）。
 
     - 保留文件中已有的其他字段和其他 hook 事件
-    - 仅覆盖 Stop、SubagentStop 和 Notification 三个事件
+    - 仅覆盖 Stop 和 Notification 两个事件（SubagentStop 无需用户决策，不通知）
     - 文件或目录不存在时自动创建
     """
     for target in TARGETS:
@@ -68,7 +57,7 @@ def inject_ai_hooks():
 
         hooks = settings.setdefault("hooks", {})
         hooks["Stop"] = HOOKS_CONFIG["Stop"]
-        hooks["SubagentStop"] = HOOKS_CONFIG["SubagentStop"]
+        hooks.pop("SubagentStop", None)  # 子任务完成无需用户决策，移除该 hook
         hooks["Notification"] = HOOKS_CONFIG["Notification"]
 
         target.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n")
