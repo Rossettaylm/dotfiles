@@ -65,6 +65,8 @@ case $(uname) in
     # --- Linux 通用 ---
     export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin
     export PATH=$PATH:/usr/local/mariadb/bin
+    # SSH 进来时标记本地是 tmux，让 nvim OSC52 使用 DCS 包裹穿透 tmux
+    [ -n "$SSH_TTY" ] && export NVIM_FORCE_TMUX_OSC52=1
 
     # 按设备区分
     case $(hostname -s) in
