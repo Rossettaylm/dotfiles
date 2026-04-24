@@ -81,6 +81,7 @@ return {
   { -- Nvim-notify: 通知弹窗美化
     "rcarriga/nvim-notify",
     cond = not vim.g.vscode,
+    event = "VeryLazy",
     config = function(_, opts)
       local notify = require("notify")
       notify.setup(opts)
