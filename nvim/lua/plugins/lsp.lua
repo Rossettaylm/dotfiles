@@ -151,16 +151,6 @@ return {
         filetypes = { "css", "wxss" },
       },
 
-      -- Kotlin (Android / JVM)
-      kotlin_language_server = {
-        root_markers = { "settings.gradle", "settings.gradle.kts", "build.gradle", "build.gradle.kts", "pom.xml" },
-        settings = {
-          kotlin = {
-            compiler = { jvm = { target = "17" } },
-          },
-        },
-      },
-
       -- XML (Android layout, manifest, etc.)
       lemminx = {
         filetypes = { "xml", "xsd", "xsl", "xslt", "svg" },

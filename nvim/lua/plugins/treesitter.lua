@@ -8,12 +8,18 @@ return {
   lazy = false,
   cond = not vim.g.vscode,
   config = function()
+    local nav_mode = require("config.nav_mode")
+
     local parsers = {
       "bash",
       "css",
+      "gitcommit",
+      "gitignore",
       "html",
+      "java",
       "javascript",
       "json",
+      "kotlin",
       "lua",
       "luadoc",
       "markdown",
@@ -25,6 +31,7 @@ return {
       "typescript",
       "vim",
       "vimdoc",
+      "xml",
       "yaml",
     }
     require("nvim-treesitter").install(parsers)
@@ -32,10 +39,16 @@ return {
     ---@param buf integer
     ---@param language string
     local function treesitter_try_attach(buf, language)
+      if not nav_mode.should_use_treesitter(buf) then
+        nav_mode.disable_treesitter(buf)
+        return
+      end
+
       local ok = pcall(vim.treesitter.language.inspect, language)
       if not ok then
         return
       end
+
       vim.treesitter.start(buf, language)
       vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
       vim.wo[0].foldmethod = "expr"
