@@ -240,7 +240,15 @@ function M.open_symbols()
   end
 
   if M.is_full(0) and type(fzf.treesitter) == "function" then
-    local ok_ts = pcall(fzf.treesitter)
+    local actions = require("fzf-lua.actions")
+    local ok_ts = pcall(fzf.treesitter, {
+      actions = {
+        ["default"] = actions.file_edit,
+        ["ctrl-s"] = actions.file_split,
+        ["ctrl-v"] = actions.file_vsplit,
+        ["ctrl-t"] = actions.file_tabedit,
+      },
+    })
     if ok_ts then
       return
     end
