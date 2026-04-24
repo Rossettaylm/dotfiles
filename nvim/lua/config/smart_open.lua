@@ -1,6 +1,16 @@
 -- 智能打开文件：已有 tab/window → 跳转，已有 buffer → 切换，否则 tabedit
 local M = {}
 
+---@param win integer
+---@param line integer
+---@param col integer
+local function safe_set_cursor(win, line, col)
+  local buf = vim.api.nvim_win_get_buf(win)
+  local max_line = vim.api.nvim_buf_line_count(buf)
+  line = math.max(1, math.min(line, max_line))
+  vim.api.nvim_win_set_cursor(win, { line, col })
+end
+
 ---@param file string 文件路径
 ---@param line? number 行号
 ---@param col? number 列号
@@ -14,7 +24,7 @@ function M.open(file, line, col)
         vim.api.nvim_set_current_tabpage(tp)
         vim.api.nvim_set_current_win(win)
         if line then
-          vim.api.nvim_win_set_cursor(win, { line, (col or 1) - 1 })
+          safe_set_cursor(win, line, (col or 1) - 1)
         end
         return
       end
@@ -26,7 +36,7 @@ function M.open(file, line, col)
     if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_name(buf) == abs then
       vim.cmd("buffer " .. buf)
       if line then
-        vim.api.nvim_win_set_cursor(0, { line, (col or 1) - 1 })
+        safe_set_cursor(0, line, (col or 1) - 1)
       end
       return
     end
@@ -44,7 +54,7 @@ function M.open(file, line, col)
     vim.cmd("tabedit " .. vim.fn.fnameescape(file))
   end
   if line then
-    vim.api.nvim_win_set_cursor(0, { line, (col or 1) - 1 })
+    safe_set_cursor(0, line, (col or 1) - 1)
   end
 end
 
