@@ -37,7 +37,27 @@ return {
     "nvim-lualine/lualine.nvim",
     cond = not vim.g.vscode,
     dependencies = { "nvim-tree/nvim-web-devicons" },
-    opts = {},
+    opts = {
+      sections = {
+        lualine_c = {
+          {
+            function()
+              local nav_mode = require("config.nav_mode")
+              local mode = nav_mode.mode_for(0)
+              return "NAV:" .. string.upper(mode)
+            end,
+            color = function()
+              local nav_mode = require("config.nav_mode")
+              if nav_mode.is_full(0) then
+                return { fg = "#9ece6a" }
+              end
+              return { fg = "#e0af68" }
+            end,
+          },
+          "filename",
+        },
+      },
+    },
   },
 
   { -- Bufferline: 顶部 tab 栏

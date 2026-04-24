@@ -37,7 +37,13 @@ return {
     { "<leader>sb", "<cmd>FzfLua lgrep_curbuf<cr>", desc = "Search in current buffer" },
     { "<leader>ss", "<cmd>FzfLua builtin<cr>", desc = "Search fzf builtins" },
     { "<leader>st", "<cmd>TodoFzfLua<cr>", desc = "Search TODOs" },
-    { "<leader>o", "<cmd>FzfLua lsp_document_symbols<cr>", desc = "Document symbols" },
+    {
+      "<leader>o",
+      function()
+        require("config.nav_mode").open_symbols()
+      end,
+      desc = "Symbols / Outline",
+    },
     { "<leader>pa", "<cmd>FzfLua commands<cr>", desc = "Search in Command palette" },
     { "<leader>zi", "<cmd>FzfLua zoxide<cr>", desc = "Zoxide" },
     -- { "/", "<cmd>FzfLua lgrep_curbuf<cr>", mode = "n", desc = "Search in current buffer" },
@@ -60,6 +66,9 @@ return {
       },
       lsp = {
         jump1_action = smart_action,
+      },
+      grep = {
+        rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=240 --hidden -g '!.git'",
       },
     }
   end,

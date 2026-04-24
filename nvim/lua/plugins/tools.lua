@@ -51,14 +51,21 @@ return {
     },
   },
 
-  { -- Flash: 快速跳转 (s 触发)
+  { -- Flash: 快速跳转 (s/S 触发)
     "folke/flash.nvim",
     cond = not vim.g.vscode,
     event = "VeryLazy",
     opts = {},
     keys = {
       { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash jump" },
-      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash treesitter" },
+      {
+        "S",
+        mode = { "n", "x", "o" },
+        function()
+          require("config.nav_mode").flash_treesitter_or_jump()
+        end,
+        desc = "Flash treesitter / jump",
+      },
       { "<c-s>", mode = "c", function() require("flash").toggle() end, desc = "Toggle Flash search" },
     },
   },
@@ -80,13 +87,28 @@ return {
   { -- Mini.ai: 增强文本对象 (函数参数、括号等)
     "echasnovski/mini.ai",
     event = "VeryLazy",
-    dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" },
     opts = function()
       local ai = require("mini.ai")
+      local nav_mode = require("config.nav_mode")
+
+      local function function_obj()
+        if nav_mode.is_full(0) then
+          return ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" })
+        end
+        return ai.gen_spec.function_call({ name_pattern = "[%w_%.]" })
+      end
+
+      local function class_obj()
+        if nav_mode.is_full(0) then
+          return ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" })
+        end
+        return { "^%s*().-()%s*$" }
+      end
+
       return {
         custom_textobjects = {
-          f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }),
-          c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }),
+          f = function_obj,
+          c = class_obj,
         },
       }
     end,
