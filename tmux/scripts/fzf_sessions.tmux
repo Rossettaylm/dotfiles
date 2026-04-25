@@ -12,6 +12,7 @@ do_action() {
     header="enter=switch  ctrl-r=rename  alt-bspace=kill  ctrl-n=new  ctrl-f=reload"
 
     selected=$(FZF_DEFAULT_COMMAND="$cmd" fzf \
+        --height=100% \
         --ansi \
         --color='bg:-1,bg+:-1' \
         --reverse \
