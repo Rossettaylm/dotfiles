@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
-do_action() {
-    [[ -x $(command -v fzf 2>/dev/null) ]] || return
+source "$(dirname "$0")/fzf_utils.sh"
 
-    current_session=$(tmux display-message -p '#S')
+new_window() { fzf_new_window '@fzf_session_id' "$0"; }
+
+do_action() {
+    fzf_guard '@fzf_session_id'
+
     cmd="bash $0 sessions_src"
 
     header="enter=switch  ctrl-r=rename  alt-bspace=kill  ctrl-n=new  ctrl-f=reload"
@@ -15,7 +18,8 @@ do_action() {
         --info=inline \
         --header-lines=1 \
         --header="$header" \
-        --no-preview \
+        --preview="bash $0 session_preview {1}" \
+        --preview-window=right:50%:border-left:wrap \
         --delimiter='\s{2,}' \
         --with-nth=2.. \
         --nth=1,2 \
@@ -29,6 +33,30 @@ do_action() {
 
     session=$(awk '{print $1}' <<<"$selected")
     [[ -n $session ]] && tmux switch-client -t "$session"
+}
+
+session_preview() {
+    local name=$1
+    [[ -z $name ]] && return
+
+    local created wins panes
+    created=$(tmux display-message -t "$name" -p '#{t/f/%Y-%m-%d %H:%M:session_created}' 2>/dev/null)
+    wins=$(tmux list-windows -t "$name" 2>/dev/null | wc -l | tr -d ' ')
+    panes=$(tmux list-panes -t "$name" -s 2>/dev/null | wc -l | tr -d ' ')
+
+    printf "\033[1;36m%s\033[0m\n" "$name"
+    printf "Created : %s\n" "$created"
+    printf "Windows : %s   Panes: %s\n\n" "$wins" "$panes"
+
+    tmux list-windows -t "$name" \
+        -F '#{window_index}|#{window_active}|#{window_name}|#{pane_current_path}' 2>/dev/null | \
+    while IFS='|' read -r idx active wname wpath; do
+        if [[ $active == "1" ]]; then
+            printf "  \033[1;32m● %s  %-15s\033[0m  \033[2m%s\033[0m\n" "$idx" "$wname" "$wpath"
+        else
+            printf "    %s  %-15s   \033[2m%s\033[0m\n" "$idx" "$wname" "$wpath"
+        fi
+    done
 }
 
 rename_session() {

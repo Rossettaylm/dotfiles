@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 
-new_window() {
-    [[ -x $(command -v fzf 2>/dev/null) ]] || return
-    pane_id=$(tmux show -gqv '@fzf_pane_id')
-    [[ -n $pane_id ]] && tmux kill-pane -t $pane_id >/dev/null 2>&1
-    tmux new-window "bash $0 do_action" >/dev/null 2>&1
-}
+source "$(dirname "$0")/fzf_utils.sh"
+
+new_window() { fzf_new_window '@fzf_pane_id' "$0"; }
 
 # invoked by pane-focus-in event
 update_mru_pane_ids() {
@@ -19,9 +16,7 @@ update_mru_pane_ids() {
 }
 
 do_action() {
-    trap 'tmux set -gu @fzf_pane_id' EXIT SIGINT SIGTERM
-    current_pane_id=$(tmux display-message -p '#D')
-    tmux set -g @fzf_pane_id $current_pane_id
+    fzf_guard '@fzf_pane_id'
 
     cmd="bash $0 panes_src"
     set -- 'tmux capture-pane -pe -S' \
