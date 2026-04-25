@@ -1,0 +1,232 @@
+#!/bin/bash
+set -euo pipefail
+
+CONFIG_DIR="$HOME/.config"
+THEMES_DIR="$CONFIG_DIR/themes"
+CURRENT_FILE="$THEMES_DIR/.current"
+
+# ── 无参数：列出可用主题 ────────────────────────────────────
+if [[ $# -eq 0 ]]; then
+    echo "用法: theme <name>"
+    echo ""
+    echo "可用主题:"
+    for f in "$THEMES_DIR"/*.conf; do
+        name=$(basename "$f" .conf)
+        if [[ -f "$CURRENT_FILE" ]] && [[ "$(cat "$CURRENT_FILE")" == "$name" ]]; then
+            echo "  * $name (当前)"
+        else
+            echo "    $name"
+        fi
+    done
+    exit 0
+fi
+
+theme_name="$1"
+theme_file="$THEMES_DIR/${theme_name}.conf"
+nvim_template="$THEMES_DIR/nvim/${theme_name}.lua"
+
+if [[ ! -f "$theme_file" ]]; then
+    echo "错误: 主题 '$theme_name' 不存在 ($theme_file)"
+    exit 1
+fi
+
+if [[ ! -f "$nvim_template" ]]; then
+    echo "错误: nvim 模板不存在 ($nvim_template)"
+    exit 1
+fi
+
+# shellcheck source=/dev/null
+source "$theme_file"
+
+echo "切换主题: $THEME_DISPLAY ($theme_name)"
+echo ""
+
+# ── 1. Ghostty ──────────────────────────────────────────────
+update_ghostty() {
+    local f="$CONFIG_DIR/ghostty/config"
+    [[ -f "$f" ]] || return 0
+    sed -i '' \
+        -e "s/^background = .*/background = $GHOSTTY_BG/" \
+        -e "s/^foreground = .*/foreground = $GHOSTTY_FG/" \
+        -e "s/^palette = 0=.*/palette = 0=$GHOSTTY_PALETTE_0/" \
+        -e "s/^palette = 1=.*/palette = 1=$GHOSTTY_PALETTE_1/" \
+        -e "s/^palette = 2=.*/palette = 2=$GHOSTTY_PALETTE_2/" \
+        -e "s/^palette = 3=.*/palette = 3=$GHOSTTY_PALETTE_3/" \
+        -e "s/^palette = 4=.*/palette = 4=$GHOSTTY_PALETTE_4/" \
+        -e "s/^palette = 5=.*/palette = 5=$GHOSTTY_PALETTE_5/" \
+        -e "s/^palette = 6=.*/palette = 6=$GHOSTTY_PALETTE_6/" \
+        -e "s/^palette = 7=.*/palette = 7=$GHOSTTY_PALETTE_7/" \
+        -e "s/^palette = 8=.*/palette = 8=$GHOSTTY_PALETTE_8/" \
+        -e "s/^palette = 9=.*/palette = 9=$GHOSTTY_PALETTE_9/" \
+        -e "s/^palette = 10=.*/palette = 10=$GHOSTTY_PALETTE_10/" \
+        -e "s/^palette = 11=.*/palette = 11=$GHOSTTY_PALETTE_11/" \
+        -e "s/^palette = 12=.*/palette = 12=$GHOSTTY_PALETTE_12/" \
+        -e "s/^palette = 13=.*/palette = 13=$GHOSTTY_PALETTE_13/" \
+        -e "s/^palette = 14=.*/palette = 14=$GHOSTTY_PALETTE_14/" \
+        -e "s/^palette = 15=.*/palette = 15=$GHOSTTY_PALETTE_15/" \
+        -e "s/^selection-background = .*/selection-background = $GHOSTTY_SELECTION_BG/" \
+        -e "s/^cursor-color = .*/cursor-color = $GHOSTTY_CURSOR/" \
+        "$f"
+    echo "  [OK] ghostty"
+}
+
+# ── 2. Lazygit ──────────────────────────────────────────────
+update_lazygit() {
+    local f="$CONFIG_DIR/lazygit/config.yml"
+    [[ -f "$f" ]] || return 0
+
+    sed -i '' \
+        -e "/^    activeBorderColor: *$/{
+            n; s/- '#[^']*'/- '$LG_ACTIVE_BORDER'/
+        }" \
+        -e "/^    inactiveBorderColor: *$/{
+            n; s/- '#[^']*'/- '$LG_INACTIVE_BORDER'/
+        }" \
+        -e "/^    searchingActiveBorderColor: *$/{
+            n; s/- '#[^']*'/- '$LG_SEARCHING_ACTIVE_BORDER'/
+        }" \
+        -e "/^    optionsTextColor: *$/{
+            n; s/- '#[^']*'/- '$LG_OPTIONS_TEXT'/
+        }" \
+        -e "/^    selectedLineBgColor: *$/{
+            n; s/- '#[^']*'/- '$LG_SELECTED_LINE_BG'/
+        }" \
+        -e "/^    inactiveViewSelectedLineBgColor: *$/{
+            n; s/- '#[^']*'/- '$LG_INACTIVE_VIEW_SELECTED_LINE_BG'/
+        }" \
+        -e "/^    cherryPickedCommitFgColor: *$/{
+            n; s/- '#[^']*'/- '$LG_CHERRY_PICKED_FG'/
+        }" \
+        -e "/^    cherryPickedCommitBgColor: *$/{
+            n; s/- '#[^']*'/- '$LG_CHERRY_PICKED_BG'/
+        }" \
+        -e "/^    markedBaseCommitFgColor: *$/{
+            n; s/- '#[^']*'/- '$LG_MARKED_BASE_FG'/
+        }" \
+        -e "/^    markedBaseCommitBgColor: *$/{
+            n; s/- '#[^']*'/- '$LG_MARKED_BASE_BG'/
+        }" \
+        -e "/^    unstagedChangesColor: *$/{
+            n; s/- '#[^']*'/- '$LG_UNSTAGED_CHANGES'/
+        }" \
+        -e "/^    defaultFgColor: *$/{
+            n; s/- '#[^']*'/- '$LG_DEFAULT_FG'/
+        }" \
+        "$f"
+
+    # delta syntax-theme
+    sed -i '' \
+        -e 's/--syntax-theme="[^"]*"/--syntax-theme="'"$LG_DELTA_SYNTAX_THEME"'"/' \
+        "$f"
+
+    echo "  [OK] lazygit"
+}
+
+# ── 3. Tmux ─────────────────────────────────────────────────
+update_tmux() {
+    local f="$CONFIG_DIR/tmux/tmux.conf"
+    [[ -f "$f" ]] || return 0
+
+    # catppuccin flavor
+    sed -i '' \
+        -e "s/@catppuccin_flavor '[^']*'/@catppuccin_flavor '$TMUX_CATPPUCCIN_FLAVOR'/" \
+        "$f"
+
+    # pane-border-style
+    sed -i '' \
+        -e "s/pane-border-style \"fg=#[0-9a-fA-F]*/pane-border-style \"fg=$TMUX_PANE_BORDER_FG/" \
+        "$f"
+
+    # pane-active-border-style
+    sed -i '' \
+        -e "s/pane-active-border-style \"fg=#[0-9a-fA-F]*/pane-active-border-style \"fg=$TMUX_PANE_ACTIVE_BORDER_FG/" \
+        "$f"
+
+    # pane-border-format: 整行替换（含 5 个颜色变量）
+    local new_format
+    new_format="setw -g pane-border-format '#{?pane_active, #[fg=${TMUX_PANE_BG}]#[bg=${TMUX_PANE_ACTIVE_ACCENT}]#[bold] #{pane_index}: #{pane_current_command} #[fg=${TMUX_PANE_ACTIVE_ACCENT}]#[bg=default]#[default] #[fg=${TMUX_PANE_SUBTEXT}]#{=40:pane_current_path} , #[fg=${TMUX_PANE_BG}]#[bg=${TMUX_PANE_OVERLAY}] #{pane_index}: #{pane_current_command} #[fg=${TMUX_PANE_OVERLAY}]#[bg=default]#[default] #[fg=${TMUX_PANE_SURFACE}]#{=40:pane_current_path} }'"
+
+    # 用 awk 替换 pane-border-format 行（sed c\ 对特殊字符处理不好）
+    local tmpf
+    tmpf=$(mktemp)
+    awk -v newline="$new_format" '/^setw -g pane-border-format/ { print newline; next } { print }' "$f" > "$tmpf"
+    mv "$tmpf" "$f"
+
+    echo "  [OK] tmux"
+}
+
+# ── 4. Neovim ───────────────────────────────────────────────
+update_nvim() {
+    local target="$CONFIG_DIR/nvim/lua/plugins/colorscheme.lua"
+    cp "$nvim_template" "$target"
+    echo "  [OK] nvim"
+}
+
+# ── 5. Yazi ─────────────────────────────────────────────────
+update_yazi() {
+    local f="$CONFIG_DIR/yazi/theme.toml"
+    [[ -f "$f" ]] || return 0
+    sed -i '' \
+        -e "s/^dark = \"[^\"]*\"/dark = \"$YAZI_FLAVOR\"/" \
+        "$f"
+    echo "  [OK] yazi"
+}
+
+# ── 6. FZF ──────────────────────────────────────────────────
+update_fzf() {
+    local f="$CONFIG_DIR/zsh/fzf.zsh"
+    [[ -f "$f" ]] || return 0
+    local tmpf
+    tmpf=$(mktemp)
+    awk -v c1="$FZF_COLOR_1" -v c2="$FZF_COLOR_2" -v c3="$FZF_COLOR_3" \
+        -v c4="$FZF_COLOR_4" -v c5="$FZF_COLOR_5" -v theme="$THEME_DISPLAY" '
+        /^--color=bg\+:/     { print "--color=" c1 " \\"; next }
+        /^--color=fg:/       { print "--color=" c2 " \\"; next }
+        /^--color=marker:/   { print "--color=" c3 " \\"; next }
+        /^--color=selected-bg:/ { print "--color=" c4 " \\"; next }
+        /^--color=border:/   { print "--color=" c5 "\""; next }
+        { print }
+    ' "$f" > "$tmpf"
+    mv "$tmpf" "$f"
+    echo "  [OK] fzf"
+}
+
+# ── 7. Bat ───────────────────────────────────────────────────
+update_bat() {
+    local f="$HOME/.config/bat/config"
+    [[ -f "$f" ]] || echo "--theme=\"$BAT_THEME\"" > "$f"
+    sed -i '' -e "s/^--theme=.*/--theme=\"$BAT_THEME\"/" "$f"
+    echo "  [OK] bat"
+}
+
+# ── 8. Starship ──────────────────────────────────────────────
+update_starship() {
+    local f="$CONFIG_DIR/starship/starship.toml"
+    [[ -f "$f" ]] || return 0
+    sed -i '' -e "s/^palette = \"[^\"]*\"/palette = \"$STARSHIP_PALETTE\"/" "$f"
+    echo "  [OK] starship"
+}
+
+# ── 执行更新 ────────────────────────────────────────────────
+update_ghostty
+update_lazygit
+update_tmux
+update_nvim
+update_yazi
+update_fzf
+update_bat
+update_starship
+
+# ── 保存当前主题 ────────────────────────────────────────────
+echo "$theme_name" > "$CURRENT_FILE"
+
+# ── reload tmux ─────────────────────────────────────────────
+if command -v tmux &>/dev/null && tmux list-sessions &>/dev/null 2>&1; then
+    tmux source-file "$CONFIG_DIR/tmux/tmux.conf" 2>/dev/null && echo "  [OK] tmux reloaded" || echo "  [!] tmux reload 失败"
+fi
+
+echo ""
+echo "已切换到: $THEME_DISPLAY"
+echo "  需要手动重启: nvim, lazygit, yazi"
+echo "  Ghostty 会自动 reload（如支持），否则也需重启"
+echo "  fzf 颜色需执行: source ~/.zshrc"
