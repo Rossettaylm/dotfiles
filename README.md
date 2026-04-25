@@ -1,198 +1,210 @@
 # dotfiles
 
-macOS 开发环境配置仓库，位于 `~/.config`，通过 cron 定时执行 `sync.sh` 自动同步到 GitHub。
+Personal macOS development environment configuration, managed as a Git repository at `~/.config`.
 
-## 目录结构
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
+![Shell](https://img.shields.io/badge/shell-zsh-blue)
+![Editor](https://img.shields.io/badge/editor-neovim-green)
+![License](https://img.shields.io/badge/license-MIT-orange)
 
-```
-~/.config/
-├── nvim/              # Neovim（Lua，基于 lazy.nvim）
-├── zsh/               # Zsh 模块化配置 + oh-my-zsh（submodule）
-│   └── fzf/           # FZF 交互工具集（Python）
-├── ghostty/           # Ghostty 终端模拟器
-├── zellij/            # Zellij 终端复用器（含主题）
-├── yazi/              # Yazi 文件管理器
-├── aerospace/         # AeroSpace 平铺窗口管理器
-├── lazygit/           # LazyGit 配置
-├── scripts/           # 实用脚本
-├── setup_dep/         # 初始化依赖模块
-├── git/               # Git 全局配置
-├── bottom/            # Bottom 系统监视器
-├── neofetch/          # Neofetch
-├── gh/                # GitHub CLI
-├── thirdparty/        # 第三方子模块（fzf）
-├── sync.sh            # 自动同步脚本
-├── dep.txt            # Homebrew 依赖清单
-└── setup.py           # 一键初始化脚本
-```
+## Overview
 
-## 快速开始
+A modular, self-bootstrapping dotfiles setup covering the full terminal development workflow:
+
+| Component | Tool |
+|-----------|------|
+| Editor | Neovim (lazy.nvim, custom Lua config) |
+| Shell | Zsh + oh-my-zsh |
+| Multiplexer | Tmux (Zellij-style keybinds) |
+| File manager | Yazi |
+| Terminal | Ghostty |
+| Window manager | AeroSpace |
+| Fuzzy finder | FZF + custom Python tools |
+| Git TUI | LazyGit |
+
+## Prerequisites
+
+- macOS (Apple Silicon or Intel)
+- Python 3.11+
+- Xcode Command Line Tools: `xcode-select --install`
+
+## Installation
 
 ```bash
-# 1. 克隆到 ~/.config
+# 1. Clone to ~/.config (with submodules)
 git clone --recursive git@github.com:Rossettaylm/config.git ~/.config
 
-# 2. 一键安装所有依赖
-python3 setup.py
+# 2. Bootstrap everything
+python3 ~/.config/setup.py
 ```
 
-`setup.py` 会自动完成：
-- 配置 Git remote 和 SSH/HTTPS 认证
-- 更新 git submodules（fzf、oh-my-zsh）
-- 初始化 oh-my-zsh 自定义插件（syntax-highlighting、autosuggestions、fzf-tab）
-- 通过 Homebrew 安装 `dep.txt` 中的所有依赖
-- 设置 Shell / Git 全局配置
-- 设置 cron 定时同步任务
-- 安装 Claude Code 和 Yazi 插件
+`setup.py` runs the following steps in order:
 
-### 手动同步
+1. Configure Git remote (SSH or HTTPS with PAT fallback)
+2. Update submodules (fzf, oh-my-zsh)
+3. Initialize Zsh plugins (syntax-highlighting, autosuggestions, fzf-tab)
+4. Install all Homebrew dependencies from `dep.txt`
+5. Apply shell and Git global config
+6. Register the cron-based auto-sync job
+7. Install Claude Code and AI notification hooks
+8. Install Yazi plugins (`ya pkg install`)
+9. Install Tmux plugins via TPM
+10. Install Zellij plugins
 
-```bash
-./sync.sh
-```
+> [!NOTE]
+> Pass `--pat TOKEN` (or set `GITHUB_PAT` / `GITHUB_TOKEN`) if SSH is unavailable.
 
-## 核心组件
+## Core Components
 
 ### Neovim
 
-自定义 Lua 配置，使用 **lazy.nvim** 管理插件（非 LazyVim 发行版，已迁移为独立配置）。
+Custom Lua config using **lazy.nvim** (not a LazyVim distribution). Entry point: `nvim/init.lua`.
 
-| 模块 | 说明 |
-|------|------|
-| `plugins/lsp.lua` | LSP + Mason 自动安装语言服务器 |
-| `plugins/completion.lua` | blink.cmp 补全引擎 + LuaSnip |
-| `plugins/fzf.lua` | fzf-lua 模糊查找（文件/grep/buffer） |
-| `plugins/git.lua` | gitsigns + diffview + lazygit.nvim |
-| `plugins/treesitter.lua` | Tree-sitter 语法高亮（15+ 语言） |
-| `plugins/formatting.lua` | conform.nvim 格式化（stylua/ruff/rustfmt/prettier） |
-| `plugins/ui.lua` | lualine + bufferline + which-key + indent-blankline + nvim-notify |
-| `plugins/tools.lua` | yazi.nvim + toggleterm + flash + surround + todo-comments |
-| `plugins/trouble.lua` | 诊断列表 |
-| `plugins/dashboard.lua` | 启动页 |
-| `plugins/colorscheme.lua` | 主题配色（kanagawa-wave，透明背景） |
-| `plugins/markdown.lua` | Markdown 预览与渲染 |
+| Plugin module | Description |
+|---------------|-------------|
+| `lsp.lua` | LSP + Mason auto-installer |
+| `completion.lua` | blink.cmp + LuaSnip |
+| `fzf.lua` | fzf-lua (files, grep, buffers) |
+| `git.lua` | gitsigns + diffview + lazygit.nvim |
+| `treesitter.lua` | Syntax highlighting (15+ languages) |
+| `formatting.lua` | conform.nvim (stylua / ruff / rustfmt / prettier) |
+| `ui.lua` | lualine + bufferline + which-key + indent-blankline |
+| `tools.lua` | yazi.nvim + toggleterm + flash + surround |
+| `colorscheme.lua` | kanagawa-wave, transparent background |
 
-常用快捷键：
+Key bindings (selection):
 
-| 快捷键 | 功能 |
-|--------|------|
-| `jj` | Esc（退出插入模式） |
-| `;` | 进入命令模式 |
-| `(` / `)` | 行首 / 行尾 |
-| `<S-h/j/k/l>` | 快速移动（7 行/列） |
-| `<leader>,` | 查找文件 |
-| `<leader>sg` | 全局搜索（live grep） |
-| `<leader><leader>` | Buffer 搜索 |
-| `gd` / `ga` / `gh` | 跳转定义 / 查找引用 / 悬浮文档 |
-| `<leader>rn` | LSP 重命名 |
-| `<leader>.` | Code Action |
-| `<S-R>` | Yazi 文件管理器 |
-| `` Ctrl+` `` | 浮动终端 |
+| Key | Action |
+|-----|--------|
+| `jj` | Exit insert mode |
+| `;` | Command mode |
+| `<leader>,` | Find files |
+| `<leader>sg` | Live grep |
+| `<leader><leader>` | Buffer search |
+| `gd` / `ga` / `gh` | Definition / references / hover |
+| `<leader>rn` | LSP rename |
+| `<leader>.` | Code action |
+| `<S-R>` | Yazi file manager |
+| `Ctrl+\`` | Floating terminal |
 
 ### Zsh
 
-入口 `zsh/zshrc`，按模块加载：
+Entry: `zsh/zshrc`. Modular layout:
 
-| 文件 | 职责 |
-|------|------|
-| `env.zsh` | 环境变量、PATH |
-| `aliases.zsh` | 命令别名（`eza` 替代 ls，`bat` 替代 cat，`btm` 替代 top） |
-| `functions.zsh` | 自定义函数（yazi wrapper、cmake helpers） |
-| `fzf.zsh` | FZF 配置与快捷键 |
-| `mappings.zsh` | 键位映射 |
-| `zoxide.zsh` | zoxide 集成（`cd` → `z`） |
-| `macenv.zsh` | macOS 专属配置（条件加载） |
+| File | Responsibility |
+|------|----------------|
+| `env.zsh` | Environment variables and PATH |
+| `aliases.zsh` | Aliases (`eza` → ls, `bat` → cat, `btm` → top) |
+| `functions.zsh` | Custom functions (yazi wrapper, cmake helpers) |
+| `fzf.zsh` | FZF config and keybindings |
+| `mappings.zsh` | Key mappings |
+| `zoxide.zsh` | zoxide integration (`cd` → `z`) |
+| `macenv.zsh` | macOS-specific config (conditionally loaded) |
 
-oh-my-zsh 插件：git, sudo, web-search, zsh-syntax-highlighting, zsh-autosuggestions, fzf-tab
+oh-my-zsh plugins: `git sudo web-search zsh-syntax-highlighting zsh-autosuggestions fzf-tab`
 
-### FZF 交互工具集
+### Tmux
 
-基于 FZF + Python 的交互式命令行工具，位于 `zsh/fzf/`，共享 `pyutils/` 工具库：
+Config: `tmux/tmux.conf`. Keybind philosophy mirrors Zellij's modal model:
 
-| 分类 | 工具 | 说明 |
-|------|------|------|
-| **Git** | `gco.py` | 交互式切换分支 |
-| | `git_log.py` | 交互式查看 git log |
-| | `git_remove_branch.py` | 交互式删除分支 |
-| | `git_merge_branch.py` | 交互式合并分支 |
-| | `git_cherry_pick.py` | 交互式 cherry-pick |
-| | `git_stash.py` | 交互式 stash 管理 |
-| | `merge_master.py` | 快速合并 master |
-| | `git_select_branch.py` | 分支选择器 |
-| | `git_show_branches.py` | 分支概览 |
-| **Brew** | `brew_install.py` | 交互式安装 Homebrew 包 |
-| | `brew_uninstall.py` | 交互式卸载 Homebrew 包 |
-| **文件** | `file_preview.py` | 文件预览 |
-| | `recent_files.py` | 最近打开的文件 |
-| **进程** | `kill_process.py` | 交互式杀进程 |
-| | `kill_socket.py` | 交互式关闭 socket |
-| **系统** | `app_launcher.py` | 应用启动器 |
-| | `env_browser.py` | 环境变量浏览器 |
-| | `ssh_connect.py` | SSH 连接管理 |
-| | `tldr_browser.py` | TLDR 交互浏览 |
-| | `zellij_sessions.py` | Zellij 会话管理 |
-| | `adb_device.py` | ADB 设备管理 |
+| Mode | Trigger | Scope |
+|------|---------|-------|
+| Global Alt keys | `Alt+h/j/k/l`, `Alt+[/]` | Pane navigation, window switch |
+| Prefix | `Ctrl+\` | Enter command mode |
+| `pane_mode` | `prefix + p` | Split, resize, kill panes |
+| `tab_mode` | `prefix + t` | Window management |
+| `resize_mode` | `prefix + r` | Interactive resize |
+| `session_mode` | `prefix + o` | Session switching |
 
-### 终端与窗口管理
+FZF-powered pane/session switchers (`tmux/scripts/`) provide MRU-ordered navigation with live preview.
 
-| 组件 | 说明 |
-|------|------|
-| **Ghostty** | 终端模拟器。CommitMono Nerd Font，半透明背景（85% opacity），紫色光标 |
-| **Zellij** | 终端复用器。Vim 风格导航，`Alt+h/j/k/l` 切换 pane，`Alt+[/]` 切换 tab |
-| **AeroSpace** | 平铺窗口管理器。自动横竖排列，鼠标跟随焦点 |
+### FZF Tool Suite
 
-三者通过精心编排的快捷键体系协同工作，Ghostty 主动 unbind 分屏快捷键以避免与 Zellij 冲突。
+Interactive CLI tools in `zsh/fzf/`, built on FZF + Python 3. Shared utilities in `pyutils/`.
+
+| Category | Tools |
+|----------|-------|
+| **Git** | `gco.py` (checkout), `git_log.py`, `git_remove_branch.py`, `git_merge_branch.py`, `git_cherry_pick.py`, `git_stash.py` |
+| **Homebrew** | `brew_install.py`, `brew_uninstall.py` |
+| **Files** | `file_preview.py`, `recent_files.py` |
+| **Process** | `kill_process.py`, `kill_socket.py` |
+| **System** | `app_launcher.py`, `env_browser.py`, `ssh_connect.py`, `tldr_browser.py`, `adb_device.py` |
 
 ### Yazi
 
-终端文件管理器，丰富的预览插件支持：
+Terminal file manager with rich preview support via plugins (`yazi/plugins/`):
 
-- Markdown → glow 渲染
-- 媒体文件 → mediainfo
-- CSV/JSON/Notebook → rich-preview
-- 压缩包 → ouch
-- 二进制 → hexyl
-- 目录级 Git 状态集成
+- Markdown → glow
+- Media → mediainfo + ffmpegthumbnailer
+- CSV / JSON / Notebook → rich-preview
+- Archives → ouch
+- Binary → hexyl
+- Directory Git status integration
 
-插件通过 `package.toml` 声明式管理版本。
+Plugin versions are declared in `yazi/package.toml`.
 
-### 实用脚本 (`scripts/`)
+### Terminal & Window Management
 
-| 脚本 | 说明 |
-|------|------|
-| `gpu` | 推送当前分支到 remote |
-| `autocm` | 快速提交（自动生成 commit message） |
-| `nvimsh` | Neovim 快速启动 |
-| `bilidown.sh` | Bilibili 视频下载 |
-| `adb.sh` | ADB 设备辅助 |
-| `lazygit_edit.sh` | LazyGit 编辑器集成 |
+| Tool | Notes |
+|------|-------|
+| **Ghostty** | CommitMono Nerd Font, 85% opacity, purple cursor |
+| **AeroSpace** | Tiling WM, auto horizontal/vertical layout, mouse-follows-focus |
+| **LazyGit** | Neovim editor integration via `scripts/lazygit_edit.sh` |
 
-## Homebrew 依赖
+> [!TIP]
+> Ghostty explicitly unbinds its own split shortcuts so they don't conflict with Tmux bindings.
 
-完整列表见 `dep.txt`，核心工具：
+## Scripts (`scripts/`)
 
-| 类别 | 工具 |
-|------|------|
-| 编辑器 | neovim |
-| 终端 | ghostty, zellij |
-| 文件管理 | yazi |
-| Git | git, git-lfs, lazygit |
-| 搜索与替代 | ripgrep, fd, eza, bat, zoxide, tldr, dust |
-| 系统监控 | bottom, htop, procs |
-| 开发工具 | pyright, cmake, node, tree-sitter-cli |
-| 文档与预览 | glow, hexyl, mediainfo, ouch |
-| 其他 | neofetch, tree, claude-code |
+| Script | Description |
+|--------|-------------|
+| `gpu` | Push current branch to remote |
+| `autocm` | Quick commit with auto-generated message |
+| `nvimsh` | Fast Neovim launcher |
+| `bilidown.sh` | Bilibili video downloader |
+| `adb.sh` | ADB device helpers |
+| `lazygit_edit.sh` | LazyGit → Neovim editor bridge |
 
-## Git 管理策略
+## Homebrew Dependencies
 
-`.gitignore` 采用**白名单模式**：默认忽略所有文件（`*`），通过 `!dir/` 显式放行需要同步的配置目录。新增配置时需在 `.gitignore` 中添加对应的 `!` 规则。
+All packages are declared in `dep.txt`. Core tools by category:
 
-自动同步通过 cron 每日执行 `sync.sh`，自动更新 submodules（fzf、oh-my-zsh）、commit + push 到 GitHub，日志记录到 `.sync.log`。
+| Category | Packages |
+|----------|----------|
+| Editor | `neovim` |
+| Terminal | `ghostty` |
+| Shell utilities | `ripgrep` `fd` `eza` `bat` `zoxide` `tldr` `dust` |
+| Git | `git` `git-lfs` `git-delta` `lazygit` |
+| File manager | `yazi` `chafa` `ffmpegthumbnailer` `imagemagick` `poppler` |
+| Preview | `glow` `hexyl` `mediainfo` `ouch` |
+| System monitoring | `bottom` `btop` `procs` |
+| Dev tooling | `node` `cmake` `pyright` `tree-sitter-cli` `stylua` |
+| AI | `claude-code` |
 
-## 关键环境变量
+## Auto-sync
 
-| 变量 | 值 |
-|------|-----|
+`sync.sh` is registered as a cron job during setup. On each run it:
+
+1. Updates `thirdparty/fzf` and `zsh/oh-my-zsh` submodules to latest
+2. Stages all changes
+3. Commits with timestamp message
+4. Pushes to the current branch on GitHub
+
+Logs are written to `.sync.log`.
+
+```bash
+# Run manually
+./sync.sh
+```
+
+## Repository Structure
+
+`.gitignore` uses a **whitelist strategy**: all files are ignored by default (`*`), and directories are explicitly included with `!dirname/` rules. Add a new `!` rule when tracking a new config directory.
+
+## Environment Variables
+
+| Variable | Value |
+|----------|-------|
 | `$ZSH_HOME` | `~/.config/zsh` |
 | `$SCRIPTS_HOME` | `~/.config/scripts` |
 | `$FZF_HOME` | `~/.config/thirdparty/fzf` |
