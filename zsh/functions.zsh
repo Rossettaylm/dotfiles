@@ -126,3 +126,10 @@ fzg() {
 
 # git log
 glog() { python3 $ZSH_HOME/fzf/git/git_log.py "$@" | tee >(cb); }
+
+# 交互式浏览命令（alias/function/script），选中后注入 zsh buffer
+utils() {
+  local cmd
+  cmd=$(python3 $ZSH_HOME/fzf/utils.py "$@")
+  [[ -n "$cmd" ]] && print -z "$cmd"
+}
