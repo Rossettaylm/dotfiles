@@ -57,6 +57,24 @@ extract() {
   fi
 }
 
+# ── cdup：多点上级导航 ────────────────────────────────────
+# cd ..   → 上 1 级（原生）
+# cd ...  → 上 2 级
+# cd .... → 上 3 级，依此类推（最多支持 9 个点）
+cd() {
+  if [[ "$1" =~ '^\.{3,}$' ]]; then
+    local dots="${1}"
+    local levels=$(( ${#dots} - 1 ))
+    local target=""
+    for (( i=0; i<levels; i++ )); do
+      target="${target}../"
+    done
+    \builtin cd "${target%/}"
+  else
+    \builtin cd "$@"
+  fi
+}
+
 # ── web-search ───────────────────────────────────────────
 # 在默认浏览器中搜索（先清除同名别名，避免 zsh 报 parse error）
 unalias google baidu github 2>/dev/null

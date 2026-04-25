@@ -26,9 +26,6 @@ alias du="dust"
 # ── 导航 ─────────────────────────────────────────────────────
 alias yz="yazi"
 
-if (( $+commands[zoxide] )) && [[ -f $ZSH_HOME/zoxide.zsh ]]; then
-    alias cd=z
-fi
 
 # ── Zsh 配置 ──────────────────────────────────────────────────
 alias szsh="source $HOME/.zshrc"
@@ -91,7 +88,6 @@ alias fp="python3 $ZSH_HOME/fzf/file/file_preview.py"
 alias fpath='echo $PATH | tr ":" "\n" | fzf --header="[Find Path]"'
 alias kp="python3 $ZSH_HOME/fzf/process/kill_process.py"
 alias ks="python3 $ZSH_HOME/fzf/process/kill_socket.py"
-alias utils="python3 $ZSH_HOME/fzf/utils.py"
 alias fssh="python3 $ZSH_HOME/fzf/system/ssh_connect.py"
 alias fenv="python3 $ZSH_HOME/fzf/system/env_browser.py"
 alias ffile="python3 $ZSH_HOME/fzf/file/recent_files.py"
