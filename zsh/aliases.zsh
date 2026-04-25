@@ -57,6 +57,7 @@ alias gcb="git checkout -b"
 alias gcbbug="git checkout -b personal/lymanyang_bugfix_$(date -u +%Y%m%d)"
 alias lg="lazygit"
 alias gpu="$HOME/.config/scripts/gpu"
+alias theme="$HOME/.config/scripts/theme"
 
 # git fzf 交互
 alias gco="python3 $ZSH_HOME/fzf/git/gco.py"

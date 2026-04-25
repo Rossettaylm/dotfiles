@@ -4,37 +4,37 @@ font-size = 15
 adjust-cell-height = 8
 
 # ── 主题 / 颜色 ───────────────────────────────────────
-background = #15141b
-foreground = #edecee
+background = #1e1e2e
+foreground = #cdd6f4
 
 # normal
-palette = 0=#110f18
-palette = 1=#ff6767
-palette = 2=#61ffca
-palette = 3=#ffca85
-palette = 4=#a277ff
-palette = 5=#a277ff
-palette = 6=#61ffca
-palette = 7=#edecee
+palette = 0=#45475a
+palette = 1=#f38ba8
+palette = 2=#a6e3a1
+palette = 3=#f9e2af
+palette = 4=#89b4fa
+palette = 5=#f5c2e7
+palette = 6=#94e2d5
+palette = 7=#bac2de
 
 # bright
-palette = 8=#4d4d4d
-palette = 9=#ff6767
-palette = 10=#61ffca
-palette = 11=#ffca85
-palette = 12=#a277ff
-palette = 13=#a277ff
-palette = 14=#61ffca
-palette = 15=#edecee
+palette = 8=#585b70
+palette = 9=#f38ba8
+palette = 10=#a6e3a1
+palette = 11=#f9e2af
+palette = 12=#89b4fa
+palette = 13=#f5c2e7
+palette = 14=#94e2d5
+palette = 15=#a6adc8
 
 # cursor
-selection-background = #29263c
+selection-background = #45475a
 selection-foreground = cell-foreground
 
 # ── 光标 ─────────────────────────────────────────────
 cursor-style = bar
 cursor-style-blink = false
-cursor-color = #a277ff
+cursor-color = #f5e0dc
 
 # ── 窗口 ─────────────────────────────────────────────
 background-opacity = 0.80
