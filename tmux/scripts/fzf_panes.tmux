@@ -26,7 +26,7 @@ do_action() {
     preview_cmd=$*
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
     selected=$(FZF_DEFAULT_COMMAND=$cmd fzf -m --ansi --preview="$preview_cmd" \
-        --preview-window='bottom:70%' --reverse --info=inline --header-lines=1 \
+        --height=100% --preview-window='bottom:70%' --reverse --info=inline --header-lines=1 \
         --delimiter='\s{2,}' --with-nth=2..-1 --nth=1,2,3,5 \
         --bind="alt-p:toggle-preview" \
         --bind="ctrl-r:reload($cmd)" \
