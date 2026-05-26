@@ -50,6 +50,9 @@ case $(uname) in
 
         # eigen
         export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/opt/homebrew/Cellar/eigen/3.4.0.1/include/eigen3
+
+        # galileo
+        export PATH=$PATH:$HOME/.galileo/bin/
         ;;
       LYMANYANG-MC0)
         # Android
