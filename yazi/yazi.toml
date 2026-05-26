@@ -72,6 +72,7 @@ rules = [
   # Text
   { mime = "text/*", use = [
     "edit",
+    "open_with",
     "reveal",
   ] },
   # Image
@@ -92,15 +93,18 @@ rules = [
   # JSON
   { mime = "application/{json,ndjson}", use = [
     "edit",
+    "open_with",
     "reveal",
   ] },
   { mime = "*/javascript", use = [
     "edit",
+    "open_with",
     "reveal",
   ] },
   # Empty file
   { mime = "inode/empty", use = [
     "edit",
+    "open_with",
     "reveal",
   ] },
   # 日志
