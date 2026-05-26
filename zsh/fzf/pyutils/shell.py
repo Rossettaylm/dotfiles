@@ -96,7 +96,7 @@ def build_fzf_cmd(
     as_str=False → 返回列表（用于 subprocess.Popen，避免 shell 转义问题）
     """
     fzf_opts = os.getenv("FZF_DEFAULT_OPTS", "").split()
-    args: list[str] = ["fzf", "--ansi", "--style=full"]
+    args: list[str] = ["fzf", "--ansi", "--style=minimal"]
     args.extend(fzf_opts)
     args += ["--sort" if sort else "--no-sort"]
     args += ["--border-label", f" {border_label} "]
