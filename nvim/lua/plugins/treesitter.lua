@@ -10,6 +10,9 @@ return {
   config = function()
     local nav_mode = require("config.nav_mode")
 
+    vim.filetype.add({ extension = { ets = "arkts" } })
+    vim.treesitter.language.register("typescript", "arkts")
+
     local parsers = {
       "bash",
       "css",
