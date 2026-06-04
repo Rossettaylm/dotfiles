@@ -115,6 +115,7 @@ alias cldi="claude-internal"
 alias cbd="codebuddy"
 alias ski="python3 $ZSH_HOME/fzf/claude/skill_install.py"
 alias skm="python3 $ZSH_HOME/fzf/claude/skill_manage.py"
+alias cm="python3 $ZSH_HOME/fzf/claude/switch_model.py"
 
 # ── macOS 专属 ────────────────────────────────────────────────
 if [[ $(uname) == "Darwin" ]]; then
