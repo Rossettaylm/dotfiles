@@ -19,7 +19,14 @@ return {
     },
     { "<leader><leader>", "<cmd>FzfLua buffers<cr>", desc = "Find buffers" },
     { "<leader>v", "<cmd>FzfLua registers<cr>", desc = "Find registers" },
-    { "<leader>pt", "<cmd>FzfLua live_grep<cr>", desc = "Search by grep" },
+    {
+      "<leader>pt",
+      function()
+        local root = vim.fs.root(0, ".git") or vim.uv.cwd()
+        require("fzf-lua").live_grep({ cwd = root })
+      end,
+      desc = "Search by grep (project root)",
+    },
     { "<leader>sh", "<cmd>FzfLua help_tags<cr>", desc = "Search help" },
     { "<leader>sk", "<cmd>FzfLua keymaps<cr>", desc = "Search keymaps" },
     { "<leader>sd", "<cmd>FzfLua diagnostics_document<cr>", desc = "Search diagnostics" },
@@ -33,7 +40,14 @@ return {
       mode = { "n", "v", "i" },
       desc = "Fuzzy complete path",
     },
-    { "<leader>sw", "<cmd>FzfLua grep_cword<cr>", desc = "Search current word" },
+    {
+      "<leader>sw",
+      function()
+        local root = vim.fs.root(0, ".git") or vim.uv.cwd()
+        require("fzf-lua").grep_cword({ cwd = root })
+      end,
+      desc = "Search current word (project root)",
+    },
     { "<leader>sb", "<cmd>FzfLua lgrep_curbuf<cr>", desc = "Search in current buffer" },
     { "<leader>ss", "<cmd>FzfLua builtin<cr>", desc = "Search fzf builtins" },
     { "<leader>st", "<cmd>TodoFzfLua<cr>", desc = "Search TODOs" },
@@ -69,6 +83,8 @@ return {
       },
       grep = {
         rg_opts = "--column --line-number --no-heading --color=always --smart-case --max-columns=240 --hidden -g '!.git'",
+        cwd_fn = function() return vim.fs.root(0, ".git") or vim.uv.cwd() end,
+        path_shorten = 1,
       },
     }
   end,
