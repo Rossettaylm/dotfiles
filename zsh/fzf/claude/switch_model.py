@@ -7,32 +7,45 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyutils import shell
 
-# 可供选择的模型列表，按需增删
-MODELS = [
-    "claude-opus-4-6",
-    "claude-opus-4-7",
-    "claude-opus-4-8",
-    "deepseek-v4-flash-official",
-    "deepseek-v4-pro-official",
-]
+# 模型组：每组对应 opus / sonnet / haiku 三个槽位
+MODEL_GROUPS = {
+    "Claude": {
+        "opus": "claude-opus-4-8",
+        "sonnet": "claude-sonnet-4-6",
+        "haiku": "claude-haiku-4-5",
+    },
+    "DeepSeek": {
+        "opus": "deepseek-v4-pro-official",
+        "sonnet": "deepseek-v4-pro-official",
+        "haiku": "deepseek-v4-flash-official",
+    },
+}
+
+ENV_KEYS = {
+    "opus": "ANTHROPIC_DEFAULT_OPUS_MODEL",
+    "sonnet": "ANTHROPIC_DEFAULT_SONNET_MODEL",
+    "haiku": "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+}
 
 config_file = os.path.expanduser("~/.claude.json")
 
 
-def read_current_model():
+def read_config():
     try:
         with open(config_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data.get("env", {}).get("ANTHROPIC_MODEL", "")
+            return json.load(f)
     except (OSError, json.JSONDecodeError):
-        return ""
+        return {}
 
 
-def write_model(model):
-    with open(config_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data.setdefault("env", {})["ANTHROPIC_MODEL"] = model
+def detect_current_group(env):
+    for name, models in MODEL_GROUPS.items():
+        if all(env.get(ENV_KEYS[slot]) == model for slot, model in models.items()):
+            return name
+    return None
 
+
+def write_config(data):
     dir_name = os.path.dirname(config_file)
     fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")
     try:
@@ -45,18 +58,25 @@ def write_model(model):
         raise
 
 
+def format_group_line(name, models, is_current):
+    detail = f"{models['opus']} / {models['sonnet']} / {models['haiku']}"
+    if is_current:
+        return f"\033[32m● {name}\033[0m  {detail}"
+    return f"  {name}  {detail}"
+
+
 def switch_model():
-    current = read_current_model()
+    data = read_config()
+    env = data.get("env", {})
+    current_group = detect_current_group(env)
+
     lines = []
-    for m in MODELS:
-        if m == current:
-            lines.append(f"\033[32m● {m}\033[0m")
-        else:
-            lines.append(f"  {m}")
+    for name, models in MODEL_GROUPS.items():
+        lines.append(format_group_line(name, models, name == current_group))
 
     cmd = shell.build_fzf_cmd(
-        border_label="🤖 [Claude: Switch Model]",
-        header=f"enter: 切换模型 │ 当前: {current or '未设置'}",
+        border_label="🤖 [Claude: Switch Model Group]",
+        header=f"enter: 切换模型组 │ 当前: {current_group or '未匹配'}│ opus / sonnet / haiku",
         sort=False,
         as_str=True,
     )
@@ -66,12 +86,31 @@ def switch_model():
     if not out:
         return
 
-    selected = out[0].split()[-1]
-    if selected == current:
+    # 提取组名（第一个非空 token，跳过可能的 "●"）
+    tokens = out[0].split()
+    selected = next((t for t in tokens if t in MODEL_GROUPS), None)
+    if not selected:
+        shell.log_err("无法解析选择")
+        return
+
+    if selected == current_group:
         shell.log_plain(f"未变更，仍为 {selected}")
         return
-    write_model(selected)
-    shell.log_success(f"已切换模型: {current or '未设置'} → {selected}")
+
+    models = MODEL_GROUPS[selected]
+    data.setdefault("env", {})
+    for slot, key in ENV_KEYS.items():
+        data["env"][key] = models[slot]
+
+    data["env"]["ANTHROPIC_MODEL"] = models["opus"]
+
+    write_config(data)
+    shell.log_success(
+        f"已切换模型组: {current_group or '未设置'} → {selected}\n"
+        f"  opus   = {models['opus']}\n"
+        f"  sonnet = {models['sonnet']}\n"
+        f"  haiku  = {models['haiku']}"
+    )
 
 
 if __name__ == "__main__":
