@@ -6,6 +6,7 @@
 import re
 import subprocess
 import sys
+import tempfile
 import os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pyutils.shell as shell
@@ -41,10 +42,10 @@ def main():
 
     fzf_cmd = shell.build_fzf_cmd(
         border_label="📖  [TLDR Browser]",
-        header="  Enter → 复制命令名  ·  Esc quit",
+        header="  Enter → vim 查看/复制示例  ·  Esc quit",
         prompt="  Command > ",
-        preview="tldr --color {}",
-        preview_window="right,border-left,70%",
+        preview="tldr --color always {}",
+        preview_window="up,50%,border-bottom",
         preview_label="[ TLDR ]",
         sort=True,
         as_str=False,
@@ -64,9 +65,27 @@ def main():
         exit(0)
 
     selected = stdout.strip()
-    # 复制到剪贴板
-    subprocess.run(["pbcopy"], input=selected, text=True)
-    shell.log_success(f"已复制 '{selected}' 到剪贴板")
+
+    raw = subprocess.run(
+        ["tldr", "--color", "never", selected],
+        capture_output=True, text=True,
+    )
+    if raw.returncode != 0 or not raw.stdout.strip():
+        shell.log_err(f"无法获取 '{selected}' 的 tldr 页面。")
+        exit(1)
+
+    fd, tmp_path = tempfile.mkstemp(prefix=f"tldr_{selected}_", suffix=".txt")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(raw.stdout)
+        subprocess.run([
+            "nvim",
+            "-c", "setlocal buftype=nofile bufhidden=wipe noswapfile",
+            "-c", "autocmd TextChanged,TextChangedI <buffer> setlocal nomodified",
+            tmp_path,
+        ])
+    finally:
+        os.unlink(tmp_path)
 
 
 if __name__ == "__main__":

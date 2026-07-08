@@ -65,7 +65,7 @@ def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
         use_multi_select=use_multi_select,
         sort=False,
         preview=git_branch_fzf_preview_cmd(),
-        preview_window="right,border-left,70%",
+        preview_window="up,50%,border-bottom",
         preview_label="[ Git Log ]",
         extra_args=["--no-hscroll", "--color", "hl:underline,hl+:underline"],
         as_str=True,

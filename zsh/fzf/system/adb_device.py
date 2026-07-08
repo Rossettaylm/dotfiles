@@ -59,7 +59,7 @@ def main():
                 "echo '---'; "
                 "adb -s $(echo {} | awk '{print $1}') shell getprop ro.product.brand 2>/dev/null; "
                 "adb -s $(echo {} | awk '{print $1}') shell getprop ro.build.version.release 2>/dev/null",
-        preview_window="right,border-left,35%",
+        preview_window="up,6,border-bottom,wrap",
         preview_label="[ Device Info ]",
         as_str=False,
     )

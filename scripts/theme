@@ -199,7 +199,36 @@ update_bat() {
     echo "  [OK] bat"
 }
 
-# ── 8. Starship ──────────────────────────────────────────────
+# ── 8. Kitty ─────────────────────────────────────────────────
+update_kitty() {
+    local f="$CONFIG_DIR/kitty/kitty.conf"
+    [[ -f "$f" ]] || return 0
+    sed -i '' \
+        -e "s/^background .*/background $KITTY_BG/" \
+        -e "s/^foreground .*/foreground $KITTY_FG/" \
+        -e "s/^color0  .*/color0  $KITTY_PALETTE_0/" \
+        -e "s/^color1  .*/color1  $KITTY_PALETTE_1/" \
+        -e "s/^color2  .*/color2  $KITTY_PALETTE_2/" \
+        -e "s/^color3  .*/color3  $KITTY_PALETTE_3/" \
+        -e "s/^color4  .*/color4  $KITTY_PALETTE_4/" \
+        -e "s/^color5  .*/color5  $KITTY_PALETTE_5/" \
+        -e "s/^color6  .*/color6  $KITTY_PALETTE_6/" \
+        -e "s/^color7  .*/color7  $KITTY_PALETTE_7/" \
+        -e "s/^color8  .*/color8  $KITTY_PALETTE_8/" \
+        -e "s/^color9  .*/color9  $KITTY_PALETTE_9/" \
+        -e "s/^color10 .*/color10 $KITTY_PALETTE_10/" \
+        -e "s/^color11 .*/color11 $KITTY_PALETTE_11/" \
+        -e "s/^color12 .*/color12 $KITTY_PALETTE_12/" \
+        -e "s/^color13 .*/color13 $KITTY_PALETTE_13/" \
+        -e "s/^color14 .*/color14 $KITTY_PALETTE_14/" \
+        -e "s/^color15 .*/color15 $KITTY_PALETTE_15/" \
+        -e "s/^selection_background .*/selection_background $KITTY_SELECTION_BG/" \
+        -e "s/^cursor               .*/cursor               $KITTY_CURSOR/" \
+        "$f"
+    echo "  [OK] kitty"
+}
+
+# ── 9. Starship ──────────────────────────────────────────────
 update_starship() {
     local f="$CONFIG_DIR/starship/starship.toml"
     [[ -f "$f" ]] || return 0
@@ -215,6 +244,7 @@ update_nvim
 update_yazi
 update_fzf
 update_bat
+update_kitty
 update_starship
 
 # ── 保存当前主题 ────────────────────────────────────────────

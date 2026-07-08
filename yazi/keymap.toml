@@ -166,8 +166,7 @@ keymap = [
   ], run = "plugin zoxide", desc = "Jump to a directory via zoxide" },
   { on = "<C-p>", run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
   { on = [
-    "S",
-    "G",
+    "<c-f>",
   ], run = "shell --block 'cd %d && ~/.config/zsh/fzf/file/file_preview.py'", desc = "Search file content via rg+fzf" },
 
   # Linemode

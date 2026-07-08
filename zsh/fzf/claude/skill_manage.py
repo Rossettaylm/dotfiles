@@ -74,7 +74,7 @@ def skill_manage():
         header="enter: 删除  │  ctrl-u: 更新全部",
         use_multi_select=True,
         preview=_preview_skill(_SKILLS_DIR),
-        preview_window="right,60%",
+        preview_window="up,50%,border-bottom",
         preview_label="[ 📄 SKILL.md ]",
         extra_args=["--expect", "ctrl-u"],
         as_str=True,
