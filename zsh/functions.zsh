@@ -111,18 +111,19 @@ fadb() {
 }
 
 # 文本匹配
-fzg() {
-  local RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case --glob '!{.git,node_modules}'"
-  local INITIAL_QUERY="${*:-}"
-  fzf --ansi --disabled --query "$INITIAL_QUERY" \
-      --bind "start:reload:$RG_PREFIX {q} || true" \
-      --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
-      --color "hl:-1:underline,hl+:-1:underline:reverse" \
-      --delimiter : \
-      --preview 'bat --color=always {1} --highlight-line {2}' \
-      --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
-      --bind 'enter:become(nvim {1} +{2})'
-}
+# $HOME/zsh/fzf/file/file_preview.py 替代
+# fzg() {
+#   local RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case --glob '!{.git,node_modules}'"
+#   local INITIAL_QUERY="${*:-}"
+#   fzf --ansi --disabled --query "$INITIAL_QUERY" \
+#       --bind "start:reload:$RG_PREFIX {q} || true" \
+#       --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+#       --color "hl:-1:underline,hl+:-1:underline:reverse" \
+#       --delimiter : \
+#       --preview 'bat --color=always {1} --highlight-line {2}' \
+#       --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+#       --bind 'enter:become(nvim {1} +{2})'
+# }
 
 # git log
 glog() { python3 $ZSH_HOME/fzf/git/git_log.py "$@" | tee >(cb); }

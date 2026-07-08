@@ -20,7 +20,7 @@ def main():
         header="  输入关键字实时搜索  ·  Enter 用 nvim 打开  ·  Esc quit",
         prompt="  Search > ",
         preview="bat --color=always {1} --highlight-line {2}",
-        preview_window="up,60%,border-bottom,+{2}+3/3,~3",
+        preview_window="up,50%,border-bottom,+{2}+3/3,~3",
         preview_label="[ File Content ]",
         extra_args=[
             "--disabled",

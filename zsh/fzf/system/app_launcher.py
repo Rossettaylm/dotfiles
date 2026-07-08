@@ -40,7 +40,7 @@ def main():
         header="  Enter → 启动应用  ·  Esc quit",
         prompt="  App > ",
         preview="mdls -name kMDItemVersion -name kMDItemCFBundleIdentifier -name kMDItemCopyright '/Applications/{}.app' 2>/dev/null || echo 'No info'",
-        preview_window="right,border-left,40%",
+        preview_window="up,5,border-bottom,wrap",
         preview_label="[ App Info ]",
         sort=True,
         as_str=False,

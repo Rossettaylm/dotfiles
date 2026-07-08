@@ -44,7 +44,7 @@ def main():
         header="  Enter → nvim 打开  ·  Esc quit",
         prompt="  File > ",
         preview="bat -n --color=always {}",
-        preview_window="right,border-left,60%",
+        preview_window="up,50%,border-bottom",
         preview_label="[ Preview ]",
         sort=False,
         as_str=False,

@@ -50,7 +50,7 @@ def main():
         header="  Enter → 复制命令名  ·  Esc quit",
         prompt="  Cmd > ",
         preview=preview_script,
-        preview_window="right,border-left,60%",
+        preview_window="up,50%,border-bottom",
         preview_label="[ Info ]",
         sort=True,
         as_str=False,
