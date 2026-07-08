@@ -66,7 +66,7 @@ def main():
         header="  Enter → 连接  ·  Esc quit",
         prompt="  Host > ",
         preview="ssh -G {1} 2>/dev/null | grep -E '^(hostname|user|port|identityfile)' | column -t",
-        preview_window="right,border-left,40%",
+        preview_window="up,6,border-bottom,wrap",
         preview_label="[ SSH Config ]",
         as_str=False,
     )

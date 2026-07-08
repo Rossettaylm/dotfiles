@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 import tempfile
 
@@ -9,14 +10,34 @@ from pyutils import shell
 
 # 模型组：每组对应 opus / sonnet / haiku 三个槽位
 MODEL_GROUPS = {
-    "Claude": {
-        "opus": "claude-opus-4-8",
-        "sonnet": "claude-sonnet-4-6",
+    "sonnet5": {
+        "opus": "claude-sonnet-5[1m]",
+        "sonnet": "claude-sonnet-4-6[1m]",
         "haiku": "claude-haiku-4-5",
     },
-    "DeepSeek": {
-        "opus": "deepseek-v4-pro-official",
-        "sonnet": "deepseek-v4-pro-official",
+    "opus4.8": {
+        "opus": "claude-opus-4-8[1m]",
+        "sonnet": "claude-sonnet-4-6[1m]",
+        "haiku": "claude-haiku-4-5",
+    },
+    "opus4.6": {
+        "opus": "claude-opus-4-6[1m]",
+        "sonnet": "claude-sonnet-4-6[1m]",
+        "haiku": "claude-haiku-4-5",
+    },
+    "sonnet4.6": {
+        "opus": "claude-sonnet-4-6[1m]",
+        "sonnet": "claude-sonnet-4-6[1m]",
+        "haiku": "claude-haiku-4-5",
+    },
+    "deepseekv4": {
+        "opus": "deepseek-v4-pro-official[1m]",
+        "sonnet": "deepseek-v4-pro-official[1m]",
+        "haiku": "deepseek-v4-flash-official",
+    },
+    "glm-5.2": {
+        "opus": "glm-5.2-external[1m]",
+        "sonnet": "glm-5.2-external[1m]",
         "haiku": "deepseek-v4-flash-official",
     },
 }
@@ -28,6 +49,7 @@ ENV_KEYS = {
 }
 
 config_file = os.path.expanduser("~/.claude.json")
+codex_config_file = os.path.expanduser("~/.codex/config.toml")
 
 
 def read_config():
@@ -56,6 +78,30 @@ def write_config(data):
     except BaseException:
         os.unlink(tmp_path)
         raise
+
+
+def update_codex_model(model_id):
+    try:
+        with open(codex_config_file, "r", encoding="utf-8") as f:
+            content = f.read()
+        new_content = re.sub(
+            r'^model\s*=\s*"[^"]*"',
+            f'model = "{model_id}"',
+            content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        dir_name = os.path.dirname(codex_config_file)
+        fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as tmp:
+                tmp.write(new_content)
+            os.replace(tmp_path, codex_config_file)
+        except BaseException:
+            os.unlink(tmp_path)
+            raise
+    except OSError as e:
+        shell.log_err(f"更新 codex config 失败: {e}")
 
 
 def format_group_line(name, models, is_current):
@@ -105,6 +151,7 @@ def switch_model():
     data["env"]["ANTHROPIC_MODEL"] = models["opus"]
 
     write_config(data)
+    update_codex_model(models["opus"])
     shell.log_success(
         f"已切换模型组: {current_group or '未设置'} → {selected}\n"
         f"  opus   = {models['opus']}\n"

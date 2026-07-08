@@ -12,13 +12,13 @@ _fzf_comprun() {
   shift
 
   case "$command" in
-    cd)           fzf --preview 'tree -C {} | head -200' --preview-label='Directories'          "$@" ;;
-    export|unset) fzf --preview "eval 'echo \$'{}" --preview-label='Environment Variables'      "$@" ;;
-    ssh)          fzf --preview 'dig {}' --preview-label='Hosts'                                "$@" ;;
-    vi)           fzf --preview 'bat -n --color=always {}' --preview-label='Files'              "$@" ;;
-    nvim)         fzf --preview 'bat -n --color=always {}' --preview-label='Files'              "$@" ;;
-    kill)         fzf --preview-label='Processes'                                               "$@" ;;
-    *)            fzf --preview 'bat -n --color=always {}' --preview-label='Search'             "$@" ;;
+    cd)           fzf --preview 'tree -C {} | head -200' --preview-window='up,50%,border-bottom' --preview-label='Directories'          "$@" ;;
+    export|unset) fzf --preview "eval 'echo \$'{}" --preview-window='up,3,border-bottom,wrap' --preview-label='Environment Variables'    "$@" ;;
+    ssh)          fzf --preview 'dig {}' --preview-window='up,40%,border-bottom' --preview-label='Hosts'                                "$@" ;;
+    vi)           fzf --preview 'bat -n --color=always {}' --preview-window='up,50%,border-bottom' --preview-label='Files'              "$@" ;;
+    nvim)         fzf --preview 'bat -n --color=always {}' --preview-window='up,50%,border-bottom' --preview-label='Files'              "$@" ;;
+    kill)         fzf --preview-window='up,4,border-bottom,wrap' --preview-label='Processes'                                            "$@" ;;
+    *)            fzf --preview 'bat -n --color=always {}' --preview-window='up,50%,border-bottom' --preview-label='Search'             "$@" ;;
   esac
 }
 
@@ -36,6 +36,7 @@ export FZF_ALT_C_COMMAND="fd --type d --hidden --exclude '.git'"
 
 # change to ctrl-p override
 export FZF_CTRL_T_OPTS="${FZF_DEFAULT_OPTS} --scheme=path --preview-label='Files' --preview 'bat -n --color=always {}' \
+--preview-window='up,50%,border-bottom' \
 --bind 'ctrl-o:execute(nvim {})+abort'"
 
 # change to ctrl-h override
@@ -44,7 +45,7 @@ export FZF_CTRL_R_OPTS="${FZF_DEFAULT_OPTS} --preview-label='History Commands'
 --header 'Press CTRL-Y to copy command into clipboard'"
 
 # override preview with tree
-export FZF_ALT_C_OPTS="--preview 'tree -C {}' --preview-label='Directories'"
+export FZF_ALT_C_OPTS="--preview 'tree -C {}' --preview-window='up,50%,border-bottom' --preview-label='Directories'"
 
 # autoload fzf script in $ZSH_HOME/fzf
 _fzf_fpath=${0:h}/fzf

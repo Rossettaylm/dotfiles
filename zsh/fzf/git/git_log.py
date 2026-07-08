@@ -38,7 +38,7 @@ def select_branch():
         preview="git log -n 20 --oneline --graph --color=always --date=short "
                 "--pretty='format:%C(auto)%cd %an %h%d %s' "
                 "$(echo {} | sed 's/^[* ]*//' | sed 's| -> .*||' | xargs) --",
-        preview_window="right,border-left,60%",
+        preview_window="up,50%,border-bottom",
         preview_label="[ Branch Log ]",
         extra_args=["--no-hscroll"],
         as_str=False,

@@ -24,6 +24,7 @@ def run_shell_cmd(cmd, input=""):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         encoding="utf-8",
+        errors="replace",
     )
     return (process.stdout.splitlines(), process.stderr.splitlines())
 
@@ -85,7 +86,7 @@ def build_fzf_cmd(
     prompt: str = _DEFAULT_PROMPT,
     sort: bool = True,
     preview: str = "",
-    preview_window: str = "right,70%",
+    preview_window: str = "up,6,border-bottom,wrap",
     preview_label: str = "[ preview ]",
     extra_args: list[str] = [],
     as_str: bool = False,
@@ -133,7 +134,7 @@ def fzf_command(
     use_multi_select=False,
     query="",
     preview="",
-    preview_window="right,70%",
+    preview_window="up,6,border-bottom,wrap",
     preview_label="[preview]",
     sort=True,
 ):

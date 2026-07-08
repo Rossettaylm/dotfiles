@@ -24,7 +24,7 @@ def main():
         prompt="  Stash > ",
         sort=False,
         preview="git stash show -p --color=always $(echo {} | grep -oE 'stash@\\{{[0-9]+\\}}')",
-        preview_window="right,border-left,65%",
+        preview_window="up,50%,border-bottom",
         preview_label="[ Stash Diff ]",
         extra_args=[
             "--no-hscroll",

@@ -38,7 +38,7 @@ def main():
         use_multi_select=True,
         sort=False,
         preview="git show --stat --color=always $(echo {} | grep -oE '[0-9a-f]{7,}' | head -1)",
-        preview_window="right,border-left,50%",
+        preview_window="up,50%,border-bottom",
         preview_label="[ Commit Detail ]",
         extra_args=["--no-hscroll"],
         as_str=False,
