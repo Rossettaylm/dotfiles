@@ -24,7 +24,7 @@ alias man="tldr"
 alias du="dust"
 
 # ── 导航 ─────────────────────────────────────────────────────
-alias yz="yazi"
+alias yz='FZF_DEFAULT_COMMAND="fd --hidden --no-ignore-vcs --exclude .git" yazi'
 
 
 # ── Zsh 配置 ──────────────────────────────────────────────────
