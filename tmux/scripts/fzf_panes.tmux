@@ -27,7 +27,7 @@ do_action() {
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
     selected=$(FZF_DEFAULT_COMMAND=$cmd fzf -m --ansi --preview="$preview_cmd" \
         --height=100% --preview-window='bottom:70%' --reverse --info=inline --header-lines=1 \
-        --delimiter='\s{2,}' --with-nth=2..-1 --nth=1,2,3,5 \
+        --delimiter='\s{2,}' --with-nth=2..-1 \
         --bind="alt-p:toggle-preview" \
         --bind="ctrl-r:reload($cmd)" \
         --bind="ctrl-x:execute-silent(tmux kill-pane -t {1})+reload($cmd)" \
@@ -84,16 +84,12 @@ do_action() {
 }
 
 panes_src() {
-    printf "%-6s  %-7s  %-8s  %5s  %-20s  %s\n" \
-        'PANEID' 'SESSION' 'WINDOW' 'PANE' 'PATH' 'CMD'
+    printf "%-6s  %-10s  %-30s  %-6s  %s\n" \
+        'PANEID' 'SESSION' 'PATH' 'STATUS' 'TASK'
     panes_info=$(tmux list-panes -aF \
-        '#D #{=|6|…:session_name} #{=|8|…:window_name} #I.#P #{pane_current_path} #{pane_tty} #T' |
-        sed -E "/^$TMUX_PANE /d")
-    ttys=$(awk '{printf("%s,", $6)}' <<<"$panes_info" | sed 's/,$//')
-    ps_info=$(ps -t$ttys -o stat,tty,command |
-        awk '$1~/\+/ {$1="";print $0}')
+        '#D #{session_name} #{pane_current_path} #T' \
+        -f '#{==:#{pane_current_command},claude}')
     ids=()
-    hostname=$(hostname)
 
     print_pane_line() {
         local pane_line=$1
@@ -101,32 +97,23 @@ panes_src() {
         local pane_info=($pane_line)
         local pane_id=${pane_info[0]}
         local session=${pane_info[1]}
-        local window=${pane_info[2]}
-        local pane=${pane_info[3]}
-        local pane_path=${pane_info[4]}
-        local tty=${pane_info[5]#/dev/}
-        local title=${pane_info[@]:6}
+        local pane_path=${pane_info[2]}
+        local title="${pane_info[@]:3}"
         # shorten home prefix to ~
         pane_path=${pane_path/#$HOME/\~}
-        while read ps_line; do
-            local p_info=($ps_line)
-            if [[ $tty == ${p_info[0]} ]]; then
-                local cmd=${p_info[@]:1}
-                if [[ $cmd =~ ^n?vim && $title != $hostname ]]; then
-                    local cmd_arr=($cmd)
-                    cmd="${cmd_arr[0]} $title"
-                fi
-                local line
-                printf -v line "%-6s  %-7s  %-8s  %5s  %-20s  %s" \
-                    $pane_id $session $window $pane "$pane_path" "$cmd"
-                if [[ -n $color ]]; then
-                    printf "\033[%sm%s\033[0m\n" "$color" "$line"
-                else
-                    printf "%s\n" "$line"
-                fi
-                break
-            fi
-        done <<<"$ps_info"
+        # Claude Code prefixes its pane title with ✳ when idle, or a spinner glyph when busy
+        local icon=${title%% *}
+        local status='busy'
+        [[ $icon == '✳' ]] && status='idle'
+        local task=${title#* }
+        local line
+        printf -v line "%-6s  %-10s  %-30s  %-6s  %s" \
+            "$pane_id" "$session" "$pane_path" "$status" "$task"
+        if [[ -n $color ]]; then
+            printf "\033[%sm%s\033[0m\n" "$color" "$line"
+        else
+            printf "%s\n" "$line"
+        fi
     }
 
     # First: output AI pending pane (if any) at the top
