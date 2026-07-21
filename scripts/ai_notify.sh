@@ -61,13 +61,13 @@ if [[ "$SHOULD_NOTIFY" == "true" ]]; then
   terminal-notifier -title "$TITLE" -message "$MSG" -sound "$SOUND" 2>/dev/null || true
 fi
 
-# 标记当前 pane 为 AI 待切换（fzf_panes 会优先展示）
+# 标记当前 pane 为 AI 待切换（fzf_agents 会优先展示）
 # 仅在 AI pane 不可见时才更新 MRU 和 pending 标记（与系统通知逻辑一致）
 if [[ -n "${TMUX:-}" && -n "${TMUX_PANE:-}" && "$SHOULD_NOTIFY" == "true" ]]; then
   ai_pane="$TMUX_PANE"
   if [[ -n "$ai_pane" ]]; then
     tmux set -g '@ai_pending_pane' "$ai_pane" 2>/dev/null || true
     # 更新 MRU，将 AI pane 提到最前
-    bash "$(dirname "$0")/../tmux/scripts/fzf_panes.tmux" update_mru_pane_ids 2>/dev/null || true
+    bash "$(dirname "$0")/../tmux/scripts/fzf_agents.tmux" update_mru_pane_ids 2>/dev/null || true
   fi
 fi

@@ -64,7 +64,7 @@ do_action() {
             ((i++))
         done
 
-        # my personally configuration
+        # personal preference: for 2 panes, pick split direction by aspect ratio
         if (( id_n == 2 )); then
             w_size=($(tmux display-message -p '#{window_width} #{window_height}'))
             w_wid=${w_size[0]}
