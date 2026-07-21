@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Shared utilities for fzf-based tmux scripts (fzf_panes, fzf_sessions, etc.)
+# Shared utilities for fzf-based tmux scripts (fzf_agents, fzf_sessions, etc.)
 
 # Open a new tmux window for fzf, cleaning up any previous instance.
 # $1: tmux global var for pane tracking (e.g. @fzf_pane_id)
