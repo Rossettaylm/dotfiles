@@ -282,10 +282,20 @@ The setup registers **three** scheduled jobs (idempotent):
 
 `.gitignore` uses a **whitelist strategy**: all files are ignored by default (`*`), and directories are explicitly included with `!dirname/` rules. Add a new `!` rule when tracking a new config directory.
 
-Tracked top-level directories: `zsh/`, `nvim/` (+ `nvim.vim.bak/` VimScript backup), `tmux/`, `zellij/`, `yazi/`, `ghostty/`, `lazygit/`, `scripts/`, `themes/`, `bat/`, `neofetch/`, `bottom/`, `git/`, `gh/`, `starship/`, `thirdparty/` (fzf + tpm submodules), `setup_dep/`, plus root files `setup.py`, `sync.sh`, `dep.txt`, `README.md`, `CLAUDE.md`.
+Tracked top-level directories: `zsh/`, `nvim/`, `tmux/`, `zellij/`, `yazi/`, `ghostty/`, `lazygit/`, `scripts/`, `themes/`, `bat/`, `neofetch/`, `bottom/`, `git/`, `gh/`, `starship/`, `thirdparty/` (fzf + tpm submodules), `setup_dep/`, plus root files `setup.py`, `sync.sh`, `dep.txt`, `README.md`, `CLAUDE.md`.
+
+The whitelist is per-directory, so a few entries are narrower than they first appear — the table below mirrors the actual `.gitignore` rules:
+
+| Path | Whitelist rule | What is actually tracked |
+|------|----------------|-------------------------|
+| `zsh/` | `!zsh/**` (then `zsh/plugins/`) | All of `zsh/` **except** `zsh/plugins/`; the 4 plugin submodules are still registered via `.gitmodules` and tracked as gitlinks, not as regular files |
+| `nvim/` | `!nvim/init.lua`, `!nvim/lazy-lock.json`, `!nvim/lua/**` | Only `init.lua`, `lazy-lock.json`, and `lua/**` — not the rest of `nvim/` |
+| `yazi/` | explicit file allowlist | Only `init.lua`, `package.toml`, `yazi.toml`, `keymap.toml`, `theme.toml` — not `yazi/**` |
+| `tmux/` | `!tmux/**` (then `tmux/plugins/`) | All of `tmux/` except `tmux/plugins/` (gitignored) |
+| `zellij/` | `!zellij/**` (then `zellij/plugins/`) | All of `zellij/` except `zellij/plugins/` (gitignored) |
 
 > [!NOTE]
-> The `aerospace/` whitelist rule still exists in `.gitignore`, but the directory has been removed from the working tree. Other local-only config dirs (e.g. `atuin/`, `nushell/`, `kitty/`, `htop/`, `iterm2/`, `raycast/`, `opencode/`) are present on disk but **not** tracked.
+> A few `.gitignore` whitelist rules target directories that no longer exist in the working tree: `aerospace/`, `nvim.vim.bak/` (VimScript backup), `alacritty/`, and `thirdparty/agent-tracker/` (the latter is also **not** registered in `.gitmodules`, so it is not a submodule). Their `!` rules are inert leftovers rather than active tracking. Other local-only config dirs (e.g. `atuin/`, `nushell/`, `kitty/`, `htop/`, `iterm2/`, `raycast/`, `opencode/`) are present on disk but **not** tracked.
 
 ## Environment Variables
 
