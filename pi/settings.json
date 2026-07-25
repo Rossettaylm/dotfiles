@@ -1,0 +1,11 @@
+{
+  "lastChangelogVersion": "0.82.0",
+  "theme": "catppuccin-mocha",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-flash",
+  "editorPaddingX": 1,
+  "packages": [
+    "npm:pi-zentui",
+    "npm:pi-tool-display"
+  ]
+}
