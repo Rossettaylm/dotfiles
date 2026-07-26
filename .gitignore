@@ -112,6 +112,8 @@ thirdparty/*
 !pi/
 pi/*
 !pi/settings.json
+!pi/extensions/
+!pi/extensions/**
 !pi/themes/
 !pi/themes/**
 
