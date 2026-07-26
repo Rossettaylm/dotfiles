@@ -1,0 +1,54 @@
+{
+  "name": "pi-vimmode",
+  "version": "0.9.0",
+  "private": false,
+  "description": "Vim mode for Pi coding agent",
+  "keywords": [
+    "pi",
+    "pi-extension",
+    "pi-package"
+  ],
+  "homepage": "https://github.com/pekochan069/pi-vimmode#readme",
+  "bugs": {
+    "url": "https://github.com/pekochan069/pi-vimmode/issues"
+  },
+  "license": "MIT",
+  "author": "pekochan069",
+  "contributors": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pekochan069/pi-vimmode.git"
+  },
+  "files": [
+    "index.js",
+    "config.d.ts",
+    "README.md",
+    "LICENSE",
+    "RELEASE.md",
+    "release-notes.json",
+    "docs/config.md",
+    "docs/features.md",
+    "docs/settings.md"
+  ],
+  "type": "module",
+  "module": "./index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.77.0",
+    "@earendil-works/pi-tui": "^0.77.0"
+  },
+  "pi": {
+    "extensions": [
+      "./index.js"
+    ]
+  },
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./config": {
+      "types": "./config.d.ts"
+    }
+  }
+}
