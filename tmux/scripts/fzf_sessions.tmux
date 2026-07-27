@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
 
-source "$(dirname "$0")/fzf_utils.sh"
-
-new_window() { fzf_new_window '@fzf_session_id' "$0"; }
-
 do_action() {
-    fzf_guard '@fzf_session_id'
-
     cmd="bash $0 sessions_src"
 
     header="enter=switch  ctrl-r=rename  alt-bspace=kill  ctrl-n=new  ctrl-f=reload"
 
-    selected=$(FZF_DEFAULT_COMMAND="$cmd" fzf \
-        --height=100% \
+    selected=$(bash $0 sessions_src | fzf \
+        --popup center,90%,80% \
+        --border-label ' Sessions ' \
         --ansi \
         --color='bg:-1,bg+:-1' \
         --reverse \
@@ -24,6 +19,7 @@ do_action() {
         --delimiter='\s{2,}' \
         --with-nth=2.. \
         --nth=1,2 \
+        --bind="alt-w:abort" \
         --bind="ctrl-f:reload($cmd)" \
         --bind="ctrl-r:execute(bash $0 rename_session {1})+reload($cmd)" \
         --bind="alt-bspace:execute-silent(bash $0 kill_session {1})+reload($cmd)" \

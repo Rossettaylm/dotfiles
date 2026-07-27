@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-source "$(dirname "$0")/fzf_utils.sh"
-
-new_window() { fzf_new_window '@fzf_pane_id' "$0"; }
-
 # invoked by pane-focus-in event
 update_mru_pane_ids() {
     o_data=($(tmux show -gqv '@mru_pane_ids'))
@@ -16,8 +12,6 @@ update_mru_pane_ids() {
 }
 
 do_action() {
-    fzf_guard '@fzf_pane_id'
-
     cmd="bash $0 panes_src"
     set -- 'tmux capture-pane -pe -S' \
         '$(start=$(( $(tmux display-message -t {1} -p "#{pane_height}")' \
@@ -25,9 +19,12 @@ do_action() {
         '(( start>0 )) && echo $start || echo 0) -t {1}'
     preview_cmd=$*
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
-    selected=$(FZF_DEFAULT_COMMAND=$cmd fzf -m --ansi --preview="$preview_cmd" \
-        --height=100% --preview-window='bottom:70%' --reverse --info=inline --header-lines=1 \
+    selected=$(bash $0 panes_src | fzf -m --ansi --preview="$preview_cmd" \
+        --popup center,90%,85% \
+        --border-label ' AI Agents ' \
+        --preview-window='bottom:70%' --reverse --info=inline --header-lines=1 \
         --delimiter='\s{2,}' --with-nth=2..-1 \
+        --bind="alt-e:abort" \
         --bind="alt-p:toggle-preview" \
         --bind="ctrl-r:reload($cmd)" \
         --bind="ctrl-x:execute-silent(tmux kill-pane -t {1})+reload($cmd)" \
@@ -84,11 +81,11 @@ do_action() {
 }
 
 panes_src() {
-    printf "%-6s  %-10s  %-30s  %-6s  %s\n" \
-        'PANEID' 'SESSION' 'PATH' 'STATUS' 'TASK'
+    printf "%-6s  %-10s  %-8s  %-28s  %-6s  %s\n" \
+        'PANEID' 'SESSION' 'AGENT' 'PATH' 'STATUS' 'TASK'
     panes_info=$(tmux list-panes -aF \
-        '#D #{session_name} #{pane_current_path} #T' \
-        -f '#{==:#{pane_current_command},claude}')
+        '#D #{session_name} #{pane_current_command} #{pane_current_path} #T' \
+        -f '#{||:#{==:#{pane_current_command},claude},#{&&:#{==:#{pane_current_command},node},#{m:π*,#T}}}')
     ids=()
 
     print_pane_line() {
@@ -97,18 +94,27 @@ panes_src() {
         local pane_info=($pane_line)
         local pane_id=${pane_info[0]}
         local session=${pane_info[1]}
-        local pane_path=${pane_info[2]}
-        local title="${pane_info[@]:3}"
-        # shorten home prefix to ~
+        local command=${pane_info[2]}
+        local pane_path=${pane_info[3]}
+        local title="${pane_info[@]:4}"
         pane_path=${pane_path/#$HOME/\~}
-        # Claude Code prefixes its pane title with ✳ when idle, or a spinner glyph when busy
-        local icon=${title%% *}
-        local status='busy'
-        [[ $icon == '✳' ]] && status='idle'
-        local task=${title#* }
+
+        local agent status task
+        if [[ $command == 'claude' ]]; then
+            agent='claude'
+            local icon=${title%% *}
+            [[ $icon == '✳' ]] && status='idle' || status='busy'
+            task=${title#* }
+        else
+            agent='pi'
+            local icon=${title%% *}
+            [[ $icon == 'π' ]] && status='idle' || status='busy'
+            task=${title#*- }
+        fi
+
         local line
-        printf -v line "%-6s  %-10s  %-30s  %-6s  %s" \
-            "$pane_id" "$session" "$pane_path" "$status" "$task"
+        printf -v line "%-6s  %-10s  %-8s  %-28s  %-6s  %s" \
+            "$pane_id" "$session" "$agent" "$pane_path" "$status" "$task"
         if [[ -n $color ]]; then
             printf "\033[%sm%s\033[0m\n" "$color" "$line"
         else
