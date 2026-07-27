@@ -16,7 +16,7 @@ def main():
         return
 
     branch = res.branch_list[0]
-    branch = branch.lstrip("* ").strip()
+    branch = branch.lstrip("+* ").strip()
 
     shell.log_success(f"checking out to {branch}...")
     ret = subprocess.run(["git", "checkout", branch])
