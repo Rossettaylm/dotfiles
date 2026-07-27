@@ -108,6 +108,15 @@ thirdparty/*
 !gh/
 !gh/**
 
+# ── Pi Coding Agent ─────────────────────────────────
+!pi/
+pi/*
+!pi/settings.json
+!pi/extensions/
+!pi/extensions/**
+!pi/themes/
+!pi/themes/**
+
 # -- starship
 !starship/
 !starship/**
