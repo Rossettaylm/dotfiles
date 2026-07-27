@@ -1,0 +1,19 @@
+{
+  "lastChangelogVersion": "0.82.1",
+  "theme": "catppuccin-mocha",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-flash",
+  "editorPaddingX": 1,
+  "packages": [
+    "npm:pi-tool-display",
+    "npm:pi-fzf-files",
+    "git:github.com/crustyhacker/pi-thinking-steps"
+  ],
+  "extensions": [
+    "/Users/lymanyang/.config/pi/extensions/zentui/index.ts",
+    "/Users/lymanyang/.config/pi/extensions/pi-vimmode/index.js",
+    "/Users/lymanyang/.config/pi/extensions/fzf-overlay/index.ts"
+  ],
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": true
+}
