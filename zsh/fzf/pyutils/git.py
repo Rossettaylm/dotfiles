@@ -30,12 +30,16 @@ def branch_preprocess(branches):
     for idx, br in enumerate(branches):
         if isinstance(br, bytes):
             br = br.decode()
-        branches[idx] = br.removeprefix("  ")
         if br.startswith("*"):
             has_cur_branch = True
             cur_branch = br.removeprefix("* ")
             branches[idx] = cur_branch
+        elif br.startswith("+ "):
+            branches[idx] = None  # worktree 占用的分支，跳过不展示
+        else:
+            branches[idx] = br.removeprefix("  ")
 
+    branches = [br for br in branches if br is not None]
     return BranchResult(has_cur_branch, cur_branch, branches)
 
 
@@ -77,7 +81,7 @@ def get_branches(header, use_multi_select=False, show_brs_cmd="git branch"):
         return BranchResult()
 
     branches, err = sh.run_shell_cmd(
-        "{git_cmd} | {fzf_cmd}".format(git_cmd=show_brs_cmd, fzf_cmd=fzf_cmd)
+        "{git_cmd} | grep -v '^+ ' | {fzf_cmd}".format(git_cmd=show_brs_cmd, fzf_cmd=fzf_cmd)
     )
     result = branch_preprocess(branches)
     # result.setCurBranch(get_cur_branch())
