@@ -1,8 +1,8 @@
 {
   "lastChangelogVersion": "0.82.1",
   "theme": "catppuccin-mocha",
-  "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultProvider": "llmtoken",
+  "defaultModel": "deepseek-v4-flash-official",
   "editorPaddingX": 1,
   "packages": [
     "npm:pi-tool-display",
@@ -15,5 +15,8 @@
     "/Users/lymanyang/.config/pi/extensions/fzf-overlay/index.ts"
   ],
   "defaultThinkingLevel": "high",
-  "hideThinkingBlock": true
+  "hideThinkingBlock": true,
+  "enabledModels": [
+    "deepseek-v4-flash-official"
+  ]
 }
