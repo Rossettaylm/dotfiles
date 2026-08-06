@@ -1,9 +1,15 @@
 """交互式切换 Claude Code / Codex / pi 模型组。
 
 模型组定义了 opus / sonnet / haiku 三个槽位的模型，切换时同步更新：
-- ~/.claude.json           → Claude Code 环境变量
-- ~/.codex/config.toml     → Codex model 字段
-- ~/.pi/agent/settings.json → pi defaultModel（不含 [1m] 后缀）
+- ~/.claude.json              → Claude Code 环境变量
+- ~/.codex/config.toml        → Codex model 字段
+- ~/.config/pi/settings.json  → pi defaultProvider/defaultModel/enabledModels（不含 [1m] 后缀）
+- ~/.config/pi/models.json    → pi llmtoken provider 的模型列表（不含 [1m] 后缀）
+- ~/.config/pi/auth.json      → pi llmtoken 的 API key 凭证
+
+pi 不支持模型 ID 里的 [1m] 上下文后缀，且不读取 ANTHROPIC_AUTH_TOKEN 这类仅由
+Claude Code 注入的环境变量，因此需要把去后缀的模型 ID 和 token 分别写入
+models.json / auth.json，供 pi 通过网关直连调用。
 """
 
 import json
@@ -18,6 +24,11 @@ from pyutils import shell
 
 # ── 模型组定义 ──────────────────────────────────────────────
 MODEL_GROUPS = {
+    "deepseekv4-flash": {
+        "opus": "deepseek-v4-flash-official[1m]",
+        "sonnet": "deepseek-v4-flash-official[1m]",
+        "haiku": "deepseek-v4-flash-official[1m]",
+    },
     "kimi3": {
         "opus": "kimi-k3-external[1m]",
         "sonnet": "claude-sonnet-4-6[1m]",
@@ -57,8 +68,68 @@ MODEL_GROUPS = {
 
 # ── 目标配置文件 ───────────────────────────────────────────
 CLAUDE_CONFIG = os.path.expanduser("~/.claude.json")
-CODEX_CONFIG = os.path.expanduser("~/.codex/config.toml")
-PI_CONFIG = os.path.expanduser("~/.pi/agent/settings.json")
+PI_CONFIG = os.path.expanduser("~/.config/pi/settings.json")
+PI_MODELS_CONFIG = os.path.expanduser("~/.config/pi/models.json")
+PI_AUTH_CONFIG = os.path.expanduser("~/.config/pi/auth.json")
+
+PI_GATEWAY_PROVIDER = "llmtoken"
+PI_GATEWAY_BASE_URL = "https://qproxy.gtimg.com"
+
+# pi 通过网关调用部分模型时，需要覆写 pi-ai 内置的 compat/thinkingLevelMap
+# 字段才能正确请求（已逐一实测）。未列出的模型使用默认字段。
+MODEL_COMPAT_OVERRIDES: dict[str, dict] = {
+    "claude-sonnet-4-6": {
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "input": ["text", "image"],
+        "thinkingLevelMap": {"max": "max"},
+        "compat": {"forceAdaptiveThinking": True},
+    },
+    "claude-sonnet-5": {
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "input": ["text", "image"],
+        "thinkingLevelMap": {"xhigh": "xhigh", "max": "max"},
+        "compat": {"forceAdaptiveThinking": True, "supportsTemperature": False},
+    },
+    "claude-haiku-4-5": {
+        "contextWindow": 200000,
+        "maxTokens": 64000,
+        "input": ["text", "image"],
+        "compat": {"supportsEagerToolInputStreaming": False},
+    },
+    "claude-opus-4-8": {
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "input": ["text", "image"],
+        "thinkingLevelMap": {"xhigh": "xhigh", "max": "max"},
+        "compat": {"forceAdaptiveThinking": True, "supportsTemperature": False},
+    },
+    "claude-opus-4-6": {
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "input": ["text", "image"],
+        "thinkingLevelMap": {"max": "max"},
+        "compat": {"forceAdaptiveThinking": True},
+    },
+    "deepseek-v4-flash-official": {
+        "contextWindow": 1000000,
+        "maxTokens": 384000,
+        "input": ["text"],
+    },
+    "deepseek-v4-pro-official": {
+        "contextWindow": 1000000,
+        "maxTokens": 384000,
+        "input": ["text"],
+    },
+}
+
+MODEL_DEFAULTS = {
+    "reasoning": True,
+    "contextWindow": 1000000,
+    "maxTokens": 128000,
+    "input": ["text"],
+}
 
 ENV_KEYS = {
     "opus": "ANTHROPIC_DEFAULT_OPUS_MODEL",
@@ -123,36 +194,61 @@ def update_claude_env(models: dict[str, str]):
     write_json(CLAUDE_CONFIG, data)
 
 
-# ── Codex ──────────────────────────────────────────────────
-
-
-def update_codex_model(model_id: str):
-    """更新 ~/.codex/config.toml 中的 model 字段。"""
-    try:
-        with open(CODEX_CONFIG, "r", encoding="utf-8") as f:
-            content = f.read()
-    except OSError:
-        shell.log_err(f"无法读取 codex config: {CODEX_CONFIG}")
-        return
-
-    new_content = re.sub(
-        r'^model\s*=\s*"[^"]*"',
-        f'model = "{model_id}"',
-        content,
-        count=1,
-        flags=re.MULTILINE,
-    )
-    atomic_write(CODEX_CONFIG, new_content)
-
-
 # ── pi ─────────────────────────────────────────────────────
 
 
-def update_pi_model(model_id: str):
-    """更新 ~/.pi/agent/settings.json 中的 defaultModel（不含 [1m] 后缀）。"""
-    pi_model = strip_context_suffix(model_id)
+def all_pi_model_ids() -> list[str]:
+    """收集 MODEL_GROUPS 中出现过的全部模型 ID（去重、去 [1m] 后缀）。"""
+    seen: dict[str, None] = {}
+    for models in MODEL_GROUPS.values():
+        for model_id in models.values():
+            seen.setdefault(strip_context_suffix(model_id), None)
+    return list(seen)
+
+
+def build_pi_model_entry(model_id: str) -> dict:
+    """构造 pi models.json 中单个模型条目，应用已验证的 compat 覆写。"""
+    override = MODEL_COMPAT_OVERRIDES.get(model_id)
+    entry = {"id": model_id, **MODEL_DEFAULTS}
+    if override:
+        entry.update(override)
+    return entry
+
+
+def sync_pi_models_json():
+    """全量重写 pi models.json 中 llmtoken 的 models 数组。"""
+    data = read_json(PI_MODELS_CONFIG)
+    providers = data.setdefault("providers", {})
+    gateway = providers.setdefault(
+        PI_GATEWAY_PROVIDER,
+        {
+            "baseUrl": PI_GATEWAY_BASE_URL,
+            "api": "anthropic-messages",
+            "authHeader": True,
+            "compat": {"supportsStore": False},
+        },
+    )
+    gateway["models"] = [build_pi_model_entry(mid) for mid in all_pi_model_ids()]
+    write_json(PI_MODELS_CONFIG, data)
+
+
+def sync_pi_auth(auth_token: str | None):
+    """把 ANTHROPIC_AUTH_TOKEN 写入 pi 的 auth.json，供 llmtoken 鉴权。"""
+    if not auth_token:
+        return
+    data = read_json(PI_AUTH_CONFIG)
+    data[PI_GATEWAY_PROVIDER] = {"type": "api_key", "key": auth_token}
+    write_json(PI_AUTH_CONFIG, data)
+
+
+def update_pi_model(models: dict[str, str]):
+    """更新 ~/.config/pi/settings.json 的 defaultProvider/defaultModel/enabledModels。"""
+    pi_models = [strip_context_suffix(m) for m in models.values()]
+    enabled_models = list(dict.fromkeys(pi_models))
     data = read_json(PI_CONFIG)
-    data["defaultModel"] = pi_model
+    data["defaultProvider"] = PI_GATEWAY_PROVIDER
+    data["defaultModel"] = strip_context_suffix(models["opus"])
+    data["enabledModels"] = enabled_models
     write_json(PI_CONFIG, data)
 
 
@@ -203,10 +299,11 @@ def switch_model():
 
     models = MODEL_GROUPS[selected]
 
-    # 同步三个配置
+    # 同步 Claude Code + pi 配置
     update_claude_env(models)
-    update_codex_model(models["opus"])
-    update_pi_model(models["opus"])
+    sync_pi_models_json()
+    sync_pi_auth(env.get("ANTHROPIC_AUTH_TOKEN"))
+    update_pi_model(models)
 
     shell.log_success(
         f"已切换模型组: {current_group or '未设置'} → {selected}\n"

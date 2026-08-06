@@ -24,6 +24,14 @@ bindkey -M viins '^A' beginning-of-line       # ctrl+a 跳到行首
 bindkey -M viins '^E' end-of-line             # ctrl+e 跳到行尾
 bindkey -M viins '^F' autosuggest-accept      # ctrl+f 接受 autosuggestion 补全
 
+# -- visual 模式：yank 同步系统剪贴板 --
+vi-yank-to-clipboard() {
+  zle vi-yank
+  echo -n "$CUTBUFFER" | pbcopy
+}
+zle -N vi-yank-to-clipboard
+bindkey -M visual 'y' vi-yank-to-clipboard
+
 # -- normal 模式 --
 bindkey -M vicmd '(' beginning-of-line        # ( 跳到行首（同 nvim ( → ^）
 bindkey -M vicmd ')' end-of-line              # ) 跳到行尾（同 nvim ) → $）

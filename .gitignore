@@ -112,6 +112,7 @@ thirdparty/*
 !pi/
 pi/*
 !pi/settings.json
+!pi/models.json
 !pi/extensions/
 !pi/extensions/**
 !pi/themes/

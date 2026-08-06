@@ -1,0 +1,131 @@
+{
+  "providers": {
+    "llmtoken": {
+      "baseUrl": "https://qproxy.gtimg.com",
+      "api": "anthropic-messages",
+      "authHeader": true,
+      "compat": {
+        "supportsStore": false
+      },
+      "models": [
+        {
+          "id": "deepseek-v4-flash-official",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 384000,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "kimi-k3-external",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "claude-sonnet-4-6",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ],
+          "thinkingLevelMap": {
+            "max": "max"
+          },
+          "compat": {
+            "forceAdaptiveThinking": true
+          }
+        },
+        {
+          "id": "claude-haiku-4-5",
+          "reasoning": true,
+          "contextWindow": 200000,
+          "maxTokens": 64000,
+          "input": [
+            "text",
+            "image"
+          ],
+          "compat": {
+            "supportsEagerToolInputStreaming": false
+          }
+        },
+        {
+          "id": "claude-sonnet-5",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ],
+          "thinkingLevelMap": {
+            "xhigh": "xhigh",
+            "max": "max"
+          },
+          "compat": {
+            "forceAdaptiveThinking": true,
+            "supportsTemperature": false
+          }
+        },
+        {
+          "id": "claude-opus-4-8",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ],
+          "thinkingLevelMap": {
+            "xhigh": "xhigh",
+            "max": "max"
+          },
+          "compat": {
+            "forceAdaptiveThinking": true,
+            "supportsTemperature": false
+          }
+        },
+        {
+          "id": "claude-opus-4-6",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ],
+          "thinkingLevelMap": {
+            "max": "max"
+          },
+          "compat": {
+            "forceAdaptiveThinking": true
+          }
+        },
+        {
+          "id": "deepseek-v4-pro-official",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 384000,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "glm-5.2-external",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text"
+          ]
+        }
+      ]
+    }
+  }
+}
