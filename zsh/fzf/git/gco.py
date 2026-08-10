@@ -15,8 +15,7 @@ def main():
         shell.log_err("不能checkout当前分支!")
         return
 
-    branch = res.branch_list[0]
-    branch = branch.lstrip("+* ").strip()
+    branch = git.clean_branch_name(res.branch_list[0])
 
     shell.log_success(f"checking out to {branch}...")
     ret = subprocess.run(["git", "checkout", branch])
