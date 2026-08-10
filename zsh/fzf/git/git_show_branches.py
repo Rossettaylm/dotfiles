@@ -14,11 +14,7 @@ def git_show_branches():
 
     # echo
     for br in branches:
-        if isinstance(br, bytes):
-            br = br.decode()
-        if br.startswith("*"):
-            br = br.removeprefix("* ")
-        os.system("echo '{}'".format(br))
+        os.system("echo '{}'".format(git.clean_branch_name(br)))
 
 
 if __name__ == "__main__":
