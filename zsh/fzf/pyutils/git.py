@@ -23,24 +23,56 @@ class BranchResult(object):
         )
 
 
+# git branch 行前缀标记：
+# "*" 当前分支 / "+" 被其他 worktree 占用的分支 / "" 普通分支
+_BRANCH_PREFIXES = ("*", "+")
+
+
+def branch_prefix_marker(raw):
+    """识别 git branch 输出行的前缀标记，不修改原始内容。"""
+    if isinstance(raw, bytes):
+        raw = raw.decode()
+    stripped = raw.strip()
+    for marker in _BRANCH_PREFIXES:
+        if stripped.startswith(marker):
+            return marker
+    return ""
+
+
+def clean_branch_name(raw):
+    """统一清理 git branch/branch -a 输出的行前缀 (* / + / 前导空格)，
+    并去掉形如 "HEAD -> origin/master" 的别名后缀，返回纯净分支名。
+    所有需要从 git branch 输出中提取分支名的地方都应复用此函数，
+    避免各脚本各自维护一套不一致的前缀解析逻辑。
+    """
+    if raw is None:
+        return ""
+    if isinstance(raw, bytes):
+        raw = raw.decode()
+    name = raw.strip()
+    marker = branch_prefix_marker(name)
+    if marker:
+        name = name[len(marker):].strip()
+    name = name.split(" -> ")[0]
+    return name.strip()
+
+
 # git branch分支预处理
 def branch_preprocess(branches):
     has_cur_branch = False
     cur_branch = ""
-    for idx, br in enumerate(branches):
-        if isinstance(br, bytes):
-            br = br.decode()
-        if br.startswith("*"):
+    result = []
+    for br in branches:
+        marker = branch_prefix_marker(br)
+        if marker == "+":
+            continue  # worktree 占用的分支，跳过不展示
+        name = clean_branch_name(br)
+        if marker == "*":
             has_cur_branch = True
-            cur_branch = br.removeprefix("* ")
-            branches[idx] = cur_branch
-        elif br.startswith("+ "):
-            branches[idx] = None  # worktree 占用的分支，跳过不展示
-        else:
-            branches[idx] = br.removeprefix("  ")
+            cur_branch = name
+        result.append(name)
 
-    branches = [br for br in branches if br is not None]
-    return BranchResult(has_cur_branch, cur_branch, branches)
+    return BranchResult(has_cur_branch, cur_branch, result)
 
 
 def get_cur_branch():
@@ -49,10 +81,8 @@ def get_cur_branch():
     for e in err:
         sh.log_err(e)
     for br in out:
-        if isinstance(br, bytes):
-            br = br.decode()
-        if br.startswith("*"):
-            return br.removeprefix("* ")
+        if branch_prefix_marker(br) == "*":
+            return clean_branch_name(br)
     return ""
 
 

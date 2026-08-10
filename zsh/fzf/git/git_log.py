@@ -19,6 +19,7 @@ from sys import argv
 import os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pyutils.shell as shell
+import pyutils.git as git
 
 
 def select_branch():
@@ -32,11 +33,11 @@ def select_branch():
     current = ""
     for line in branch_lines:
         line = line.strip()
-        if line.startswith("* "):
-            current = line[2:]
-            cleaned.append(line)
-        elif "HEAD ->" not in line:
-            cleaned.append(line)
+        if not line or "HEAD ->" in line:
+            continue
+        if git.branch_prefix_marker(line) == "*":
+            current = git.clean_branch_name(line)
+        cleaned.append(line)
 
     fzf_cmd = shell.build_fzf_cmd(
         border_label="🌿  [Select Branch]",
@@ -45,7 +46,7 @@ def select_branch():
         sort=False,
         preview="git log -n 20 --oneline --graph --color=always --date=short "
                 "--pretty='format:%C(auto)%cd %an %h%d %s' "
-                "$(echo {} | sed 's/^[* ]*//' | sed 's| -> .*||' | xargs) --",
+                "$(echo {} | sed -E 's/^[*+ ]+//' | sed 's| -> .*||' | xargs) --",
         preview_window="up,50%,border-bottom",
         preview_label="[ Branch Log ]",
         extra_args=["--no-hscroll"],
@@ -63,8 +64,7 @@ def select_branch():
         return current or ""
 
     selected = stdout.strip()
-    selected = re.sub(r'^\*\s*', '', selected).strip()
-    selected = re.sub(r'\s*->.*', '', selected).strip()
+    selected = git.clean_branch_name(selected)
     return selected
 
 
