@@ -28,6 +28,7 @@ case $(uname) in
     export PATH=$PATH:/opt/homebrew/bin
     export PATH="/opt/homebrew/opt/node@18/bin:$PATH"
     export PATH=$PATH:/opt/homebrew/opt/llvm/bin
+    export HOMEBREW_NO_AUTO_UPDATE=1
     export XDG_CONFIG_HOME="$HOME/.config"
 
     # 按设备区分
