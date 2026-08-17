@@ -39,19 +39,14 @@ MODEL_GROUPS = {
         "sonnet": "claude-sonnet-4-6[1m]",
         "haiku": "claude-haiku-4-5",
     },
-    "opus4.8": {
-        "opus": "claude-opus-4-8[1m]",
-        "sonnet": "claude-sonnet-4-6[1m]",
+    "opus5": {
+        "opus": "claude-opus-5[1m]",
+        "sonnet": "claude-sonnet-5[1m]",
         "haiku": "claude-haiku-4-5",
     },
     "opus4.6": {
         "opus": "claude-opus-4-6[1m]",
-        "sonnet": "claude-sonnet-4-6[1m]",
-        "haiku": "claude-haiku-4-5",
-    },
-    "sonnet4.6": {
-        "opus": "claude-sonnet-4-6[1m]",
-        "sonnet": "claude-sonnet-4-6[1m]",
+        "sonnet": "claude-sonnet-5[1m]",
         "haiku": "claude-haiku-4-5",
     },
     "deepseekv4": {
