@@ -38,14 +38,14 @@ def _setup_cron_macos(repo_root: Path, sync_script: Path):
     )
     changed |= c
 
-    # 2) brew cache 更新 — 每周一 06:00
+    # 2) brew cache 更新 — 每天 06:00
     brew_cache_script = repo_root / "zsh" / "fzf" / "brew" / "update_brew_cache.py"
     brew_cache_log = repo_root / ".brew_cache.log"
     existing, c = _ensure_cron_entry(
         existing,
-        marker="# brew cache weekly update",
-        cron_line=f"0 6 * * 1 python3 {brew_cache_script} >> {brew_cache_log} 2>&1",
-        description="每周一 06:00 更新 brew cache",
+        marker="# brew cache",
+        cron_line=f"0 6 * * * python3 {brew_cache_script} >> {brew_cache_log} 2>&1",
+        description="每天 06:00 更新 brew cache",
     )
     changed |= c
 
