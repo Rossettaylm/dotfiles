@@ -15,7 +15,7 @@ do_action() {
         --header-lines=1 \
         --header="$header" \
         --preview="bash $0 session_preview {1}" \
-        --preview-window=right:50%:border-left:wrap \
+        --preview-window=bottom:70%:border-top:wrap \
         --delimiter='\s{2,}' \
         --with-nth=2.. \
         --nth=1,2 \
