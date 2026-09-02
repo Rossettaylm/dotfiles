@@ -107,6 +107,10 @@ alias qclean="./rb -clean"
 alias qhelp="./rb -help"
 alias qins="adb install -r AQQLite/AQQLiteApp/build/intermediates/qqLite/compact/signed/compact.apk"
 
+# ── Harmony ───────────────────────────────────────────────────
+alias hshot="$HOME/.config/scripts/hdc_screenshot.sh"
+alias hrec="$HOME/.config/scripts/hdc_record.sh"
+
 # ── 其他 ──────────────────────────────────────────────────────
 alias cr="cargo run"
 alias cld="claude"
