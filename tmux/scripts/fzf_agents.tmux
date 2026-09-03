@@ -11,13 +11,33 @@ update_mru_pane_ids() {
     tmux set -g '@mru_pane_ids' "${n_data[*]}"
 }
 
+# Crop the visible pane to the last non-empty line, then take the bottom
+# $FZF_PREVIEW_LINES rows. Cursor-agent / pi grow from the top (no alternate
+# screen); slicing by pane_height would preview the empty region below.
+preview_pane() {
+    local pane_id=$1
+    local n=${FZF_PREVIEW_LINES:-40}
+    tmux capture-pane -pe -t "$pane_id" | awk -v n="$n" -v ESC=$'\033' '
+    function visible(s) {
+        gsub(ESC "\\[[0-9;?]*[A-Za-z]", "", s)
+        return s ~ /[^[:space:]]/
+    }
+    {
+        lines[NR] = $0
+        if (visible($0)) last = NR
+    }
+    END {
+        if (last == 0) exit
+        start = last - n + 1
+        if (start < 1) start = 1
+        for (i = start; i <= last; i++) print lines[i]
+    }
+    '
+}
+
 do_action() {
     cmd="bash $0 panes_src"
-    set -- 'tmux capture-pane -pe -S' \
-        '$(start=$(( $(tmux display-message -t {1} -p "#{pane_height}")' \
-        '- $FZF_PREVIEW_LINES ));' \
-        '(( start>0 )) && echo $start || echo 0) -t {1}'
-    preview_cmd=$*
+    preview_cmd="bash $0 preview_pane {1}"
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
     selected=$(bash $0 panes_src | fzf -m --ansi --preview="$preview_cmd" \
         --popup center,90%,85% \
@@ -80,17 +100,196 @@ do_action() {
     fi
 }
 
+# Agent registry: process name (+ title/process-tree, for wrapper processes like
+# node) -> agent key. To add a new agent: add a branch here, a parse_<agent>_title
+# function below, and extend the tmux list-panes -f filter in panes_src.
+#
+# cursor-agent and pi both run under a generic "node" pane_current_command, so
+# node panes need a second signal to tell them apart: pi's title starts with its
+# own 'π' icon, cursor-agent's does not, and its real executable (a child of
+# #{pane_pid}, since node is the pane's original shell's grandchild) has
+# "cursor-agent" in its command line.
+agent_key_for_pane() {
+    local pane_id=$1 command=$2 title=$3
+    case $command in
+        claude)
+            echo claude
+            return
+            ;;
+        node) ;;
+        *) return ;;
+    esac
+
+    if [[ ${title%% *} == 'π' ]]; then
+        echo pi
+        return
+    fi
+
+    local pane_pid child
+    pane_pid=$(tmux display-message -p -t "$pane_id" '#{pane_pid}' 2>/dev/null)
+    [[ -z $pane_pid ]] && return
+    for child in $(pgrep -P "$pane_pid" 2>/dev/null); do
+        if ps -o command= -p "$child" 2>/dev/null | grep -qi 'cursor-agent'; then
+            echo cursor
+            return
+        fi
+    done
+}
+
+# Each parse_<agent>_title prints "<state>\t<task>", state is one of
+# working|idle|blocked.
+parse_claude_title() {
+    local pane_id=$1 title=$2 icon
+    icon=${title%% *}
+    local state='working'
+    [[ $icon == '✳' ]] && state='idle'
+
+    # claude's OSC title only ever encodes working/idle; blocked (permission
+    # prompts) is screen-content only, simplified from herdr's claude.toml
+    # bash_permission_prompt / generic_permission_prompt / legacy_no_prompt_blocker.
+    local screen
+    screen=$(tmux capture-pane -pe -S -12 -t "$pane_id" 2>/dev/null)
+    if printf '%s' "$screen" | grep -qiE 'do you want to (proceed|allow this connection)\?|would you like to|waiting for permission|tab to amend|ctrl\+e to explain'; then
+        if printf '%s' "$screen" | grep -qiE '❯?[[:space:]]*1\.[[:space:]]*yes|❯[[:space:]]*yes|2\.[[:space:]]*(yes|no)|3\.[[:space:]]*no|run \(once\)|skip \(esc or n\)'; then
+            state='blocked'
+        fi
+    fi
+
+    printf '%s\t%s' "$state" "${title#* }"
+}
+
+parse_cursor_title() {
+    local pane_id=$1 title=$2
+    # cursor-agent's title is "<action name> - <emoji> <status phrase>"; the
+    # action prefix varies per tool call (e.g. "Tmux Command", "Request File
+    # Access") so only the status suffix after the last " - " is meaningful.
+    local suffix=${title##* - }
+    local state='working'
+    if printf '%s' "$suffix" | grep -qi 'ready'; then
+        state='idle'
+    elif printf '%s' "$suffix" | grep -qi 'waiting for confirmation'; then
+        state='blocked'
+    fi
+    printf '%s\t%s' "$state" "${title% - *}"
+}
+
+parse_pi_title() {
+    local pane_id=$1 title=$2 icon
+    icon=${title%% *}
+    local state='working'
+    [[ $icon == 'π' ]] && state='idle'
+    printf '%s\t%s' "$state" "${title#*- }"
+}
+
+# Display-column helpers. Widths are character counts (Nerd Font Mono icons = 1).
+# Columns are joined with two spaces so fzf --delimiter='\s{2,}' still works.
+COL_PANEID=6
+COL_SESSION=12
+COL_AGENT=10
+COL_PATH=32
+COL_STATUS=11
+COL_TASK=36
+
+fit_col() {
+    local text=$1
+    local width=$2
+    local mode=${3:-head}
+    local len=${#text}
+    if ((len > width)); then
+        local keep=$((width - 1))
+        if [[ $mode == tail ]]; then
+            text="…${text: -keep}"
+        else
+            text="${text:0:keep}…"
+        fi
+        len=$width
+    fi
+    # bash printf '%-*s' pads by bytes; pad here by character count so
+    # 3-byte Nerd Font icons still occupy one column.
+    printf '%s%*s' "$text" $((width - len)) ''
+}
+
+format_status() {
+    local state=$1
+    local icon label color
+    case $state in
+        blocked)
+            icon=$'\xef\x81\xb1' # U+F071 nf-fa-warning
+            label='blocked'
+            color='1;31'
+            ;;
+        working)
+            icon=$'\xef\x84\x90' # U+F110 nf-fa-spinner
+            label='working'
+            color='1;33'
+            ;;
+        idle)
+            icon=$'\xef\x81\x98' # U+F058 nf-fa-check-circle
+            label='idle'
+            color='32'
+            ;;
+        *)
+            icon=' '
+            label=$state
+            color='2'
+            ;;
+    esac
+    local visible
+    visible=$(fit_col "$icon $label" "$COL_STATUS")
+    printf '\033[%sm%s\033[0m' "$color" "$visible"
+}
+
+format_agent() {
+    local agent=$1
+    local icon color
+    case $agent in
+        claude)
+            icon=$'\xef\x83\xab' # U+F0EB nf-fa-lightbulb
+            color='38;5;209'
+            ;;
+        cursor)
+            icon=$'\xef\x89\x85' # U+F245 nf-fa-mouse-pointer
+            color='38;5;141'
+            ;;
+        pi)
+            icon=$'\xcf\x80' # U+03C0 π
+            color='38;5;80'
+            ;;
+        *)
+            icon=' '
+            color='2'
+            ;;
+    esac
+    local visible
+    visible=$(fit_col "$icon $agent" "$COL_AGENT")
+    printf '\033[%sm%s\033[0m' "$color" "$visible"
+}
+
 panes_src() {
-    printf "%-6s  %-10s  %-8s  %-28s  %-6s  %s\n" \
-        'PANEID' 'SESSION' 'AGENT' 'PATH' 'STATUS' 'TASK'
+    printf '%s  %s  %s  %s  %s  %s\n' \
+        "$(fit_col 'PANEID' "$COL_PANEID")" \
+        "$(fit_col 'SESSION' "$COL_SESSION")" \
+        "$(fit_col 'AGENT' "$COL_AGENT")" \
+        "$(fit_col 'PATH' "$COL_PATH")" \
+        "$(fit_col 'STATUS' "$COL_STATUS")" \
+        'TASK'
+    # node covers both pi and cursor-agent; agent_key_for_pane tells them apart
+    # (and drops unrelated node processes) once we're past this coarse filter.
     panes_info=$(tmux list-panes -aF \
         '#D #{session_name} #{pane_current_command} #{pane_current_path} #T' \
-        -f '#{||:#{==:#{pane_current_command},claude},#{&&:#{==:#{pane_current_command},node},#{m:π*,#T}}}')
-    ids=()
+        -f '#{||:#{==:#{pane_current_command},claude},#{==:#{pane_current_command},node}}')
 
-    print_pane_line() {
+    c_ids=()
+    c_sessions=()
+    c_agents=()
+    c_paths=()
+    c_statuses=()
+    c_tasks=()
+    c_done=()
+
+    collect_pane() {
         local pane_line=$1
-        local color=${2:-}
+        [[ -z $pane_line ]] && return
         local pane_info=($pane_line)
         local pane_id=${pane_info[0]}
         local session=${pane_info[1]}
@@ -99,72 +298,69 @@ panes_src() {
         local title="${pane_info[@]:4}"
         pane_path=${pane_path/#$HOME/\~}
 
-        local agent status task
-        if [[ $command == 'claude' ]]; then
-            agent='claude'
-            local icon=${title%% *}
-            [[ $icon == '✳' ]] && status='idle' || status='busy'
-            task=${title#* }
-        else
-            agent='pi'
-            local icon=${title%% *}
-            [[ $icon == 'π' ]] && status='idle' || status='busy'
-            task=${title#*- }
-        fi
+        local agent
+        agent=$(agent_key_for_pane "$pane_id" "$command" "$title")
+        [[ -z $agent ]] && return
 
-        local line
-        printf -v line "%-6s  %-10s  %-8s  %-28s  %-6s  %s" \
-            "$pane_id" "$session" "$agent" "$pane_path" "$status" "$task"
-        if [[ -n $color ]]; then
-            printf "\033[%sm%s\033[0m\n" "$color" "$line"
-        else
-            printf "%s\n" "$line"
-        fi
+        local parsed status task
+        parsed=$(parse_"${agent}"_title "$pane_id" "$title")
+        status=${parsed%%$'\t'*}
+        task=${parsed#*$'\t'}
+        [[ -z $status ]] && status='unknown'
+
+        c_ids+=("$pane_id")
+        c_sessions+=("$session")
+        c_agents+=("$agent")
+        c_paths+=("$pane_path")
+        c_statuses+=("$status")
+        c_tasks+=("$task")
+        c_done+=(0)
     }
 
-    # First: output AI pending pane (if any) at the top
-    ai_pending=$(tmux show -gqv '@ai_pending_pane' 2>/dev/null || true)
-    if [[ -n $ai_pending ]]; then
-        while read pane_line; do
-            [[ -z $pane_line ]] && continue
-            pane_info=($pane_line)
-            pane_id=${pane_info[0]}
-            if [[ $ai_pending == $pane_id ]]; then
-                ids+=($ai_pending)
-                print_pane_line "$pane_line" "1;33"
-            fi
-        done <<<"$panes_info"
-    fi
+    print_collected() {
+        local i=$1
+        printf '%s  %s  %s  %s  %s  %s\n' \
+            "$(fit_col "${c_ids[i]}" "$COL_PANEID")" \
+            "$(fit_col "${c_sessions[i]}" "$COL_SESSION")" \
+            "$(format_agent "${c_agents[i]}")" \
+            "$(fit_col "${c_paths[i]}" "$COL_PATH" tail)" \
+            "$(format_status "${c_statuses[i]}")" \
+            "$(fit_col "${c_tasks[i]}" "$COL_TASK")"
+        c_done[i]=1
+    }
 
-    # Then: output panes in MRU order
-    for id in $(tmux show -gqv '@mru_pane_ids'); do
-        [[ $id == "$ai_pending" ]] && continue
-        while read pane_line; do
-            pane_info=($pane_line)
-            pane_id=${pane_info[0]}
-            if [[ $id == $pane_id ]]; then
-                ids+=($id)
-                print_pane_line "$pane_line"
-            fi
-        done <<<"$panes_info"
-    done
-
-    # Then: output any panes not yet in MRU list
     while read pane_line; do
-        [[ -z $pane_line ]] && continue
-        pane_info=($pane_line)
-        pane_id=${pane_info[0]}
-        found=0
-        for id in "${ids[@]}"; do
-            [[ $id == $pane_id ]] && found=1 && break
-        done
-        if (( found == 0 )); then
-            ids+=($pane_id)
-            print_pane_line "$pane_line"
-        fi
+        collect_pane "$pane_line"
     done <<<"$panes_info"
 
-    tmux set -g '@mru_pane_ids' "${ids[*]}"
+    mru_ids=($(tmux show -gqv '@mru_pane_ids'))
+    local rank mid i
+    for rank in blocked working idle unknown; do
+        for mid in "${mru_ids[@]}"; do
+            for i in "${!c_ids[@]}"; do
+                ((c_done[i])) && continue
+                [[ ${c_ids[i]} == "$mid" && ${c_statuses[i]} == "$rank" ]] || continue
+                print_collected "$i"
+            done
+        done
+        for i in "${!c_ids[@]}"; do
+            ((c_done[i])) && continue
+            [[ ${c_statuses[i]} == "$rank" ]] || continue
+            print_collected "$i"
+        done
+    done
+
+    # Keep existing MRU order; only append newly discovered agent panes.
+    local new_mru=("${mru_ids[@]}")
+    local id found e
+    for id in "${c_ids[@]}"; do
+        found=0
+        for e in "${new_mru[@]}"; do
+            [[ $e == "$id" ]] && found=1 && break
+        done
+        ((found == 0)) && new_mru+=("$id")
+    done
+    tmux set -g '@mru_pane_ids' "${new_mru[*]}"
 }
 
 $@
