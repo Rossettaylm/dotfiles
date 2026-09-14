@@ -17,10 +17,12 @@ _brew_bin = shutil.which("brew") or "/opt/homebrew/bin/brew"
 def update_pkg_list():
     shell.log_plain("正在更新pkg列表...")
     out, err = shell.run_shell_cmd(f"{_brew_bin} search ''")
-    if err:
+    if err and not out:
         shell.log_err(err)
         return
     if out:
+        if err:
+            shell.log_plain(f"[warn] {err}")
         with open(cache_file, "w") as f:
             f.write("\n".join(out) + "\n")
         shell.log_success("pkg列表更新成功! 数量:{}".format(len(out)))
@@ -47,9 +49,11 @@ def update_desc_cache():
 def update_installed_cache():
     shell.log_plain("正在更新已安装包信息缓存...")
     out, err = shell.run_shell_cmd(f"{_brew_bin} info --json=v2 --installed")
-    if err:
+    if err and not out:
         shell.log_err(err)
         return
+    if err:
+        shell.log_plain(f"[warn] {err}")
     raw = "\n".join(out)
     try:
         data = json.loads(raw)
