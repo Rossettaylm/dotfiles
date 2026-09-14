@@ -44,7 +44,7 @@ def select_branch():
         header=f"  当前分支: {current}  ·  Enter 选择  ·  Esc 使用当前分支",
         prompt="  Branch > ",
         sort=False,
-        preview="git log -n 20 --oneline --graph --color=always --date=short "
+        preview="git log -n 20 --oneline --graph --color=always --date=short-local "
                 "--pretty='format:%C(auto)%cd %an %h%d %s' "
                 "$(echo {} | sed -E 's/^[*+ ]+//' | sed 's| -> .*||' | xargs) --",
         preview_window="up,50%,border-bottom",
@@ -135,7 +135,7 @@ def main():
             exit(1)
 
     git_log_cmd = (
-        f"git log -n 1000 --oneline --date=short "
+        f"git log -n 1000 --oneline --date=short-local "
         f"--pretty='format:%C(auto)%cd %an %h%d %s' {branch} --"
     )
     log_lines, err = shell.run_shell_cmd(git_log_cmd)

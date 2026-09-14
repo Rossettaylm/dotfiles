@@ -39,14 +39,26 @@ cursor-color = #f5e0dc
 # ── 窗口 ─────────────────────────────────────────────
 background-opacity = 0.80
 background-blur = 30
-background-blur-radius = 20
+# 透明背景下 native 混色会让文字发虚
+alpha-blending = linear-corrected
 macos-option-as-alt = true
+macos-titlebar-style = hidden
+resize-overlay = never
+confirm-close-surface = false
+mouse-hide-while-typing = true
 
 # ── 滚动 ─────────────────────────────────────────────
-scrollback-limit = 100000
+# 单位是字节（非行数），默认 10MB
+scrollback-limit = 10000000
 
 # ── 其他 ─────────────────────────────────────────────
 bold-is-bright = false
+
+# OSC 52：允许远端 / tmux / nvim 读取剪贴板，不再逐次弹窗
+clipboard-read = allow
+
+# ssh-env + ssh-terminfo：远端不认识 xterm-ghostty 时自动降级并推送 terminfo
+shell-integration-features = cursor,no-sudo,title,ssh-env,ssh-terminfo,path
 
 # keybinding
 keybind = global:cmd+\=toggle_quick_terminal

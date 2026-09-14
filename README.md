@@ -163,7 +163,7 @@ Config: `tmux/tmux.conf`. Keybind philosophy mirrors Zellij's modal model. Prefi
 
 | Mode | Trigger | Scope |
 |------|---------|-------|
-| Global Alt keys | `Alt+h/j/k/l`, `Alt+1-6`, `Alt+9/0`, `Alt+e`, `Alt+w`, `Alt+f`, `Alt+a`, … | Pane nav, window switch, fzf pane/session switcher, floating popup, agent-tracker popup |
+| Global Alt keys | `Alt+h/j/k/l`, `Alt+1-6`, `Alt+9/0`, `Alt+e`, `Alt+w`, `Alt+f`, `Alt+n`, `Alt+a`, … | Pane nav, window switch, fzf pane/session switcher, floating popup, agent radar jump/menu |
 | Prefix | `Ctrl-\` | Enter command mode (which-key popup) |
 | `pane_mode` | `prefix + p` | Split, resize layout, zoom, popup, rename, kill pane |
 | `tab_mode` | `prefix + t` | Window management, sync panes, jump to window 1-9 |
@@ -295,7 +295,7 @@ The whitelist is per-directory, so a few entries are narrower than they first ap
 | `zellij/` | `!zellij/**` (then `zellij/plugins/`) | All of `zellij/` except `zellij/plugins/` (gitignored) |
 
 > [!NOTE]
-> A few `.gitignore` whitelist rules target directories that no longer exist in the working tree: `aerospace/`, `nvim.vim.bak/` (VimScript backup), `alacritty/`, and `thirdparty/agent-tracker/` (the latter is also **not** registered in `.gitmodules`, so it is not a submodule). Their `!` rules are inert leftovers rather than active tracking. Other local-only config dirs (e.g. `atuin/`, `nushell/`, `kitty/`, `htop/`, `iterm2/`, `raycast/`, `opencode/`) are present on disk but **not** tracked.
+> A few `.gitignore` whitelist rules target directories that no longer exist in the working tree: `aerospace/`, `nvim.vim.bak/` (VimScript backup), and `alacritty/`. Their `!` rules are inert leftovers rather than active tracking. Other local-only config dirs (e.g. `atuin/`, `nushell/`, `kitty/`, `htop/`, `iterm2/`, `raycast/`, `opencode/`) are present on disk but **not** tracked.
 
 ## Environment Variables
 
