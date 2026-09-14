@@ -24,15 +24,10 @@ from pyutils import shell
 
 # ── 模型组定义 ──────────────────────────────────────────────
 MODEL_GROUPS = {
-    "deepseekv4-flash": {
-        "opus": "deepseek-v4-flash-official[1m]",
-        "sonnet": "deepseek-v4-flash-official[1m]",
-        "haiku": "deepseek-v4-flash-official[1m]",
-    },
-    "kimi3": {
-        "opus": "kimi-k3-external[1m]",
-        "sonnet": "claude-sonnet-4-6[1m]",
-        "haiku": "claude-haiku-4-5",
+    "deepseekv4": {
+        "opus": "deepseek-v4.1-flash-official[1m]",
+        "sonnet": "deepseek-v4.1-flash-official[1m]",
+        "haiku": "deepseek-v4.1-flash-official[1m]",
     },
     "sonnet5": {
         "opus": "claude-sonnet-5[1m]",
@@ -49,15 +44,10 @@ MODEL_GROUPS = {
         "sonnet": "claude-sonnet-5[1m]",
         "haiku": "claude-haiku-4-5",
     },
-    "deepseekv4": {
-        "opus": "deepseek-v4-pro-official[1m]",
-        "sonnet": "deepseek-v4-pro-official[1m]",
-        "haiku": "deepseek-v4-flash-official",
-    },
-    "glm-5.2": {
-        "opus": "glm-5.2-external[1m]",
-        "sonnet": "glm-5.2-external[1m]",
-        "haiku": "deepseek-v4-flash-official",
+    "glm": {
+        "opus": "glm-5.3-flash[1m]",
+        "sonnet": "glm-5.3-flash[1m]",
+        "haiku": "deepseek-v4.1-flash-official",
     },
 }
 

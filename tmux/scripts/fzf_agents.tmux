@@ -100,87 +100,6 @@ do_action() {
     fi
 }
 
-# Agent registry: process name (+ title/process-tree, for wrapper processes like
-# node) -> agent key. To add a new agent: add a branch here, a parse_<agent>_title
-# function below, and extend the tmux list-panes -f filter in panes_src.
-#
-# cursor-agent and pi both run under a generic "node" pane_current_command, so
-# node panes need a second signal to tell them apart: pi's title starts with its
-# own 'π' icon, cursor-agent's does not, and its real executable (a child of
-# #{pane_pid}, since node is the pane's original shell's grandchild) has
-# "cursor-agent" in its command line.
-agent_key_for_pane() {
-    local pane_id=$1 command=$2 title=$3
-    case $command in
-        claude)
-            echo claude
-            return
-            ;;
-        node) ;;
-        *) return ;;
-    esac
-
-    if [[ ${title%% *} == 'π' ]]; then
-        echo pi
-        return
-    fi
-
-    local pane_pid child
-    pane_pid=$(tmux display-message -p -t "$pane_id" '#{pane_pid}' 2>/dev/null)
-    [[ -z $pane_pid ]] && return
-    for child in $(pgrep -P "$pane_pid" 2>/dev/null); do
-        if ps -o command= -p "$child" 2>/dev/null | grep -qi 'cursor-agent'; then
-            echo cursor
-            return
-        fi
-    done
-}
-
-# Each parse_<agent>_title prints "<state>\t<task>", state is one of
-# working|idle|blocked.
-parse_claude_title() {
-    local pane_id=$1 title=$2 icon
-    icon=${title%% *}
-    local state='working'
-    [[ $icon == '✳' ]] && state='idle'
-
-    # claude's OSC title only ever encodes working/idle; blocked (permission
-    # prompts) is screen-content only, simplified from herdr's claude.toml
-    # bash_permission_prompt / generic_permission_prompt / legacy_no_prompt_blocker.
-    local screen
-    screen=$(tmux capture-pane -pe -S -12 -t "$pane_id" 2>/dev/null)
-    if printf '%s' "$screen" | grep -qiE 'do you want to (proceed|allow this connection)\?|would you like to|waiting for permission|tab to amend|ctrl\+e to explain'; then
-        if printf '%s' "$screen" | grep -qiE '❯?[[:space:]]*1\.[[:space:]]*yes|❯[[:space:]]*yes|2\.[[:space:]]*(yes|no)|3\.[[:space:]]*no|run \(once\)|skip \(esc or n\)'; then
-            state='blocked'
-        fi
-    fi
-
-    printf '%s\t%s' "$state" "${title#* }"
-}
-
-parse_cursor_title() {
-    local pane_id=$1 title=$2
-    # cursor-agent's title is "<action name> - <emoji> <status phrase>"; the
-    # action prefix varies per tool call (e.g. "Tmux Command", "Request File
-    # Access") so only the status suffix after the last " - " is meaningful.
-    local suffix=${title##* - }
-    local state='working'
-    if printf '%s' "$suffix" | grep -qi 'ready'; then
-        state='idle'
-    elif printf '%s' "$suffix" | grep -qi 'waiting for confirmation'; then
-        state='blocked'
-    fi
-    printf '%s\t%s' "$state" "${title% - *}"
-}
-
-parse_pi_title() {
-    local pane_id=$1 title=$2 icon
-    icon=${title%% *}
-    local state='working'
-    [[ $icon == 'π' ]] && state='idle'
-    printf '%s\t%s' "$state" "${title#*- }"
-}
-
 # Display-column helpers. Widths are character counts (Nerd Font Mono icons = 1).
 # Columns are joined with two spaces so fzf --delimiter='\s{2,}' still works.
 COL_PANEID=6
@@ -273,11 +192,10 @@ panes_src() {
         "$(fit_col 'PATH' "$COL_PATH")" \
         "$(fit_col 'STATUS' "$COL_STATUS")" \
         'TASK'
-    # node covers both pi and cursor-agent; agent_key_for_pane tells them apart
-    # (and drops unrelated node processes) once we're past this coarse filter.
-    panes_info=$(tmux list-panes -aF \
-        '#D #{session_name} #{pane_current_command} #{pane_current_path} #T' \
-        -f '#{||:#{==:#{pane_current_command},claude},#{==:#{pane_current_command},node}}')
+    # Agent detection and title parsing live in agent_lib.py (shared with the
+    # agentd daemon, so both can't drift). It serves the daemon's cache when
+    # fresh and falls back to a synchronous scan when the daemon isn't running.
+    panes_info=$(python3 "$(dirname "$0")/agent_lib.py" dump)
 
     c_ids=()
     c_sessions=()
@@ -287,26 +205,17 @@ panes_src() {
     c_tasks=()
     c_done=()
 
+    # TSV from agent_lib.py: pane_id, session, window_id, agent, path, state,
+    # task, since_ts. since_ts is unused here (the status bar renders it).
     collect_pane() {
         local pane_line=$1
         [[ -z $pane_line ]] && return
-        local pane_info=($pane_line)
-        local pane_id=${pane_info[0]}
-        local session=${pane_info[1]}
-        local command=${pane_info[2]}
-        local pane_path=${pane_info[3]}
-        local title="${pane_info[@]:4}"
-        pane_path=${pane_path/#$HOME/\~}
-
-        local agent
-        agent=$(agent_key_for_pane "$pane_id" "$command" "$title")
-        [[ -z $agent ]] && return
-
-        local parsed status task
-        parsed=$(parse_"${agent}"_title "$pane_id" "$title")
-        status=${parsed%%$'\t'*}
-        task=${parsed#*$'\t'}
+        local pane_id session window_id agent pane_path status task since
+        IFS=$'\t' read -r pane_id session window_id agent pane_path status task since \
+            <<<"$pane_line"
+        [[ -z $pane_id || -z $agent ]] && return
         [[ -z $status ]] && status='unknown'
+        [[ $task == '-' ]] && task=''
 
         c_ids+=("$pane_id")
         c_sessions+=("$session")
@@ -329,7 +238,7 @@ panes_src() {
         c_done[i]=1
     }
 
-    while read pane_line; do
+    while IFS= read -r pane_line; do
         collect_pane "$pane_line"
     done <<<"$panes_info"
 
