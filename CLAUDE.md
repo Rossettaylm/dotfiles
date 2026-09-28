@@ -62,6 +62,11 @@ Python 脚本共享 `pyutils/` 模块（`shell.py` 封装命令执行，`git.py`
 - `setup_dep/` → 初始化依赖模块（brew, git, fzf, omz, claude_code 等）
 - `thirdparty/` → 第三方子模块（fzf）
 
+### 技术文档 (`documents/`)
+
+按工具分目录记录踩坑与设计约束。见 `documents/tmux/`：Agent Radar 状态机、tmux format 展开规则、pane option 行为、隔离 tmux server 验证方法。修改 tmux 配置前先读对应文档。
+
+
 ### 关键环境变量
 
 | 变量 | 值 |

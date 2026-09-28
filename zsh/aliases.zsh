@@ -113,8 +113,8 @@ alias hrec="$HOME/.config/scripts/hdc_record.sh"
 
 # ── 其他 ──────────────────────────────────────────────────────
 alias cr="cargo run"
-alias cld="claude"
-alias cldi="claude-internal"
+alias cld="claude --dangerously-skip-permissions"
+alias cs='agent --yolo'
 alias cbd="codebuddy"
 alias ski="python3 $ZSH_HOME/fzf/claude/skill_install.py"
 alias skm="python3 $ZSH_HOME/fzf/claude/skill_manage.py"
