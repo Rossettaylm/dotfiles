@@ -1,0 +1,342 @@
+{
+  "llmtoken": {
+    "models": [
+      {
+        "id": "claude-haiku-4-5",
+        "name": "claude-haiku-4-5"
+      },
+      {
+        "id": "claude-haiku-4-5-20251001",
+        "name": "claude-haiku-4-5-20251001"
+      },
+      {
+        "id": "claude-opus-4-5",
+        "name": "claude-opus-4-5"
+      },
+      {
+        "id": "claude-opus-4-6",
+        "name": "claude-opus-4-6"
+      },
+      {
+        "id": "claude-opus-4-7",
+        "name": "claude-opus-4-7"
+      },
+      {
+        "id": "claude-opus-4-8",
+        "name": "claude-opus-4-8"
+      },
+      {
+        "id": "claude-opus-5",
+        "name": "claude-opus-5"
+      },
+      {
+        "id": "claude-opus-5-5",
+        "name": "claude-opus-5-5"
+      },
+      {
+        "id": "claude-sonnet-4-5",
+        "name": "claude-sonnet-4-5"
+      },
+      {
+        "id": "claude-sonnet-4-6",
+        "name": "claude-sonnet-4-6"
+      },
+      {
+        "id": "claude-sonnet-5",
+        "name": "claude-sonnet-5"
+      },
+      {
+        "id": "codex-auto-review",
+        "name": "codex-auto-review"
+      },
+      {
+        "id": "deepseek-v4-flash-external",
+        "name": "deepseek-v4-flash-external"
+      },
+      {
+        "id": "deepseek-v4-flash-official",
+        "name": "deepseek-v4-flash-official"
+      },
+      {
+        "id": "deepseek-v4-flash-vision-official",
+        "name": "deepseek-v4-flash-vision-official"
+      },
+      {
+        "id": "deepseek-v4-pro-aws",
+        "name": "deepseek-v4-pro-aws"
+      },
+      {
+        "id": "deepseek-v4-pro-external",
+        "name": "deepseek-v4-pro-external"
+      },
+      {
+        "id": "deepseek-v4-pro-official",
+        "name": "deepseek-v4-pro-official"
+      },
+      {
+        "id": "deepseek-v4-pro-overseas",
+        "name": "deepseek-v4-pro-overseas"
+      },
+      {
+        "id": "deepseek-v4.1-flash-official",
+        "name": "deepseek-v4.1-flash-official"
+      },
+      {
+        "id": "doubao-seedream-4-0-250828",
+        "name": "doubao-seedream-4-0-250828"
+      },
+      {
+        "id": "doubao-seedream-4-5-251128",
+        "name": "doubao-seedream-4-5-251128"
+      },
+      {
+        "id": "doubao-seedream-5-0-260128",
+        "name": "doubao-seedream-5-0-260128"
+      },
+      {
+        "id": "gemini-2.5-flash-lite",
+        "name": "gemini-2.5-flash-lite"
+      },
+      {
+        "id": "gemini-3-flash-preview",
+        "name": "gemini-3-flash-preview"
+      },
+      {
+        "id": "gemini-3-pro-image",
+        "name": "gemini-3-pro-image"
+      },
+      {
+        "id": "gemini-3.1-flash-image",
+        "name": "gemini-3.1-flash-image"
+      },
+      {
+        "id": "gemini-3.1-pro-preview",
+        "name": "gemini-3.1-pro-preview"
+      },
+      {
+        "id": "gemini-3.5-flash",
+        "name": "gemini-3.5-flash"
+      },
+      {
+        "id": "gemma-4-26b-a4b-it",
+        "name": "gemma-4-26b-a4b-it"
+      },
+      {
+        "id": "gemma-4-31b-it",
+        "name": "gemma-4-31b-it"
+      },
+      {
+        "id": "glm-5",
+        "name": "glm-5"
+      },
+      {
+        "id": "glm-5.1",
+        "name": "glm-5.1"
+      },
+      {
+        "id": "glm-5.2",
+        "name": "glm-5.2"
+      },
+      {
+        "id": "glm-5.2-external",
+        "name": "glm-5.2-external"
+      },
+      {
+        "id": "glm-5.3-external",
+        "name": "glm-5.3-external"
+      },
+      {
+        "id": "glm-5.3-flash",
+        "name": "glm-5.3-flash"
+      },
+      {
+        "id": "glm-5.3-flash-external",
+        "name": "glm-5.3-flash-external"
+      },
+      {
+        "id": "glm-5v-turbo",
+        "name": "glm-5v-turbo"
+      },
+      {
+        "id": "gpt-5.4",
+        "name": "gpt-5.4"
+      },
+      {
+        "id": "gpt-5.4-demo",
+        "name": "gpt-5.4-demo"
+      },
+      {
+        "id": "gpt-5.4-mini",
+        "name": "gpt-5.4-mini"
+      },
+      {
+        "id": "gpt-5.5",
+        "name": "gpt-5.5"
+      },
+      {
+        "id": "gpt-5.5-demo",
+        "name": "gpt-5.5-demo"
+      },
+      {
+        "id": "gpt-5.6-luna",
+        "name": "gpt-5.6-luna"
+      },
+      {
+        "id": "gpt-5.6-sol",
+        "name": "gpt-5.6-sol"
+      },
+      {
+        "id": "gpt-5.6-sol-ptu",
+        "name": "gpt-5.6-sol-ptu"
+      },
+      {
+        "id": "gpt-5.6-terra",
+        "name": "gpt-5.6-terra"
+      },
+      {
+        "id": "gpt-6-astra",
+        "name": "gpt-6-astra"
+      },
+      {
+        "id": "gpt-image-2",
+        "name": "gpt-image-2"
+      },
+      {
+        "id": "hy3",
+        "name": "hy3"
+      },
+      {
+        "id": "hy4-preview-external",
+        "name": "hy4-preview-external"
+      },
+      {
+        "id": "kimi-k2.5",
+        "name": "kimi-k2.5"
+      },
+      {
+        "id": "kimi-k2.5-external",
+        "name": "kimi-k2.5-external"
+      },
+      {
+        "id": "kimi-k2.6",
+        "name": "kimi-k2.6"
+      },
+      {
+        "id": "kimi-k2.6-external",
+        "name": "kimi-k2.6-external"
+      },
+      {
+        "id": "kimi-k2.7-code",
+        "name": "kimi-k2.7-code"
+      },
+      {
+        "id": "kimi-k3-external",
+        "name": "kimi-k3-external"
+      },
+      {
+        "id": "laya",
+        "name": "laya"
+      },
+      {
+        "id": "minimax-m2.5",
+        "name": "minimax-m2.5"
+      },
+      {
+        "id": "minimax-m2.7",
+        "name": "minimax-m2.7"
+      },
+      {
+        "id": "minimax-m3-external",
+        "name": "minimax-m3-external"
+      },
+      {
+        "id": "nano-jev",
+        "name": "nano-jev"
+      },
+      {
+        "id": "qwen3-vl-235b-a22b-instruct",
+        "name": "qwen3-vl-235b-a22b-instruct"
+      },
+      {
+        "id": "qwen3.5-35b-a3b",
+        "name": "qwen3.5-35b-a3b"
+      },
+      {
+        "id": "qwen3.8-27b",
+        "name": "qwen3.8-27b"
+      },
+      {
+        "id": "text-embedding-3-large",
+        "name": "text-embedding-3-large"
+      },
+      {
+        "id": "text-embedding-3-small",
+        "name": "text-embedding-3-small"
+      }
+    ]
+  },
+  "tclaude": {
+    "models": [
+      {
+        "id": "claude-sonnet-4.6-1m",
+        "name": "claude-sonnet-4-6[1m]"
+      },
+      {
+        "id": "claude-sonnet-5-1m",
+        "name": "claude-sonnet-5[1m]"
+      },
+      {
+        "id": "claude-opus-5-1m",
+        "name": "claude-opus-5[1m]"
+      },
+      {
+        "id": "claude-opus-4.8-1m",
+        "name": "claude-opus-4-8[1m]"
+      },
+      {
+        "id": "claude-opus-4.7-1m",
+        "name": "claude-opus-4-7[1m]"
+      },
+      {
+        "id": "claude-opus-4.6-1m",
+        "name": "claude-opus-4-6[1m]"
+      },
+      {
+        "id": "claude-haiku-4.5",
+        "name": "claude-haiku-4-5"
+      },
+      {
+        "id": "kimi-k3-ioa",
+        "name": "claude-kimi-k3[1m]"
+      },
+      {
+        "id": "glm-5.2-ioa",
+        "name": "claude-glm-5.2[1m]"
+      },
+      {
+        "id": "glm-5.3-ioa",
+        "name": "claude-glm-5.3[1m]"
+      },
+      {
+        "id": "glm-5.3-flash-ioa",
+        "name": "claude-glm-5.3-flash[1m]"
+      },
+      {
+        "id": "deepseek-v4-pro-ioa",
+        "name": "claude-deepseek-v4-pro[1m]"
+      },
+      {
+        "id": "deepseek-v4.1-flash",
+        "name": "claude-deepseek-v4.1-flash[1m]"
+      },
+      {
+        "id": "hy3-ioa",
+        "name": "claude-hy3"
+      },
+      {
+        "id": "hy4-preview-ioa",
+        "name": "claude-hy4-preview[1m]"
+      }
+    ]
+  }
+}
