@@ -24,6 +24,7 @@ DND_DEFAULT_SECS = 900
 
 STATE_STYLE = {
     "blocked": ("#{@thm_red}", ""),
+    "unread": ("#{@thm_sky}", ""),
     "working": ("#{@thm_yellow}", ""),
     "idle": ("#{@thm_green}", ""),
 }
@@ -70,7 +71,7 @@ def notify(message: str) -> None:
 
 
 def pick_target(panes: list[lib.AgentPane]) -> lib.AgentPane | None:
-    for state in ("blocked", "working"):
+    for state in ("blocked", "unread", "working"):
         candidates = [p for p in panes if p.state == state]
         if candidates:
             # 等最久的先处理；无 daemon 时 since_ts 为 0，退化为扫描顺序
@@ -120,7 +121,7 @@ def menu() -> None:
     items += [
         lib.fit("  full view (fzf)", COL_AGENT + COL_PATH + COL_DUR + 4),
         "e",
-        f"run-shell 'bash {FZF_AGENTS} do_action'",
+        f"run-shell -b 'bash {FZF_AGENTS} do_action'",
     ]
 
     dnd_until = lib.tmux("show", "-gqv", "@agent_radar_dnd_until").strip()

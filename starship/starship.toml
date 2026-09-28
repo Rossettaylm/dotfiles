@@ -40,7 +40,7 @@ time_format = "%H:%M:%S"
 
 [character]
 # Note the use of Catppuccin color 'maroon'
-success_symbol = "[[ \uebca ](green) ❯](maroon)"
+success_symbol = "[[ \ueba7 ](green) ❯](maroon)"
 error_symbol = "[[ \uea87 ](red) ❯](red)"
 vimcmd_symbol = "[[ \ue62b ](green) ❮](maroon)"
 

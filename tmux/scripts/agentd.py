@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import agent_lib as lib
 
-LOG_FILE = Path.home() / "templog" / "agent_radar.log"
+LOG_DIR = Path.home() / "templog"
 
 DEFAULT_INTERVAL = 2.0
 DEFAULT_TOAST_SECS = 4.0
@@ -32,6 +32,7 @@ DEFAULT_TOAST_SECS = 4.0
 ICON_BLOCKED = ""  # nf-fa-warning
 ICON_WORKING = ""  # nf-fa-spinner
 ICON_IDLE = ""     # nf-fa-check-circle
+ICON_UNREAD = ""   # nf-fa-bell，跑完但还没看过
 ICON_SILENT = ""   # nf-fa-circle，daemon 活着但无 agent
 
 OPT_KEYS = (
@@ -39,14 +40,19 @@ OPT_KEYS = (
     "@agent_toast",
     "@agent_blocked_windows",
     "@agent_blocked_panes",
+    "@agent_unread_windows",
+    "@agent_unread_panes",
 )
 
 
 def log(message: str) -> None:
+    # 跟缓存一样按 server 分文件 —— 隔离 server 上起的 daemon 崩溃日志不该混进
+    # 真实 server 那份，否则排查时被别人的 traceback 误导
+    path = LOG_DIR / f"agent_radar.{lib.server_tag()}.log"
     try:
-        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        path.parent.mkdir(parents=True, exist_ok=True)
         stamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        with LOG_FILE.open("a", encoding="utf-8") as fh:
+        with path.open("a", encoding="utf-8") as fh:
             fh.write(f"[{stamp}] {message}\n")
     except OSError:
         pass
@@ -91,6 +97,8 @@ def render_summary(counts: dict[str, int], oldest_blocked: float, now: float) ->
     segs = []
     if counts.get("blocked"):
         segs.append(f"#[fg=#{{@thm_red}},bold]{ICON_BLOCKED} {counts['blocked']}#[nobold]")
+    if counts.get("unread"):
+        segs.append(f"#[fg=#{{@thm_sky}}]{ICON_UNREAD} {counts['unread']}")
     if counts.get("working"):
         segs.append(f"#[fg=#{{@thm_yellow}}]{ICON_WORKING} {counts['working']}")
     if counts.get("idle"):
@@ -117,7 +125,7 @@ def render_toast(events: list[tuple[str, lib.AgentPane]]) -> str:
     if kind == "blocked":
         body = f"#[fg=#{{@thm_red}},bold]{ICON_BLOCKED} {label} blocked#[nobold] {where}{extra}"
     else:
-        body = f"#[fg=#{{@thm_green}}]{ICON_IDLE} {label} done#[default] {where}{extra}"
+        body = f"#[fg=#{{@thm_sky}}]{ICON_UNREAD} {label} done#[default] {where}{extra}"
     return "#[push-default]" + body + "#[pop-default] "
 
 
@@ -148,6 +156,14 @@ def _osa_quote(text: str) -> str:
 
 # ── 主循环 ───────────────────────────────────────────────────
 
+def _settled(state: str) -> bool:
+    """idle 和 unread 是同一个底层状态（跑完了），只差用户看没看过。
+
+    两者互转不算状态变化 —— 否则 since_ts 会被重置成「你刚看它的时刻」，
+    M-a 菜单里的等待时长就废了。"""
+    return state in ("idle", "unread")
+
+
 class Radar:
     def __init__(self) -> None:
         self.prev: dict[str, lib.AgentPane] = {}
@@ -157,21 +173,41 @@ class Radar:
 
     def tick(self) -> None:
         now = time.time()
+        # 焦点所在 pane 一律算已读：这覆盖了「光标停着不动、agent 自己在后台
+        # 跑完」——结果就滚在你眼前，不该再报 unread
+        focused = lib.focused_pane_id()
+        lib.mark_seen(focused)
+        # 在这里派生 unread 而不是 scan() 里：since_ts 由本 daemon 的 prev 持有，
+        # scan() 读到它永远是 0
         panes = lib.scan()
 
-        events: list[tuple[str, lib.AgentPane]] = []
+        # 第一趟：定 since_ts，并挑出真有状态跃迁的 pane
+        moved: list[lib.AgentPane] = []
         for pane in panes:
             old = self.prev.get(pane.pane_id)
-            if old is not None and old.state == pane.state:
+            if old is not None and (old.state == pane.state
+                                    or (_settled(old.state) and _settled(pane.state))):
                 pane.since_ts = old.since_ts or now
                 continue
             pane.since_ts = now
             if old is None:
-                # daemon 刚起 / 面板刚出现：不补报历史状态，避免开机一串 toast
-                continue
+                # daemon 刚起 / 面板刚出现：since_ts 只能伪造成 now，据此派生的
+                # unread 会是纯误报（now > 看到过的任何 seen_ts）。跟「不补报历史
+                # 状态」同一套约定 —— 首次见到的 pane 一律算已读，代价是 daemon
+                # 重启期间跑完的 agent 不会亮铃铛（宁可漏报，不要误报）
+                lib.mark_seen(pane.pane_id, now)
+                pane.seen_ts = now
+            else:
+                moved.append(pane)
+
+        # 第二趟：since_ts 就位后才谈得上派生 unread
+        lib.apply_unread(panes, focused)
+
+        events: list[tuple[str, lib.AgentPane]] = []
+        for pane in moved:
             if pane.state == "blocked":
                 events.append(("blocked", pane))
-            elif pane.state == "idle" and old.state in ("working", "blocked"):
+            elif pane.state == "unread" and self.prev[pane.pane_id].state in ("working", "blocked"):
                 events.append(("idle", pane))
 
         lib.write_cache(panes)
@@ -179,16 +215,22 @@ class Radar:
         counts: dict[str, int] = {}
         blocked_windows: list[str] = []
         blocked_panes: list[str] = []
+        unread_windows: list[str] = []
+        unread_panes: list[str] = []
         oldest_blocked = 0.0
         for pane in panes:
-            counts[pane.state] = counts.get(pane.state, 0) + 1
-            if pane.state != "blocked":
-                continue
-            if pane.window_id not in blocked_windows:
-                blocked_windows.append(pane.window_id)
-            blocked_panes.append(pane.pane_id)
-            if not oldest_blocked or pane.since_ts < oldest_blocked:
-                oldest_blocked = pane.since_ts
+            state = pane.state
+            counts[state] = counts.get(state, 0) + 1
+            if state == "blocked":
+                if pane.window_id not in blocked_windows:
+                    blocked_windows.append(pane.window_id)
+                blocked_panes.append(pane.pane_id)
+                if not oldest_blocked or pane.since_ts < oldest_blocked:
+                    oldest_blocked = pane.since_ts
+            elif state == "unread":
+                if pane.window_id not in unread_windows:
+                    unread_windows.append(pane.window_id)
+                unread_panes.append(pane.pane_id)
 
         dnd = opt_float("@agent_radar_dnd_until", 0.0) > now
         if events and not dnd:
@@ -203,6 +245,8 @@ class Radar:
             "@agent_toast": self.toast_value,
             "@agent_blocked_windows": _joined(blocked_windows),
             "@agent_blocked_panes": _joined(blocked_panes),
+            "@agent_unread_windows": _joined(unread_windows),
+            "@agent_unread_panes": _joined(unread_panes),
         })
 
         self.prev = {pane.pane_id: pane for pane in panes}
