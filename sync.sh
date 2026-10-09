@@ -32,7 +32,6 @@ echo "" >> "$LOG_FILE"
 
 # 更新 submodules 到最新 master
 git submodule update --remote thirdparty/fzf
-git submodule update --remote zsh/oh-my-zsh
 
 # 添加到 git 暂存区
 git add .
