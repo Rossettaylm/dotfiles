@@ -26,6 +26,7 @@ import json
 import os
 import platform
 import re
+import shlex
 import sys
 import tempfile
 import urllib.error
@@ -34,6 +35,7 @@ import urllib.request
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyutils import shell
+from llm_balance import short_balance
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CLAUDE_CONFIG = os.path.expanduser("~/.claude.json")
@@ -78,6 +80,17 @@ VARIANT_SUFFIX = re.compile(r"-(external|official|aws|overseas|ptu|demo)$")
 VARIANT_PRIORITY = {"": 0, "-external": 1, "-official": 2}
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 SUFFIX_1M_RE = re.compile(r"(\[1m\])+$", re.I)
+CREDITS_RE = re.compile(r"x([\d.]+)")
+FAMILY_VARIANT_RE = re.compile(r"-(external|official|aws|overseas|ptu|demo|ioa)$")
+VERSION_RE = re.compile(r"\d+(?:\.\d+)*")
+
+# new-api 约定：model_ratio = 1 对应 $2 / 1M 输入 token
+USD_PER_RATIO = 2
+PRICE_KEYS = ("price", "rank")
+
+SORT_KEY = "ctrl-s"
+BORDER_LABEL = "🤖 [Claude: Switch Provider / Model Group]"
+PRICE_SORT_MARK = "· 费率降序"
 
 
 # ── 通用工具 ───────────────────────────────────────────────
@@ -110,15 +123,43 @@ def write_json(path: str, data: dict):
 # ── 模型列表获取 ───────────────────────────────────────────
 
 
-def fetch_llmtoken_models(token: str) -> list[dict]:
-    """从 llmtoken 网关拉取模型列表。"""
+def llmtoken_get(path: str, token: str) -> dict:
     req = urllib.request.Request(
-        f"{PROVIDERS['llmtoken']['base_url']}/v1/models",
+        f"{PROVIDERS['llmtoken']['base_url']}{path}",
         headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
     )
     with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
-        data = json.load(resp)
-    return [{"id": m["id"], "name": m["id"]} for m in data["data"]]
+        return json.load(resp)
+
+
+def fetch_llmtoken_pricing(token: str) -> dict[str, dict]:
+    """从 new-api 的 /api/pricing 取按 token 计费模型的 输入/输出 单价（$/1M）。"""
+    prices = {}
+    for m in llmtoken_get("/api/pricing", token)["data"]:
+        if m.get("quota_type") != 0 or not m.get("model_ratio"):
+            continue
+        cost_in = m["model_ratio"] * USD_PER_RATIO
+        cost_out = cost_in * m.get("completion_ratio", 1)
+        prices[m["model_name"]] = {"price": f"${cost_in:.3g}/${cost_out:.3g}", "rank": cost_in}
+    return prices
+
+
+def fetch_llmtoken_models(token: str) -> list[dict]:
+    """从 llmtoken 网关拉取模型列表，费率拉取失败时沿用快照中的旧值。"""
+    data = llmtoken_get("/v1/models", token)
+    models = [{"id": m["id"], "name": m["id"]} for m in data["data"]]
+    try:
+        prices = fetch_llmtoken_pricing(token)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        shell.log_err(f"获取 llmtoken 费率失败: {exc}")
+        prices = {
+            m["id"]: {k: m[k] for k in PRICE_KEYS}
+            for m in read_snapshot("llmtoken")
+            if all(k in m for k in PRICE_KEYS)
+        }
+    for model in models:
+        model.update(prices.get(model["id"], {}))
+    return models
 
 
 def find_tclaude_binary() -> str | None:
@@ -156,11 +197,19 @@ def extract_embedded_models(binary: str) -> list[dict]:
                 raw = blob[start : i + 1].decode("utf-8", "replace")
                 models = json.loads(raw)
                 return [
-                    {"id": m["id"], "name": m.get("name", m["id"])}
+                    {"id": m["id"], "name": m.get("name", m["id"]), **parse_credits(m.get("credits"))}
                     for m in models
                     if not m.get("disabled") and m.get("id")
                 ]
     return []
+
+
+def parse_credits(credits: str | None) -> dict:
+    """"x3.33 credits" → {"price": "x3.33", "rank": 3.33}。"""
+    match = CREDITS_RE.search(credits or "")
+    if not match:
+        return {}
+    return {"price": f"x{match.group(1)}", "rank": float(match.group(1))}
 
 
 def fetch_tclaude_models() -> list[dict]:
@@ -182,14 +231,9 @@ def fetch_tclaude_cache_models(snapshot_models: list[dict]) -> list[dict]:
     该文件存的是显示名方言（claude-opus-5[1m]），需要用上一次成功抓取时记下的
     name → wire id 映射还原成可用的 wire id。
     """
-    name_to_id = {m["name"]: m["id"] for m in snapshot_models}
+    by_name = {m["name"]: m for m in snapshot_models}
     cached = read_json(TCLAUDE_CACHE).get("models", [])
-    resolved = []
-    for m in cached:
-        mid = name_to_id.get(m.get("id", ""))
-        if mid:
-            resolved.append({"id": mid, "name": m["id"]})
-    return resolved
+    return [by_name[m["id"]] for m in cached if m.get("id") in by_name]
 
 
 def save_snapshot(provider: str, models: list[dict]):
@@ -387,12 +431,65 @@ def update_claude_env(provider: str, models: dict[str, str], token: str):
 # ── UI ─────────────────────────────────────────────────────
 
 
-def format_group_line(provider: str, group: str, models: dict, is_current: bool) -> str:
-    label = f"{provider}:{group}"
+def group_price(prices: dict[str, dict], models: dict[str, str]) -> dict:
+    """模型组费率取 opus 槽位（ANTHROPIC_MODEL 即 opus，主要消耗在它）。"""
+    return prices.get(SUFFIX_1M_RE.sub("", models["opus"]), {})
+
+
+def format_group_line(
+    label: str, models: dict, price: str, is_current: bool, widths: tuple[int, int]
+) -> str:
+    label_w, price_w = widths
     detail = f"{models['opus']} / {models['sonnet']} / {models['haiku']}"
+    price_col = f"\033[33m{price:>{price_w}}\033[0m"
     if is_current:
-        return f"\033[32m● {label}\033[0m  {detail}"
-    return f"  {label}  {detail}"
+        return f"\033[32m● {label:<{label_w}}\033[0m  {price_col}  {detail}"
+    return f"  {label:<{label_w}}  {price_col}  {detail}"
+
+
+def natural_key(text: str) -> list:
+    """数字段按数值比较，使 opus5.0 > opus4.10 > opus4.8。"""
+    return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", text)]
+
+
+def model_name(entry: dict) -> str:
+    return SUFFIX_1M_RE.sub("", entry["label"].partition(":")[2])
+
+
+def model_family(entry: dict) -> str:
+    """去掉变体后缀和版本号：gpt-6-sol / gpt-5.6-sol → gpt-*-sol。"""
+    return VERSION_RE.sub("*", FAMILY_VARIANT_RE.sub("", model_name(entry)))
+
+
+def sort_by_price(entries: list[dict]) -> list[dict]:
+    """provider 分块保持原序；块内同一模型的各版本聚成一组，组间按组内最高费率降序，
+    组内按版本降序；无费率的组排在末尾。"""
+    order = {p: i for i, p in enumerate(dict.fromkeys(e["provider"] for e in entries))}
+    family_rank: dict[tuple[str, str], float] = {}
+    for e in entries:
+        rank: float | None = e["rank"]
+        if rank is not None:
+            key = (e["provider"], model_family(e))
+            family_rank[key] = max(family_rank.get(key, rank), rank)
+
+    def group_key(e: dict) -> tuple:
+        family = model_family(e)
+        rank = family_rank.get((e["provider"], family))
+        return order[e["provider"]], rank is None, -(rank or 0), family
+
+    by_version = sorted(entries, key=lambda e: natural_key(model_name(e)), reverse=True)
+    return sorted(by_version, key=group_key)
+
+
+def build_toggle_bind(default_file: str, price_file: str) -> str:
+    """ctrl-s 在 默认顺序 ⇄ 费率降序 间切换，以 border label 记录当前状态。"""
+    to_price = f"reload(cat {shlex.quote(price_file)})+change-border-label( {BORDER_LABEL} {PRICE_SORT_MARK} )"
+    to_default = f"reload(cat {shlex.quote(default_file)})+change-border-label( {BORDER_LABEL} )"
+    script = (
+        f'case "$FZF_BORDER_LABEL" in *"{PRICE_SORT_MARK}"*) echo {shlex.quote(to_default)} ;; '
+        f"*) echo {shlex.quote(to_price)} ;; esac"
+    )
+    return f"{SORT_KEY}:transform:{script}"
 
 
 # ── 主逻辑 ─────────────────────────────────────────────────
@@ -401,10 +498,12 @@ def format_group_line(provider: str, group: str, models: dict, is_current: bool)
 def switch_model():
     tokens = {p: token for p in PROVIDERS if (token := resolve_token(p))}
     all_groups: dict[str, dict[str, dict]] = {}
+    prices: dict[str, dict[str, dict]] = {}
     for provider, token in tokens.items():
         models, source = load_models(provider, token)
         if models:
             all_groups[provider] = derive_groups(provider, models)
+            prices[provider] = {m["id"]: m for m in models if "price" in m}
             shell.log_plain(f"{provider}: {len(models)} 个模型（来源: {source}）")
 
     if not all_groups:
@@ -414,20 +513,49 @@ def switch_model():
     env = read_json(CLAUDE_CONFIG).get("env", {})
     current = detect_current(env, all_groups)
 
-    lines = [
-        format_group_line(provider, group, models, (provider, group) == current)
-        for provider, groups in all_groups.items()
-        for group, models in groups.items()
-    ]
+    entries = []
+    for provider, groups in all_groups.items():
+        for group, models in groups.items():
+            price = group_price(prices[provider], models)
+            entries.append(
+                {
+                    "provider": provider,
+                    "label": f"{provider}:{group}",
+                    "models": models,
+                    "price": price.get("price", "-"),
+                    "rank": price.get("rank"),
+                    "is_current": (provider, group) == current,
+                }
+            )
+    widths = (
+        max(len(e["label"]) for e in entries),
+        max(len(e["price"]) for e in entries),
+    )
+
+    def render(items: list[dict]) -> str:
+        return "\n".join(
+            format_group_line(e["label"], e["models"], e["price"], e["is_current"], widths)
+            for e in items
+        )
 
     current_label = f"{current[0]}:{current[1]}" if current else "未匹配"
-    cmd = shell.build_fzf_cmd(
-        border_label="🤖 [Claude: Switch Provider / Model Group]",
-        header=f"enter: 切换 │ 当前: {current_label} │ 格式 provider:group",
-        sort=False,
-        as_str=True,
-    )
-    out, err = shell.run_shell_cmd(cmd, input="\n".join(lines))
+    balance = f" │ llmtoken 余额: {short_balance() or '-'}" if "llmtoken" in tokens else ""
+    with tempfile.TemporaryDirectory(prefix="switch_model.") as tmp_dir:
+        default_file = os.path.join(tmp_dir, "default")
+        price_file = os.path.join(tmp_dir, "price")
+        with open(default_file, "w", encoding="utf-8") as f:
+            f.write(render(entries))
+        with open(price_file, "w", encoding="utf-8") as f:
+            f.write(render(sort_by_price(entries)))
+
+        cmd = shell.build_fzf_cmd(
+            border_label=BORDER_LABEL,
+            header=f"enter: 切换 │ {SORT_KEY}: 费率排序 │ 当前: {current_label}{balance} │ 费率取 opus 槽位",
+            sort=False,
+            extra_args=["--bind", build_toggle_bind(default_file, price_file)],
+            as_str=True,
+        )
+        out, err = shell.run_shell_cmd(cmd, input=render(entries))
     if err:
         shell.log_err(err)
     if not out:

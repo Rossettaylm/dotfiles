@@ -273,6 +273,9 @@ def _update_cache():
     shell.log_success(f"  awesome repos: +{len(all_items) - count_before} 个")
 
     all_items.sort(key=lambda x: x.split("\t")[0])
+    if not all_items:
+        # 全部来源失败（常见于 PATH 里没有 gh/npx），保留旧缓存
+        return []
     with open(_CACHE_FILE, "w") as f:
         f.write("\n".join(all_items))
     shell.log_success(f"缓存已更新，共 {len(all_items)} 个 skill")
