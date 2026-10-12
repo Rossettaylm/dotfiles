@@ -16,8 +16,14 @@ provider 定义网关地址、token 来源环境变量与附加请求头：
   无需启动 daemon 即可读取；`/v1/models` 端点返回的是显示名方言，直连会 404。
 
 切换时更新 ~/.claude.json 的 env 段：ANTHROPIC_BASE_URL、ANTHROPIC_AUTH_TOKEN、
-ANTHROPIC_MODEL、ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL，以及
-ANTHROPIC_CUSTOM_HEADERS（切回无附加头的 provider 时清除）。
+ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL，以及 ANTHROPIC_CUSTOM_HEADERS（切回无附加
+头的 provider 时清除）。
+
+主模型写在 ~/.claude/settings.json 的 model，而不是 ANTHROPIC_MODEL：启动时 env 优先级
+高于 settings，若写 env，/model 里按 Enter「设为默认」会在下次启动时被覆盖。同时把当前
+provider 的模型组写进 settings 的 modelPicker，使 /model 候选即为这些模型组（用户级
+settings 会热加载，会话中重新打开 /model 即生效；跨 provider 仍需重启，base URL 只在
+启动时读取）。`--sync-picker` 只刷新候选，不切换。
 
 token 只从环境变量读取，本脚本不硬编码任何凭证。
 """
@@ -39,6 +45,7 @@ from llm_balance import short_balance
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CLAUDE_CONFIG = os.path.expanduser("~/.claude.json")
+CLAUDE_SETTINGS = os.path.expanduser("~/.claude/settings.json")
 SNAPSHOT_PATH = os.path.join(SCRIPT_DIR, "model_snapshots.json")
 TCLAUDE_CACHE = os.path.expanduser("~/.tclaude/cache/gateway-models.json")
 
@@ -65,6 +72,11 @@ ENV_KEYS = {
     "haiku": "ANTHROPIC_DEFAULT_HAIKU_MODEL",
 }
 HEADERS_KEY = "ANTHROPIC_CUSTOM_HEADERS"
+MODEL_KEY = "ANTHROPIC_MODEL"
+
+# Claude Code 不认识的模型须借用一个已知模型的客户端行为，否则 modelPicker 不展示该行
+BEHAVES_AS = "claude-sonnet-5"
+SYNC_PICKER_FLAG = "--sync-picker"
 
 MIN_OPUS_VERSION = (4, 7)
 
@@ -373,9 +385,8 @@ def derive_groups(provider: str, models: list[dict]) -> dict[str, dict]:
 # ── 配置读取与检测 ─────────────────────────────────────────
 
 
-def detect_current(env: dict, all_groups: dict[str, dict[str, dict]]) -> tuple[str, str] | None:
-    """按 ANTHROPIC_BASE_URL 反查 provider，再比对三个槽位 env 匹配模型组。"""
-    provider = next(
+def provider_of(env: dict) -> str | None:
+    return next(
         (
             name
             for name, cfg in PROVIDERS.items()
@@ -383,9 +394,21 @@ def detect_current(env: dict, all_groups: dict[str, dict[str, dict]]) -> tuple[s
         ),
         None,
     )
+
+
+def detect_current(
+    env: dict, model: str | None, all_groups: dict[str, dict[str, dict]]
+) -> tuple[str, str] | None:
+    """按 ANTHROPIC_BASE_URL 反查 provider，再按主模型匹配模型组（主模型可能已在 /model
+    中改过），匹配不到时退回比对三个槽位 env。"""
+    provider = provider_of(env)
     if provider is None:
         return None
-    for group, models in all_groups.get(provider, {}).items():
+    groups = all_groups.get(provider, {})
+    for group, models in groups.items():
+        if models["opus"] == model:
+            return provider, group
+    for group, models in groups.items():
         if all(env.get(ENV_KEYS[slot]) == value for slot, value in models.items()):
             return provider, group
     return None
@@ -418,7 +441,7 @@ def update_claude_env(provider: str, models: dict[str, str], token: str):
     env["ANTHROPIC_AUTH_TOKEN"] = token
     for slot, key in ENV_KEYS.items():
         env[key] = models[slot]
-    env["ANTHROPIC_MODEL"] = models["opus"]
+    env.pop(MODEL_KEY, None)
 
     if cfg["headers"]:
         env[HEADERS_KEY] = "\n".join(f"{k}: {v}" for k, v in cfg["headers"].items())
@@ -428,11 +451,42 @@ def update_claude_env(provider: str, models: dict[str, str], token: str):
     write_json(CLAUDE_CONFIG, data)
 
 
+def read_settings() -> dict:
+    """settings.json 解析失败时直接抛出，避免把用户配置覆盖成只剩脚本写入的字段。"""
+    try:
+        with open(CLAUDE_SETTINGS, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+def picker_rows(entries: list[dict]) -> list[dict]:
+    """模型组 → /model 候选行：选中即把主模型设为该组的 opus 槽位。"""
+    rows = []
+    for e in entries:
+        model = e["models"]["opus"]
+        row = {"model": model, "label": SUFFIX_1M_RE.sub("", e["label"])}
+        if e["price"] != "-":
+            row["description"] = f"{e['price']} · {model}"
+        if not model.startswith("claude-"):
+            row["behavesAs"] = BEHAVES_AS
+        rows.append(row)
+    return rows
+
+
+def update_claude_settings(rows: list[dict], model: str | None = None):
+    data = read_settings()
+    if model:
+        data["model"] = model
+    data["modelPicker"] = {"replaceBuiltInOptions": True, "options": rows}
+    write_json(CLAUDE_SETTINGS, data)
+
+
 # ── UI ─────────────────────────────────────────────────────
 
 
 def group_price(prices: dict[str, dict], models: dict[str, str]) -> dict:
-    """模型组费率取 opus 槽位（ANTHROPIC_MODEL 即 opus，主要消耗在它）。"""
+    """模型组费率取 opus 槽位（主模型即 opus，主要消耗在它）。"""
     return prices.get(SUFFIX_1M_RE.sub("", models["opus"]), {})
 
 
@@ -495,8 +549,7 @@ def build_toggle_bind(default_file: str, price_file: str) -> str:
 # ── 主逻辑 ─────────────────────────────────────────────────
 
 
-def switch_model():
-    tokens = {p: token for p in PROVIDERS if (token := resolve_token(p))}
+def load_all_groups(tokens: dict[str, str]) -> tuple[dict[str, dict], dict[str, dict]]:
     all_groups: dict[str, dict[str, dict]] = {}
     prices: dict[str, dict[str, dict]] = {}
     for provider, token in tokens.items():
@@ -505,14 +558,12 @@ def switch_model():
             all_groups[provider] = derive_groups(provider, models)
             prices[provider] = {m["id"]: m for m in models if "price" in m}
             shell.log_plain(f"{provider}: {len(models)} 个模型（来源: {source}）")
+    return all_groups, prices
 
-    if not all_groups:
-        shell.log_err("未能获取任何 provider 的模型列表，已中止")
-        return
 
-    env = read_json(CLAUDE_CONFIG).get("env", {})
-    current = detect_current(env, all_groups)
-
+def build_entries(
+    all_groups: dict[str, dict], prices: dict[str, dict], current: tuple[str, str] | None
+) -> list[dict]:
     entries = []
     for provider, groups in all_groups.items():
         for group, models in groups.items():
@@ -527,6 +578,38 @@ def switch_model():
                     "is_current": (provider, group) == current,
                 }
             )
+    return entries
+
+
+def sync_picker():
+    """按当前 provider 刷新 /model 候选，不改动模型选择。"""
+    provider = provider_of(read_json(CLAUDE_CONFIG).get("env", {}))
+    if provider is None:
+        shell.log_err("~/.claude.json 的 ANTHROPIC_BASE_URL 未匹配任何 provider，已中止")
+        return
+    token = resolve_token(provider)
+    if not token:
+        shell.log_err(f"未设置 {PROVIDERS[provider]['token_env']}，已中止")
+        return
+    all_groups, prices = load_all_groups({provider: token})
+    if not all_groups:
+        shell.log_err(f"未能获取 {provider} 的模型列表，已中止")
+        return
+    rows = picker_rows(build_entries(all_groups, prices, None))
+    update_claude_settings(rows)
+    shell.log_success(f"/model 候选已刷新: {provider} 共 {len(rows)} 项")
+
+
+def switch_model():
+    tokens = {p: token for p in PROVIDERS if (token := resolve_token(p))}
+    all_groups, prices = load_all_groups(tokens)
+    if not all_groups:
+        shell.log_err("未能获取任何 provider 的模型列表，已中止")
+        return
+
+    env = read_json(CLAUDE_CONFIG).get("env", {})
+    current = detect_current(env, read_settings().get("model"), all_groups)
+    entries = build_entries(all_groups, prices, current)
     widths = (
         max(len(e["label"]) for e in entries),
         max(len(e["price"]) for e in entries),
@@ -567,12 +650,15 @@ def switch_model():
         return
 
     provider, group = selection
+    rows = picker_rows([e for e in entries if e["provider"] == provider])
     if selection == current:
-        shell.log_plain(f"未变更，仍为 {provider}:{group}")
+        update_claude_settings(rows)
+        shell.log_plain(f"未变更，仍为 {provider}:{group}（/model 候选已刷新）")
         return
 
     models = all_groups[provider][group]
     update_claude_env(provider, models, tokens[provider])
+    update_claude_settings(rows, models["opus"])
 
     shell.log_success(
         f"已切换: {current_label} → {provider}:{group}\n"
@@ -584,4 +670,7 @@ def switch_model():
 
 
 if __name__ == "__main__":
-    switch_model()
+    if SYNC_PICKER_FLAG in sys.argv[1:]:
+        sync_picker()
+    else:
+        switch_model()
