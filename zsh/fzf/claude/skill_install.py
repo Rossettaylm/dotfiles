@@ -14,7 +14,8 @@ import os
 import re
 import subprocess
 import sys
-from time import time as get_now_time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from time import sleep, time as get_now_time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from pyutils import shell
@@ -126,26 +127,6 @@ def _fetch_composio_skills() -> list[str]:
     return results
 
 
-def _dir_has_file(repo: str, path: str, filename: str) -> bool:
-    """检查 repo 指定路径下是否有某文件。"""
-    data = _gh_api(f"repos/{repo}/contents/{path}")
-    if not data or not isinstance(data, list):
-        return False
-    return any(f.get("name") == filename and f.get("type") == "file" for f in data)
-
-
-def _list_subdirs(repo: str, path: str = "") -> list[str]:
-    """列出 repo 指定路径下的子目录名。"""
-    endpoint = f"repos/{repo}/contents/{path}" if path else f"repos/{repo}/contents"
-    data = _gh_api(endpoint)
-    if not data or not isinstance(data, list):
-        return []
-    return [
-        item["name"] for item in data
-        if item.get("type") == "dir" and not item["name"].startswith(".")
-    ]
-
-
 def _detect_branch(repo: str) -> str:
     """检测仓库默认分支。"""
     data = _gh_api(f"repos/{repo}")
@@ -154,78 +135,101 @@ def _detect_branch(repo: str) -> str:
     return "main"
 
 
+_AWESOME_SKIP_DIRS = {"plugins", "docs", "tests", "test", "hooks", "commands", "agents"}
+
+
 def _fetch_awesome_repo_skills(repo: str) -> list[str]:
-    """扫描一个 awesome-claude-code 收录的仓库，支持多种目录结构：
+    """扫描一个 awesome-claude-code 收录的仓库：一次拉取完整文件树，本地匹配 SKILL.md。
 
-    结构 A: 根目录有 SKILL.md（单 skill 仓库）
-    结构 B: 子目录各有 SKILL.md（如 ComposioHQ、jeffallan/claude-skills）
-    结构 C: plugins/<name>/skills/<name>/SKILL.md（如 trailofbits/skills）
-    结构 D: 子目录下有 skills/ 子目录含 SKILL.md
+    结构 A: SKILL.md（单 skill 仓库）
+    结构 B: <d>/SKILL.md（如 ComposioHQ、jeffallan/claude-skills）
+    结构 C: plugins/<p>/skills/<s>/SKILL.md，无 skills/ 时取 plugins/<p>/SKILL.md（如 trailofbits/skills）
+    结构 D: <d>/skills/<s>/SKILL.md（<d> 自身不是 skill）
+    结构 E: <d>/<s>/SKILL.md（<d> 既不是 skill 也没有 skills/，如 scientific-skills/astropy）
     """
-    owner = repo.split("/")[0]
+    owner, repo_name = repo.split("/")
     branch = _detect_branch(repo)
-
-    root_data = _gh_api(f"repos/{repo}/contents")
-    if not root_data or not isinstance(root_data, list):
+    tree = _gh_api(f"repos/{repo}/git/trees/{branch}?recursive=1")
+    if not tree or not isinstance(tree, dict):
         return []
 
-    root_files = {f["name"] for f in root_data if f.get("type") == "file"}
-    root_dirs = [d["name"] for d in root_data if d.get("type") == "dir" and not d["name"].startswith(".")]
+    # 同名 skill 先到先得：保持原扫描顺序 A → C(plugins/) → 其余目录
+    skill_dirs = sorted(
+        (
+            os.path.dirname(e["path"])
+            for e in tree.get("tree", [])
+            if e.get("type") == "blob" and os.path.basename(e["path"]) == "SKILL.md"
+        ),
+        key=lambda d: (d != "", not d.startswith("plugins/"), d),
+    )
+    all_parts = [d.split("/") if d else [] for d in skill_dirs]
+    b_dirs = {p[0] for p in all_parts if len(p) == 1}
+    d_dirs = {p[0] for p in all_parts if len(p) == 3 and p[1] == "skills"}
+    c_plugins = {p[1] for p in all_parts if len(p) == 4 and p[0] == "plugins" and p[2] == "skills"}
 
     results = []
-
-    # 结构 A: 根目录直接有 SKILL.md
-    if "SKILL.md" in root_files:
-        name = repo.split("/")[-1]
-        results.append(f"{name}\tgithub\t{repo}:.:{branch}\t{owner}")
-
-    # 检查 plugins/ 目录（结构 C）
-    if "plugins" in root_dirs:
-        for plugin in _list_subdirs(repo, "plugins"):
-            skill_dirs = _list_subdirs(repo, f"plugins/{plugin}/skills")
-            if skill_dirs:
-                for sd in skill_dirs:
-                    path = f"plugins/{plugin}/skills/{sd}"
-                    if _dir_has_file(repo, path, "SKILL.md"):
-                        results.append(f"{sd}\tgithub\t{repo}:{path}:{branch}\t{owner}")
-            elif _dir_has_file(repo, f"plugins/{plugin}", "SKILL.md"):
-                results.append(f"{plugin}\tgithub\t{repo}:plugins/{plugin}:{branch}\t{owner}")
-
-    # 检查根目录下的子目录（结构 B / D）
-    skip = {"plugins", "docs", "tests", "test", ".github", "hooks", "commands", "agents"}
-    for d in root_dirs:
-        if d in skip:
+    for parts in all_parts:
+        if any(x.startswith(".") for x in parts):
             continue
-        # 结构 B: 子目录直接有 SKILL.md
-        if _dir_has_file(repo, d, "SKILL.md"):
-            results.append(f"{d}\tgithub\t{repo}:{d}:{branch}\t{owner}")
+        path = "/".join(parts) or "."
+        name = None
+        if not parts:
+            name = repo_name
+        elif parts[0] == "plugins":
+            if len(parts) == 4 and parts[2] == "skills":
+                name = parts[3]
+            elif len(parts) == 2 and parts[1] not in c_plugins:
+                name = parts[1]
+        elif parts[0] in _AWESOME_SKIP_DIRS:
             continue
-        # 结构 D: 子目录下有 skills/ 含 SKILL.md
-        skill_sub = _list_subdirs(repo, f"{d}/skills")
-        for sd in skill_sub:
-            path = f"{d}/skills/{sd}"
-            if _dir_has_file(repo, path, "SKILL.md"):
-                results.append(f"{sd}\tgithub\t{repo}:{path}:{branch}\t{owner}")
-        # 结构 E: 子目录下的子目录直接含 SKILL.md（如 scientific-skills/astropy/SKILL.md）
-        if not skill_sub:
-            grandchildren = _list_subdirs(repo, d)
-            if grandchildren and _dir_has_file(repo, f"{d}/{grandchildren[0]}", "SKILL.md"):
-                for gc in grandchildren:
-                    path = f"{d}/{gc}"
-                    results.append(f"{gc}\tgithub\t{repo}:{path}:{branch}\t{owner}")
-
+        elif len(parts) == 1:
+            name = parts[0]
+        elif parts[0] in b_dirs:
+            continue
+        elif len(parts) == 3 and parts[1] == "skills":
+            name = parts[2]
+        elif len(parts) == 2 and parts[0] not in d_dirs:
+            name = parts[1]
+        if name:
+            results.append(f"{name}\tgithub\t{repo}:{path}:{branch}\t{owner}")
     return results
+
+
+def _parallel_map(fn, items: list[str], label: str, workers: int = 8) -> list[list[str]]:
+    """并发执行 fn(item)，按 items 原顺序返回结果（保证去重优先级不变），同一行刷新进度。"""
+    results: dict[str, list[str]] = {}
+    total = len(items)
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(fn, item): item for item in items}
+        for done, fut in enumerate(as_completed(futures), 1):
+            item = futures[fut]
+            results[item] = fut.result()
+            sys.stdout.write(f"\r  {label} [{done}/{total}]: {item:<45}")
+            sys.stdout.flush()
+    return [results[item] for item in items]
+
+
+_SKILLS_SH_RETRY_AFTER = 60
+
+
+def _search_all_npx() -> list[list[str]]:
+    """并发搜索全部分类。skills.sh 对突发请求返回 429，CLI 吞掉后表现为空结果，
+    固定分类不应为空，故空分类在冷却后串行重试一次。"""
+    batches = _parallel_map(_search_npx, _SEARCH_CATEGORIES, "搜索分类", workers=4)
+    empty = [i for i, b in enumerate(batches) if not b]
+    if empty:
+        sys.stdout.write(f"\r  {len(empty)} 个分类疑似被限流，{_SKILLS_SH_RETRY_AFTER}s 后重试".ljust(60))
+        sys.stdout.flush()
+        sleep(_SKILLS_SH_RETRY_AFTER)
+        for i in empty:
+            batches[i] = _search_npx(_SEARCH_CATEGORIES[i])
+    return batches
 
 
 def _fetch_all_awesome_skills() -> list[str]:
-    """扫描所有 awesome-claude-code 仓库。"""
-    results = []
-    total = len(_AWESOME_REPOS)
-    for i, repo in enumerate(_AWESOME_REPOS, 1):
-        sys.stdout.write(f"\r  扫描仓库 [{i}/{total}]: {repo:<45}")
-        sys.stdout.flush()
-        results.extend(_fetch_awesome_repo_skills(repo))
-    return results
+    """并发扫描所有 awesome-claude-code 仓库。"""
+    batches = _parallel_map(_fetch_awesome_repo_skills, _AWESOME_REPOS, "扫描仓库")
+    return [item for batch in batches for item in batch]
 
 
 # ── 缓存管理 ─────────────────────────────────────────────────────
@@ -237,11 +241,8 @@ def _update_cache():
 
     # 1) skills.sh
     shell.log_plain("[1/3] 搜索 skills.sh ...")
-    total = len(_SEARCH_CATEGORIES)
-    for i, cat in enumerate(_SEARCH_CATEGORIES, 1):
-        sys.stdout.write(f"\r  搜索分类 [{i}/{total}]: {cat:<20}")
-        sys.stdout.flush()
-        for item in _search_npx(cat):
+    for batch in _search_all_npx():
+        for item in batch:
             name = item.split("\t")[0]
             if name not in seen:
                 seen.add(name)
