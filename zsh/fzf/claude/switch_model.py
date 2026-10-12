@@ -9,15 +9,20 @@ provider 定义网关地址、token 来源环境变量与附加请求头：
 模型组由上游模型列表自动派生，不再手工维护：
 
 - Claude Code 发送请求前会剥掉模型名末尾的 [1m]（二进制内的
-  `replace(/(\[1m\])+$/i, "")`），因此 llmtoken 的 [1m] 后缀纯属显示，请求实际
-  发出的是裸 id；而 tclaude 的 wire id 形如 claude-opus-5-1m（没有方括号），
-  不会被剥掉，必须原样使用。所以只有 llmtoken 追加 [1m] 后缀。
+  `replace(/(\[1m\])+$/i, "")`），因此贴 [1m] 只影响 Claude Code 认定的窗口，
+  不影响上游收到的 wire id。窗口由 model_windows 按「模型 id 自带声明 → 网关 tags →
+  models.dev → 快照旧值」判定，只有 ≥1M 才贴；查不到一律不贴（宁可让 Claude Code
+  提前 compact，也不要让它以为有 1M 而永不 compact）。
+- tclaude 的 wire id 形如 claude-opus-5-1m，其 `-1m` 后缀即窗口声明，同样按上面
+  的规则贴 [1m]——Claude Code 剥掉后缀后发出的仍是不带方括号的原 id。
 - tclaude 的权威模型清单内嵌在其原生二进制里（每条含 wire id 与显示名），
   无需启动 daemon 即可读取；`/v1/models` 端点返回的是显示名方言，直连会 404。
 
 切换时更新 ~/.claude.json 的 env 段：ANTHROPIC_BASE_URL、ANTHROPIC_AUTH_TOKEN、
-ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL，以及 ANTHROPIC_CUSTOM_HEADERS（切回无附加
-头的 provider 时清除）。
+ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL、CLAUDE_CODE_MAX_CONTEXT_TOKENS，以及
+ANTHROPIC_CUSTOM_HEADERS（切回无附加头的 provider 时清除）。窗口 env 只对不贴 [1m]
+的模型有意义（贴了的话 Claude Code 直接短路成 1M），取各槽位窗口的最小值——一个值
+服务所有模型，取最小的那个才不会被撑爆；全部贴了 [1m] 或窗口未知时不写。
 
 主模型写在 ~/.claude/settings.json 的 model，而不是 ANTHROPIC_MODEL：启动时 env 优先级
 高于 settings，若写 env，/model 里按 Enter「设为默认」会在下次启动时被覆盖。同时把当前
@@ -42,27 +47,29 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyutils import shell
 from llm_balance import short_balance
+from model_windows import load_catalog_windows, pick_window, windows_from_tags
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CLAUDE_CONFIG = os.path.expanduser("~/.claude.json")
 CLAUDE_SETTINGS = os.path.expanduser("~/.claude/settings.json")
 SNAPSHOT_PATH = os.path.join(SCRIPT_DIR, "model_snapshots.json")
 TCLAUDE_CACHE = os.path.expanduser("~/.tclaude/cache/gateway-models.json")
+CONTEXT_STASH_KEY = "context_env"
 
 HTTP_TIMEOUT = 15
+ONE_M = 1_000_000
+CONTEXT_KEY = "CLAUDE_CODE_MAX_CONTEXT_TOKENS"
 
 PROVIDERS = {
     "llmtoken": {
         "base_url": "https://qproxy.gtimg.com",
         "token_env": "LLMTOKEN_API_KEY",
         "headers": {},
-        "suffix_1m": True,
     },
     "tclaude": {
         "base_url": "https://copilot.tencent.com",
         "token_env": "TCLAUDE_AUTH_TOKEN",
         "headers": {"User-Agent": "TClaude-code/0.1.5"},
-        "suffix_1m": False,
     },
 }
 
@@ -145,14 +152,18 @@ def llmtoken_get(path: str, token: str) -> dict:
 
 
 def fetch_llmtoken_pricing(token: str) -> dict[str, dict]:
-    """从 new-api 的 /api/pricing 取按 token 计费模型的 输入/输出 单价（$/1M）。"""
+    """从 new-api 的 /api/pricing 取按 token 计费模型的 输入/输出 单价（$/1M）与窗口。"""
     prices = {}
     for m in llmtoken_get("/api/pricing", token)["data"]:
         if m.get("quota_type") != 0 or not m.get("model_ratio"):
             continue
         cost_in = m["model_ratio"] * USD_PER_RATIO
         cost_out = cost_in * m.get("completion_ratio", 1)
-        prices[m["model_name"]] = {"price": f"${cost_in:.3g}/${cost_out:.3g}", "rank": cost_in}
+        prices[m["model_name"]] = {
+            "price": f"${cost_in:.3g}/${cost_out:.3g}",
+            "rank": cost_in,
+            "window": windows_from_tags(m.get("tags")),
+        }
     return prices
 
 
@@ -165,9 +176,8 @@ def fetch_llmtoken_models(token: str) -> list[dict]:
     except (OSError, ValueError, KeyError, TypeError) as exc:
         shell.log_err(f"获取 llmtoken 费率失败: {exc}")
         prices = {
-            m["id"]: {k: m[k] for k in PRICE_KEYS}
+            m["id"]: {k: m[k] for k in PRICE_KEYS if k in m}
             for m in read_snapshot("llmtoken")
-            if all(k in m for k in PRICE_KEYS)
         }
     for model in models:
         model.update(prices.get(model["id"], {}))
@@ -237,15 +247,30 @@ def read_snapshot(provider: str) -> list[dict]:
     return read_json(SNAPSHOT_PATH).get(provider, {}).get("models", [])
 
 
+def fill_windows(provider: str, models: list[dict]) -> list[dict]:
+    """给每个模型补 window 字段：id 自带声明 → 网关 tags → models.dev → 快照旧值。
+
+    快照旧值只用来兜底同一个 id 上次算出来的窗口，所以先在旧快照里建索引。
+    """
+    previous = {m["id"]: m.get("window") for m in read_snapshot(provider)}
+    catalog = load_catalog_windows()
+    for model in models:
+        model["window"] = pick_window(
+            model["id"], model.get("window"), catalog, previous.get(model["id"])
+        )
+    return models
+
+
 def fetch_tclaude_cache_models(snapshot_models: list[dict]) -> list[dict]:
     """兜底：读 tclaude 的 gateway-models.json。
 
     该文件存的是显示名方言（claude-opus-5[1m]），需要用上一次成功抓取时记下的
-    name → wire id 映射还原成可用的 wire id。
+    name → wire id 映射还原成可用的 wire id；映射不到的（本轮新上线的模型）原样保留，
+    至少让它在候选里出现。
     """
     by_name = {m["name"]: m for m in snapshot_models}
     cached = read_json(TCLAUDE_CACHE).get("models", [])
-    return [by_name[m["id"]] for m in cached if m.get("id") in by_name]
+    return [by_name.get(m["id"], {"id": m["id"], "name": m["id"]}) for m in cached]
 
 
 def save_snapshot(provider: str, models: list[dict]):
@@ -264,6 +289,7 @@ def load_models(provider: str, token: str) -> tuple[list[dict], str]:
         else:
             models = fetch_tclaude_models()
             origin = "tclaude 二进制"
+        models = fill_windows(provider, models)
         save_snapshot(provider, models)
         return models, origin
     except (OSError, ValueError, KeyError, urllib.error.URLError) as exc:
@@ -299,11 +325,33 @@ def parse_version(text: str) -> tuple[int, int] | None:
     return int(m.group(1)), int(m.group(2) or 0)
 
 
-def finalize_id(provider: str, model_id: str) -> str:
-    """llmtoken 的 [1m] 仅作显示，Claude Code 发送前会剥掉；haiku 不加。"""
-    if PROVIDERS[provider]["suffix_1m"] and "haiku" not in model_id:
-        return model_id + "[1m]"
-    return model_id
+def finalize_id(model_id: str, windows: dict[str, int | None]) -> str:
+    """窗口 ≥1M 才贴 [1m]；Claude Code 发送前会剥掉，故不影响上游 wire id。
+
+    窗口未知时一律不贴：贴错的代价是 Claude Code 认定 1M 而永不 compact，
+    不贴的代价只是它按 200K 提前 compact——后者安全得多。
+    """
+    if model_id.endswith("[1m]"):
+        return model_id
+    window = windows.get(model_id)
+    return model_id + "[1m]" if window and window >= ONE_M else model_id
+
+
+def slot_window(model_id: str, windows: dict[str, int | None]) -> int | None:
+    """一个槽位对 Claude Code 有意义的窗口：贴了 [1m] 的它自己就知道是 1M。"""
+    if model_id.endswith("[1m]"):
+        return None
+    return windows.get(model_id)
+
+
+def group_window(models: dict[str, str], windows: dict[str, int | None]) -> int | None:
+    """写进 CLAUDE_CODE_MAX_CONTEXT_TOKENS 的值。
+
+    Claude Code 只认一个值服务所有模型，所以取各槽位里最小的那个，免得被窗口小的
+    槽位撑爆。全部贴了 [1m]（各自自带 1M）或窗口未知时返回 None，调用方据此清掉该键。
+    """
+    known = [w for slot in models.values() if (w := slot_window(slot, windows))]
+    return min(known) if known else None
 
 
 def split_claude_family(models: list[dict]) -> tuple[dict, list[dict]]:
@@ -356,6 +404,7 @@ def derive_groups(provider: str, models: list[dict]) -> dict[str, dict]:
     Claude 家族：每个 opus 版本一组，sonnet 取「版本不高于该 opus 的最新一个」，
     haiku 取最新一个；非 Claude 模型各自成组，三个槽位填同一个模型。
     """
+    windows = {m["id"]: m.get("window") for m in models}
     family, others = split_claude_family(models)
     ops = [(v, mid, name) for v, mid, name in family["opus"] if v >= MIN_OPUS_VERSION]
     sons = family["sonnet"]
@@ -370,14 +419,14 @@ def derive_groups(provider: str, models: list[dict]) -> dict[str, dict]:
         else:
             sonnet_id = opus_id
         values = {
-            "opus": finalize_id(provider, opus_id),
-            "sonnet": finalize_id(provider, sonnet_id),
-            "haiku": finalize_id(provider, haiku[1]) if haiku else finalize_id(provider, opus_id),
+            "opus": finalize_id(opus_id, windows),
+            "sonnet": finalize_id(sonnet_id, windows),
+            "haiku": finalize_id(haiku[1] if haiku else opus_id, windows),
         }
         groups[f"opus{version[0]}.{version[1]}"] = values
 
     for model in pick_others(others):
-        model_id = finalize_id(provider, model["id"])
+        model_id = finalize_id(model["id"], windows)
         groups[model_id] = {"opus": model_id, "sonnet": model_id, "haiku": model_id}
     return groups
 
@@ -432,7 +481,9 @@ def resolve_token(provider: str) -> str | None:
 # ── Claude Code 配置写入 ───────────────────────────────────
 
 
-def update_claude_env(provider: str, models: dict[str, str], token: str):
+def update_claude_env(
+    provider: str, models: dict[str, str], token: str, window: int | None
+):
     """更新 ~/.claude.json 中的环境变量。"""
     cfg = PROVIDERS[provider]
     data = read_json(CLAUDE_CONFIG)
@@ -442,6 +493,7 @@ def update_claude_env(provider: str, models: dict[str, str], token: str):
     for slot, key in ENV_KEYS.items():
         env[key] = models[slot]
     env.pop(MODEL_KEY, None)
+    apply_context_window(env, window)
 
     if cfg["headers"]:
         env[HEADERS_KEY] = "\n".join(f"{k}: {v}" for k, v in cfg["headers"].items())
@@ -449,6 +501,35 @@ def update_claude_env(provider: str, models: dict[str, str], token: str):
         env.pop(HEADERS_KEY, None)
 
     write_json(CLAUDE_CONFIG, data)
+
+
+def apply_context_window(env: dict, window: int | None) -> bool:
+    """在 env 里改 CLAUDE_CODE_MAX_CONTEXT_TOKENS，不覆盖用户自己设的值。
+
+    按「当前值 == 上次我们写的值」判定归属：是用户写的就原样保留，是空的或我们上次
+    写的才改写。返回是否真的动过——动了才需要把新值记进快照，否则别把用户的值
+    当成"我们写的"记下来。
+    """
+    previous = read_json(SNAPSHOT_PATH).get(CONTEXT_STASH_KEY)
+    current = env.get(CONTEXT_KEY)
+    if current is not None and current != previous:
+        return False
+    value = str(window) if window else None
+    if value:
+        env[CONTEXT_KEY] = value
+    else:
+        env.pop(CONTEXT_KEY, None)
+    stash_context_window(value)
+    return True
+
+
+def stash_context_window(value: str | None):
+    data = read_json(SNAPSHOT_PATH)
+    if value is None:
+        data.pop(CONTEXT_STASH_KEY, None)
+    else:
+        data[CONTEXT_STASH_KEY] = value
+    write_json(SNAPSHOT_PATH, data)
 
 
 def read_settings() -> dict:
@@ -549,16 +630,20 @@ def build_toggle_bind(default_file: str, price_file: str) -> str:
 # ── 主逻辑 ─────────────────────────────────────────────────
 
 
-def load_all_groups(tokens: dict[str, str]) -> tuple[dict[str, dict], dict[str, dict]]:
+def load_all_groups(
+    tokens: dict[str, str],
+) -> tuple[dict[str, dict], dict[str, dict], dict[str, dict[str, int | None]]]:
     all_groups: dict[str, dict[str, dict]] = {}
     prices: dict[str, dict[str, dict]] = {}
+    windows: dict[str, dict[str, int | None]] = {}
     for provider, token in tokens.items():
         models, source = load_models(provider, token)
         if models:
+            windows[provider] = {m["id"]: m.get("window") for m in models}
             all_groups[provider] = derive_groups(provider, models)
             prices[provider] = {m["id"]: m for m in models if "price" in m}
             shell.log_plain(f"{provider}: {len(models)} 个模型（来源: {source}）")
-    return all_groups, prices
+    return all_groups, prices, windows
 
 
 def build_entries(
@@ -591,7 +676,7 @@ def sync_picker():
     if not token:
         shell.log_err(f"未设置 {PROVIDERS[provider]['token_env']}，已中止")
         return
-    all_groups, prices = load_all_groups({provider: token})
+    all_groups, prices, windows = load_all_groups({provider: token})
     if not all_groups:
         shell.log_err(f"未能获取 {provider} 的模型列表，已中止")
         return
@@ -602,7 +687,7 @@ def sync_picker():
 
 def switch_model():
     tokens = {p: token for p in PROVIDERS if (token := resolve_token(p))}
-    all_groups, prices = load_all_groups(tokens)
+    all_groups, prices, windows = load_all_groups(tokens)
     if not all_groups:
         shell.log_err("未能获取任何 provider 的模型列表，已中止")
         return
@@ -651,13 +736,17 @@ def switch_model():
 
     provider, group = selection
     rows = picker_rows([e for e in entries if e["provider"] == provider])
+    models = all_groups[provider][group]
+    window = group_window(models, windows.get(provider, {}))
     if selection == current:
+        data = read_json(CLAUDE_CONFIG)
+        if apply_context_window(data.setdefault("env", {}), window):
+            write_json(CLAUDE_CONFIG, data)
         update_claude_settings(rows)
         shell.log_plain(f"未变更，仍为 {provider}:{group}（/model 候选已刷新）")
         return
 
-    models = all_groups[provider][group]
-    update_claude_env(provider, models, tokens[provider])
+    update_claude_env(provider, models, tokens[provider], window)
     update_claude_settings(rows, models["opus"])
 
     shell.log_success(
@@ -665,7 +754,8 @@ def switch_model():
         f"  baseUrl = {PROVIDERS[provider]['base_url']}\n"
         f"  opus    = {models['opus']}\n"
         f"  sonnet  = {models['sonnet']}\n"
-        f"  haiku   = {models['haiku']}"
+        f"  haiku   = {models['haiku']}\n"
+        f"  context = {window if window else '由 [1m] 或 Claude Code 默认决定'}"
     )
 
 
