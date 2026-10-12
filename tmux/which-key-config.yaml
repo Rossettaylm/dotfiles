@@ -29,156 +29,156 @@ items:
   - name: +Pane
     key: p
     menu:
-      - name: Left
+      - name: "Left (左)"
         key: h
         command: select-pane -L
-      - name: Down
+      - name: "Down (下)"
         key: j
         command: select-pane -D
-      - name: Up
+      - name: "Up (上)"
         key: k
         command: select-pane -U
-      - name: Right
+      - name: "Right (右)"
         key: l
         command: select-pane -R
       - separator: true
-      - name: "Split ─"
+      - name: "Split down (上下分割)"
         key: "-"
         command: "split-window -v -c #{pane_current_path}"
-      - name: "Split │"
+      - name: "Split right (左右分割)"
         key: "/"
         command: "split-window -h -c #{pane_current_path}"
-      - name: New pane
+      - name: "New pane (新建面板)"
         key: "n"
         command: "split-window -c #{pane_current_path}"
       - separator: true
-      - name: Zoom
+      - name: "Zoom (缩放)"
         key: f
         command: resize-pane -Z
-      - name: Popup
+      - name: "Popup (弹出终端)"
         key: w
         command: "popup -d #{pane_current_path} -w 80% -h 80% -E"
-      - name: Rename
+      - name: "Rename (重命名)"
         key: c
         command: "command-prompt -I \"#T\" \"select-pane -T '%%'\""
-      - name: Next pane
+      - name: "Next pane (下个面板)"
         key: Tab
         command: select-pane -t :.+
       - separator: true
-      - name: Layout →
+      - name: "Layout right (布局右移)"
         key: r
         command: 'run "~/.config/tmux/scripts/layout_builder.sh right"'
-      - name: Layout ←
+      - name: "Layout left (布局左移)"
         key: R
         command: 'run "~/.config/tmux/scripts/layout_builder.sh left"'
-      - name: Layout ↑
+      - name: "Layout up (布局上移)"
         key: t
         command: 'run "~/.config/tmux/scripts/layout_builder.sh up"'
-      - name: Layout ↓
+      - name: "Layout down (布局下移)"
         key: T
         command: 'run "~/.config/tmux/scripts/layout_builder.sh down"'
-      - name: Toggle layout
+      - name: "Toggle layout (切换布局)"
         key: s
         command: 'run "~/.config/tmux/scripts/layout_builder.sh toggle"'
-      - name: Watch cmd
+      - name: "Watch cmd (监视命令)"
         key: W
         command: 'run -b "bash ~/.config/tmux/scripts/watch_pane.sh #{pane_id} #{window_id}"'
       - separator: true
-      - name: Kill
+      - name: "Kill (关闭)"
         key: x
         command: kill-pane
 
   - name: +Tab
     key: t
     menu:
-      - name: Prev
+      - name: "Prev (上一个)"
         key: h
         command: previous-window
-      - name: Next
+      - name: "Next (下一个)"
         key: l
         command: next-window
-      - name: New
+      - name: "New (新建)"
         key: "n"
         command: "new-window -c #{pane_current_path}"
       - separator: true
-      - name: Rename
+      - name: "Rename (重命名)"
         key: r
         command: "command-prompt -I \"#W\" \"rename-window '%%'\""
-      - name: Break pane
+      - name: "Break pane (拆成独立窗口)"
         key: b
-        command: break-pane
-      - name: Sync panes
+        command: "if-shell \"test #{window_panes} -gt 1\" break-pane"
+      - name: "Sync panes (同步输入)"
         key: s
         command: setw synchronize-panes
-      - name: Last window
+      - name: "Last window (上个访问窗口)"
         key: Tab
         command: last-window
       - separator: true
-      - name: "Win 1"
+      - name: "Win 1 (窗口 1)"
         key: "1"
         command: select-window -t 1
-      - name: "Win 2"
+      - name: "Win 2 (窗口 2)"
         key: "2"
         command: select-window -t 2
-      - name: "Win 3"
+      - name: "Win 3 (窗口 3)"
         key: "3"
         command: select-window -t 3
-      - name: "Win 4"
+      - name: "Win 4 (窗口 4)"
         key: "4"
         command: select-window -t 4
-      - name: "Win 5"
+      - name: "Win 5 (窗口 5)"
         key: "5"
         command: select-window -t 5
-      - name: "Win 6"
+      - name: "Win 6 (窗口 6)"
         key: "6"
         command: select-window -t 6
-      - name: "Win 7"
+      - name: "Win 7 (窗口 7)"
         key: "7"
         command: select-window -t 7
-      - name: "Win 8"
+      - name: "Win 8 (窗口 8)"
         key: "8"
         command: select-window -t 8
-      - name: "Win 9"
+      - name: "Win 9 (窗口 9)"
         key: "9"
         command: select-window -t 9
       - separator: true
-      - name: Kill
+      - name: "Kill (关闭)"
         key: x
         command: "confirm-before -p \"kill window #W? (y/n)\" kill-window"
 
   - name: +Resize
     key: r
     menu:
-      - name: Left
+      - name: "Left (左)"
         key: h
         command: resize-pane -L 2
         transient: true
-      - name: Down
+      - name: "Down (下)"
         key: j
         command: resize-pane -D 2
         transient: true
-      - name: Up
+      - name: "Up (上)"
         key: k
         command: resize-pane -U 2
         transient: true
-      - name: Right
+      - name: "Right (右)"
         key: l
         command: resize-pane -R 2
         transient: true
       - separator: true
-      - name: Left ×5
+      - name: "Left ×5 (左移 5)"
         key: H
         command: resize-pane -L 5
         transient: true
-      - name: Down ×5
+      - name: "Down ×5 (下移 5)"
         key: J
         command: resize-pane -D 5
         transient: true
-      - name: Up ×5
+      - name: "Up ×5 (上移 5)"
         key: K
         command: resize-pane -U 5
         transient: true
-      - name: Right ×5
+      - name: "Right ×5 (右移 5)"
         key: L
         command: resize-pane -R 5
         transient: true
@@ -186,48 +186,48 @@ items:
   - name: +Move
     key: m
     menu:
-      - name: Swap up
+      - name: "Swap up (与上交换)"
         key: h
         command: swap-pane -U
-      - name: Swap down
+      - name: "Swap down (与下交换)"
         key: j
         command: swap-pane -D
-      - name: Swap up
+      - name: "Swap up (与上交换)"
         key: k
         command: swap-pane -U
-      - name: Swap down
+      - name: "Swap down (与下交换)"
         key: l
         command: swap-pane -D
-      - name: Next
+      - name: "Next (下一个)"
         key: "n"
         command: swap-pane -D
-      - name: Prev
+      - name: "Prev (上一个)"
         key: p
         command: swap-pane -U
-      - name: Next pane
+      - name: "Next pane (下个面板)"
         key: Tab
         command: swap-pane -D
 
-  - name: Copy
+  - name: "Copy (复制模式)"
     key: s
     command: copy-mode
 
   - name: +Session
     key: o
     menu:
-      - name: Detach
+      - name: "Detach (分离会话)"
         key: d
         command: detach-client
-      - name: Choose tree
+      - name: "Choose tree (会话树)"
         key: w
         command: choose-tree -Zs
 
   - separator: true
 
-  - name: Kill session
+  - name: "Kill session (关闭会话)"
     key: q
     command: "confirm-before -p \"kill session? (y/n)\" kill-session"
 
-  - name: Reload config
+  - name: "Reload (重载配置)"
     key: R
     macro: reload-config

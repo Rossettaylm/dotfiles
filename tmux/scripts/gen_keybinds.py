@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-"""Generate tmux bind -T keybindings from which-key-config.yaml.
+"""Generate tmux bind -T keybindings and the Alt+? key-hint sheet.
 
 Usage: python3 gen_keybinds.py
 Reads:  ~/.config/tmux/which-key-config.yaml
 Writes: ~/.config/tmux/keybinds_generated.conf
+        ~/.cache/tmux/keyhint.tsv  (tab-separated sheet; keyhint.py reads it back)
 """
 
+import os
 import re
+import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 try:
@@ -18,11 +22,57 @@ except ImportError:
 CONFIG_DIR = Path(__file__).resolve().parent.parent
 YAML_PATH = CONFIG_DIR / "which-key-config.yaml"
 OUTPUT_PATH = CONFIG_DIR / "keybinds_generated.conf"
+CACHE_DIR = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
+SPEED_CACHE = CACHE_DIR / "tmux" / "keyhint.tsv"
+
+
+@dataclass
+class SpeedEntry:
+    """One row of the Alt+? cheat sheet.
+
+    table/livekey let keyhint.py verify the binding still exists in the running
+    tmux before showing it, so the sheet never advertises a dead key.
+    """
+
+    table: str
+    livekey: str
+    keys: str
+    note: str
+    command: str
 
 
 def mode_name(display_name: str) -> str:
     """'+Pane' -> 'pane_mode', '+Tab' -> 'tab_mode', etc."""
     return re.sub(r"^\+", "", display_name).lower() + "_mode"
+
+
+def describe_key(tmux_key: str) -> str:
+    """'M-S-Left' -> 'Alt-Shift-Left', 'C-\\\\' -> 'Ctrl-\\\\' for display."""
+    out = re.sub(r"^M-S-", "Alt-Shift-", tmux_key)
+    out = re.sub(r"^M-", "Alt-", out)
+    out = re.sub(r"^C-", "Ctrl-", out)
+    return out
+
+
+def prefix_label() -> str:
+    """Read the live prefix key from tmux so the sheet tracks tmux.conf."""
+    try:
+        out = subprocess.run(
+            ["tmux", "show-options", "-g", "prefix"],
+            capture_output=True, text=True, timeout=2,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return "prefix"
+    m = re.search(r"^prefix\s+(\S+)", out, re.M)
+    return describe_key(m.group(1)) if m else "prefix"
+
+
+def note_flag(note: str) -> str:
+    """tmux bind -N takes the note as one quoted argument."""
+    if not note:
+        return ""
+    escaped = note.replace("\\", "\\\\").replace('"', '\\"')
+    return f'-N "{escaped}" '
 
 
 def expand_macro(macro_name: str, macros: list[dict]) -> str:
@@ -74,7 +124,7 @@ def quote_format_vars(cmd: str) -> str:
     return "".join(result)
 
 
-def generate(config: dict) -> list[str]:
+def generate(config: dict) -> tuple[list[str], list[SpeedEntry]]:
     lines: list[str] = []
     lines.append("# Auto-generated from which-key-config.yaml")
     lines.append("# Do not edit — run: python3 ~/.config/tmux/scripts/gen_keybinds.py")
@@ -83,8 +133,10 @@ def generate(config: dict) -> list[str]:
     macros = config.get("macros", [])
     items = config.get("items", [])
 
+    pfx = prefix_label()
     prefix_binds: list[str] = []
     mode_sections: list[str] = []
+    speed: list[SpeedEntry] = []
 
     for item in items:
         if "separator" in item:
@@ -99,7 +151,8 @@ def generate(config: dict) -> list[str]:
         if menu:
             # Sub-mode: generate switch-client and bind -T entries
             table = mode_name(name)
-            prefix_binds.append(f"bind {key} switch-client -T {table}")
+            note = item.get("note", "")
+            prefix_binds.append(f"bind {note_flag(note)}{key} switch-client -T {table}")
 
             section_lines = [f"# ─── {name.lstrip('+')} mode (prefix + {key}) ───"]
             for entry in menu:
@@ -109,6 +162,7 @@ def generate(config: dict) -> list[str]:
                 ecmd = entry.get("command", "")
                 emacro = entry.get("macro")
                 transient = entry.get("transient", False)
+                enote = entry.get("note", entry.get("name", ""))
 
                 if emacro:
                     ecmd = expand_macro(emacro, macros)
@@ -117,17 +171,49 @@ def generate(config: dict) -> list[str]:
 
                 repeat = "-r " if transient else ""
                 section_lines.append(
-                    f"bind -T {table} {repeat}{ekey} {ecmd}"
+                    f"bind {note_flag(enote)}-T {table} {repeat}{ekey} {ecmd}"
                 )
+                speed.append(SpeedEntry(
+                    table=table,
+                    livekey=ekey,
+                    keys=f"{pfx} {key} {ekey}",
+                    note=enote,
+                    command=ecmd,
+                ))
             mode_sections.append("\n".join(section_lines))
+            speed.append(SpeedEntry(
+                table="prefix",
+                livekey=key,
+                keys=f"{pfx} {key}",
+                note=note or f"{name.lstrip('+')} 子模式",
+                command=f"switch-client -T {table}",
+            ))
 
         elif command:
-            prefix_binds.append(f"bind {key} {quote_format_vars(command)}")
+            note = item.get("note", name)
+            prefix_binds.append(
+                f"bind {note_flag(note)}{key} {quote_format_vars(command)}"
+            )
+            speed.append(SpeedEntry(
+                table="prefix",
+                livekey=key,
+                keys=f"{pfx} {key}",
+                note=note,
+                command=quote_format_vars(command),
+            ))
 
         elif macro:
             expanded = expand_macro(macro, macros)
             if expanded:
-                prefix_binds.append(f"bind {key} {expanded}")
+                note = item.get("note", name)
+                prefix_binds.append(f"bind {note_flag(note)}{key} {expanded}")
+                speed.append(SpeedEntry(
+                    table="prefix",
+                    livekey=key,
+                    keys=f"{pfx} {key}",
+                    note=note,
+                    command=expanded,
+                ))
 
     lines.append("# Prefix bindings (enter sub-modes or direct commands)")
     lines.extend(prefix_binds)
@@ -137,7 +223,18 @@ def generate(config: dict) -> list[str]:
         lines.append(section)
         lines.append("")
 
-    return lines
+    return lines, speed
+
+
+def write_speed_cache(speed: list[SpeedEntry]) -> None:
+    """Hand the sheet to keyhint.py; also usable straight from the shell:
+
+        column -t -s $'\\t' ~/.cache/tmux/keyhint.tsv
+    """
+    SPEED_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    rows = ["\t".join([e.table, e.livekey, e.keys, e.note, e.command])
+            for e in speed]
+    SPEED_CACHE.write_text("\n".join(rows) + "\n")
 
 
 def main():
@@ -147,9 +244,11 @@ def main():
     with open(YAML_PATH) as f:
         config = yaml.safe_load(f)
 
-    output = generate(config)
-    OUTPUT_PATH.write_text("\n".join(output) + "\n")
+    lines, speed = generate(config)
+    OUTPUT_PATH.write_text("\n".join(lines) + "\n")
+    write_speed_cache(speed)
     print(f"Generated: {OUTPUT_PATH}")
+    print(f"Generated: {SPEED_CACHE}")
 
 
 if __name__ == "__main__":
