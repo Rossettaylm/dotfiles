@@ -15,6 +15,7 @@
 !setup_dep/**
 !sync.sh
 !dep.txt
+!dep_macos.txt
 
 # ── Zsh ──────────────────────────────────────────────
 !zsh/

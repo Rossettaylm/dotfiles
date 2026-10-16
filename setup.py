@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import argparse
 import os
 import subprocess
 import sys
@@ -64,15 +63,6 @@ def ensure_system_paths():
 # ── 主流程 ────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="初始化开发环境依赖")
-    parser.add_argument(
-        "--pat",
-        metavar="TOKEN",
-        default=None,
-        help="GitHub Personal Access Token（也可通过 GITHUB_PAT / GITHUB_TOKEN 传入）",
-    )
-    args = parser.parse_args()
-
     print(f"\n{BOLD}{YELLOW}  dotfiles 开发环境初始化{RESET}")
     print(f"{DIM}  {'─' * 40}{RESET}")
 
@@ -84,13 +74,14 @@ def main():
     step_start("Git / GitHub 配置")
     try:
         from setup_dep.git_setup import (
-            resolve_pat, probe_ssh_github, setup_repo_remote, update_submodules,
+            ensure_ssh_ready, setup_repo_remote, update_submodules,
         )
-        pat = resolve_pat(args.pat)
-        use_ssh = probe_ssh_github()
-        setup_repo_remote(repo_root, use_ssh, pat)
+        if not ensure_ssh_ready():
+            step_fail("SSH 未完成 GitHub 授权，后续步骤可能失败")
+            sys.exit(1)
+        setup_repo_remote(repo_root)
         step_info("更新 git submodules...")
-        update_submodules(repo_root, use_ssh, pat)
+        update_submodules(repo_root)
         step_ok("Git 配置完成")
     except SystemExit:
         raise
@@ -125,17 +116,14 @@ def main():
     # ── 4. Homebrew ──
     step_start("Homebrew 依赖")
     try:
-        from setup_dep.brew import ensure_brew, brew_install
+        import platform
+        from setup_dep.brew import ensure_brew, brew_install, read_deps
         brew = ensure_brew()
-        dep_file = repo_root / "dep.txt"
-        if not dep_file.exists():
-            step_fail(f"依赖文件不存在: {dep_file}")
-            sys.exit(1)
-        deps = [
-            line.strip()
-            for line in dep_file.read_text().splitlines()
-            if line.strip() and not line.strip().startswith("#")
-        ]
+        deps = read_deps(repo_root / "dep.txt")
+        if platform.system() == "Darwin":
+            mac_deps = read_deps(repo_root / "dep_macos.txt")
+            deps += mac_deps
+            step_info(f"含 macOS 专属 {len(mac_deps)} 个包")
         step_info(f"共 {len(deps)} 个包")
         brew_install(brew, deps)
         step_ok("Homebrew 依赖安装完成")
@@ -145,7 +133,19 @@ def main():
         step_fail(f"Homebrew 安装失败: {e}")
         sys.exit(1)
 
-    # ── 5. Shell & Git config ──
+    # ── 5. Node 工具（claude-code / cursor CLI） ──
+    step_start("Node 工具")
+    try:
+        from setup_dep.node_tools import init_node_tools
+        init_node_tools()
+        step_ok("Node 工具配置完成")
+    except SystemExit:
+        raise
+    except Exception as e:
+        step_fail(f"Node 工具安装失败: {e}")
+        sys.exit(1)
+
+    # ── 6. Shell & Git config ──
     step_start("Shell / Git 全局配置")
     try:
         from setup_dep.shell_config import setup_zshrc
@@ -159,7 +159,7 @@ def main():
         step_fail(f"配置失败: {e}")
         sys.exit(1)
 
-    # ── 6. 定时同步任务 ──
+    # ── 7. 定时同步任务 ──
     step_start("定时同步任务")
     try:
         from setup_dep.sync_timer import setup_sync_timer
@@ -171,7 +171,7 @@ def main():
         step_fail(f"同步任务配置失败: {e}")
         sys.exit(1)
 
-    # ── 7. Claude Code ──
+    # ── 8. Claude Code ──
     step_start("Claude Code")
     try:
         from setup_dep.claude_code import init_claude_code
@@ -183,7 +183,7 @@ def main():
         step_fail(f"Claude Code 配置失败: {e}")
         sys.exit(1)
 
-    # ── 8. AI 通知 Hooks ──
+    # ── 9. AI 通知 Hooks ──
     step_start("AI 通知 Hooks")
     try:
         from setup_dep.ai_hooks import inject_ai_hooks
@@ -195,7 +195,7 @@ def main():
         step_fail(f"AI Hooks 注入失败: {e}")
         sys.exit(1)
 
-    # ── 9. Yazi 插件 ──
+    # ── 10. Yazi 插件 ──
     step_start("Yazi 插件")
     try:
         subprocess.run(["ya", "pkg", "install"], check=True)
@@ -206,7 +206,7 @@ def main():
         step_fail("Yazi 插件安装失败")
         sys.exit(1)
 
-    # ── 10. Tmux 插件 ──
+    # ── 11. Tmux 插件 ──
     step_start("Tmux 插件")
     try:
         from setup_dep.tmux import init_tmux
@@ -218,7 +218,7 @@ def main():
         step_fail(f"Tmux 插件安装失败: {e}")
         sys.exit(1)
 
-    # ── 11. Zellij 插件 ──
+    # ── 12. Zellij 插件 ──
     step_start("Zellij 插件")
     try:
         from setup_dep.zellij_plugins import init_zellij_plugins

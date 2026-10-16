@@ -84,6 +84,17 @@ def ensure_brew() -> str:
     return brew
 
 
+def read_deps(path: Path) -> list[str]:
+    """读取依赖清单，忽略空行与 # 注释。"""
+    if not path.exists():
+        return []
+    return [
+        line.strip()
+        for line in path.read_text().splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+
+
 def brew_install(brew: str, deps: list[str]):
     """批量安装依赖"""
     if not deps:
