@@ -3,7 +3,6 @@ git-lfs
 starship
 neovim
 neofetch
-ghostty
 yazi
 ripgrep
 tmux
@@ -13,7 +12,6 @@ stylua
 pyright
 cmake
 fd
-font-commit-mono-nerd-font
 tree
 lazygit
 bottom
@@ -26,7 +24,6 @@ hexyl
 ouch
 glow
 mediainfo
-claude-code
 node
 tree-sitter-cli
 git-delta
