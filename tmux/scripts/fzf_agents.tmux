@@ -40,9 +40,14 @@ do_action() {
     preview_cmd="bash $0 preview_pane {1}"
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
     header='enter=go  ctrl-v=move-h  ctrl-s=move-v  ctrl-t=swap  ctrl-x=kill  ctrl-r=reload  alt-p=preview'
-    # --no-sort: panes_src 已按 blocked/unread/working/idle 分组 + 组内 MRU 排好，
-    # 交给 fzf 按匹配分重排会把「最该处理的排最上面」这个设计直接抹掉。
-    selected=$(bash $0 panes_src | fzf -m --ansi --no-sort --preview="$preview_cmd" \
+    # --tiebreak=index：匹配分优先，同分才回退到 panes_src 的
+    # blocked/unread/working/idle 分组 + 组内 MRU 顺序。曾经用 --no-sort 保序，但它是
+    # 「完全忽略匹配分」，会让语义弱匹配（如路径里顺带带 config）压过强匹配（TASK 里
+    # 连续命中 config）。query 为空时所有分数相同，index 回退等价于纯输入顺序，分组不丢。
+    # --nth=3,6 只搜 PATH 和 TASK（编号相对 --with-nth 输出：1=SESSION … 3=PATH …
+    # 6=TASK），否则输 idle/working 会把整张表都命中。
+    selected=$(bash $0 panes_src | fzf -m --ansi --preview="$preview_cmd" \
+        --tiebreak=index --nth=3,6 \
         --popup center,100%,85% \
         --border-label ' AI Agents ' \
         --header="$header" \
