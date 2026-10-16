@@ -1,0 +1,5 @@
+# macOS 专属依赖（Homebrew cask / 桌面字体）
+# Linux 上由 setup_dep/node_tools.py 用 npm 安装 claude-code，其余项跳过
+ghostty
+font-commit-mono-nerd-font
+claude-code
