@@ -26,7 +26,7 @@ A modular, self-bootstrapping dotfiles setup covering the full terminal developm
 | Window manager | *(AeroSpace config has been removed)* |
 
 > [!NOTE]
-> The repo is cross-platform: setup, sync timer and env vars all branch on `uname`. macOS is the primary target; Linux (systemd user timer, Homebrew on Linux) is supported as a secondary target.
+> The repo is cross-platform: setup, sync timer and env vars all branch on `uname`. macOS is the primary target; Linux (systemd user timer with crontab fallback, Homebrew on Linux) is supported as a secondary target, including headless servers with no browser.
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ A modular, self-bootstrapping dotfiles setup covering the full terminal developm
 
 ```bash
 # 1. Clone to ~/.config (with submodules)
-git clone --recursive git@github.com:Rossettaylm/config.git ~/.config
+git clone --recursive git@github.com:Rossettaylm/dotfiles.git ~/.config
 
 # 2. Bootstrap everything
 python3 ~/.config/setup.py
@@ -46,20 +46,23 @@ python3 ~/.config/setup.py
 
 `setup.py` runs the following steps in order:
 
-1. Git / GitHub remote (SSH or HTTPS with PAT fallback) + submodule update
+1. Git / GitHub: SSH key setup, host-key seeding, and remote wiring + submodule update
 2. FZF install / link
 3. Zsh plugins (submodule init: zsh-defer, fzf-tab, zsh-autosuggestions, zsh-syntax-highlighting)
-4. Homebrew dependencies from `dep.txt`
-5. Shell (`~/.zshrc`) + Git global config
-6. Auto-sync timer (macOS crontab / Linux systemd user timer)
-7. Claude Code config
-8. AI notification hooks
-9. Yazi plugins (`ya pkg install`)
-10. Tmux plugins via TPM
-11. Zellij plugins (`zjstatus.wasm`)
+4. Homebrew dependencies from `dep.txt` (plus `dep_macos.txt` on macOS)
+5. Node tools: claude-code via npm on Linux, Cursor CLI via its install script
+6. Shell (`~/.zshrc`) + Git global config
+7. Auto-sync timer (macOS crontab / Linux systemd user timer, crontab fallback)
+8. Claude Code config
+9. AI notification hooks
+10. Yazi plugins (`ya pkg install`)
+11. Tmux plugins via TPM
+12. Zellij plugins (`zjstatus.wasm`)
 
 > [!NOTE]
-> Pass `--pat TOKEN` (or set `GITHUB_PAT` / `GITHUB_TOKEN`) if SSH is unavailable. The Git step falls back to HTTPS + PAT.
+> No browser required. If no SSH key exists, `setup.py` generates one and prints the
+> public key to paste into GitHub, then waits for you to confirm. If port 22 is
+> blocked it rewrites `~/.ssh/config` to reach GitHub over `ssh.github.com:443`.
 
 ## Core Components
 
@@ -227,7 +230,7 @@ Flavors: `everforest-medium`, `kanagawa`. Openers include `edit`, `open`, `revea
 | `lazygit_edit.sh` | LazyGit → Neovim editor bridge |
 | `open_with.sh` | fzf "open with" picker (used by Yazi) |
 | `theme` | Theme switcher (catppuccin-mocha / kanagawa for tmux) |
-| `ai_notify.sh` | AI agent completion notification hook |
+| `ai_notify.sh` | AI agent completion notification hook (macOS: `terminal-notifier`; Linux: `notify-send`) |
 | `skill-install.sh` | Claude skill installer wrapper |
 | `rmnvimswap` | Clean up Neovim swap files |
 | `rm_install_file.sh` | Clean up installer artifacts |
@@ -235,12 +238,13 @@ Flavors: `everforest-medium`, `kanagawa`. Openers include `edit`, `open`, `revea
 
 ## Homebrew Dependencies
 
-All packages are declared in `dep.txt`. Core tools by category:
+Packages are declared in `dep.txt`; macOS-only entries (Homebrew casks, Nerd Font,
+claude-code) live in `dep_macos.txt` and are loaded only on Darwin. Core tools by category:
 
 | Category | Packages |
 |----------|----------|
 | Editor | `neovim` |
-| Terminal | `ghostty` |
+| Terminal | `ghostty` *(macOS)* |
 | Shell | `starship` (prompt) — *zsh is system default, atuin installed separately* |
 | Multiplexer | `tmux` |
 | Shell utilities | `ripgrep` `fd` `eza` `bat` `zoxide` `tldr` `dust` `tree` |
@@ -248,10 +252,10 @@ All packages are declared in `dep.txt`. Core tools by category:
 | File manager | `yazi` `chafa` `ffmpegthumbnailer` `imagemagick` `poppler` |
 | Preview | `glow` `hexyl` `mediainfo` `ouch` |
 | System monitoring | `bottom` `btop` `procs` |
-| Fonts | `font-commit-mono-nerd-font` |
+| Fonts | `font-commit-mono-nerd-font` *(macOS)* |
 | Dev tooling | `node` `cmake` `pyright` `tree-sitter-cli` `stylua` |
 | Misc | `neofetch` `clipboard` |
-| AI | `claude-code` |
+| AI | `claude-code` *(macOS cask; Linux installs it via npm)* |
 
 ## Auto-sync
 
@@ -269,20 +273,25 @@ Logs are written to `.sync.log`.
 ./sync.sh
 ```
 
-The setup registers **three** scheduled jobs (idempotent):
+The setup registers **four** scheduled jobs (idempotent):
 
 | Job | Schedule | Platform | Target |
 |-----|----------|----------|--------|
 | dotfiles sync | daily 08:00 | macOS crontab | `sync.sh` |
 | dotfiles sync | daily 08:00 (persistent) | Linux systemd user timer (`config-sync.timer`) | `sync.sh` |
-| brew cache update | weekly Mon 06:00 | macOS crontab | `zsh/fzf/brew/update_brew_cache.py` |
-| claude skill cache update | weekly Thu 06:00 | macOS crontab | `zsh/fzf/claude/update_skill_cache.py` |
+| brew cache update | daily 06:00 | crontab (both) | `zsh/fzf/brew/update_brew_cache.py` |
+| claude skill cache update | weekly Thu 06:00 | crontab (both) | `zsh/fzf/claude/update_skill_cache.py` |
+
+> [!NOTE]
+> On Linux the sync job prefers a systemd user timer. When the systemd user manager is
+> unreachable (containers, plain SSH sessions with no D-Bus), setup falls back to crontab
+> for all four jobs.
 
 ## Repository Structure
 
 `.gitignore` uses a **whitelist strategy**: all files are ignored by default (`*`), and directories are explicitly included with `!dirname/` rules. Add a new `!` rule when tracking a new config directory.
 
-Tracked top-level directories: `zsh/`, `nvim/`, `tmux/`, `zellij/`, `yazi/`, `ghostty/`, `lazygit/`, `scripts/`, `themes/`, `bat/`, `neofetch/`, `bottom/`, `git/`, `gh/`, `starship/`, `thirdparty/` (fzf + tpm submodules), `setup_dep/`, plus root files `setup.py`, `sync.sh`, `dep.txt`, `README.md`, `CLAUDE.md`.
+Tracked top-level directories: `zsh/`, `nvim/`, `tmux/`, `zellij/`, `yazi/`, `ghostty/`, `lazygit/`, `scripts/`, `themes/`, `bat/`, `neofetch/`, `bottom/`, `git/`, `gh/`, `starship/`, `thirdparty/` (fzf + tpm submodules), `setup_dep/`, plus root files `setup.py`, `sync.sh`, `dep.txt`, `dep_macos.txt`, `README.md`, `CLAUDE.md`.
 
 The whitelist is per-directory, so a few entries are narrower than they first appear — the table below mirrors the actual `.gitignore` rules:
 
