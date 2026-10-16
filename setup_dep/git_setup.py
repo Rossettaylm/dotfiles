@@ -15,7 +15,7 @@ GITHUB_HOST = "github.com"
 SSH_HOST = "ssh.github.com"
 SSH_PORT_ALT = "443"
 REPO_OWNER = "Rossettaylm"
-REPO_NAME = "config"
+REPO_NAME = "dotfiles"
 REPO_SSH_URL = f"git@{GITHUB_HOST}:{REPO_OWNER}/{REPO_NAME}.git"
 
 KEY_CANDIDATES = ["id_ed25519", "id_rsa", "id_ecdsa"]
