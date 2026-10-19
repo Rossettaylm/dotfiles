@@ -24,6 +24,13 @@ bindkey -M viins '^A' beginning-of-line       # ctrl+a 跳到行首
 bindkey -M viins '^E' end-of-line             # ctrl+e 跳到行尾
 bindkey -M viins '^F' autosuggest-accept      # ctrl+f 接受 autosuggestion 补全
 
+# tmux extended-keys always 会把 Shift+Space 编码为 CSI-u，未绑定时 zsh 回退到 ESC 进 vicmd 并触发 u(undo)
+_csiu_space() { LBUFFER+=' ' }
+zle -N _csiu_space
+bindkey -M viins '^[[32;2u' _csiu_space
+bindkey -M viins '^[[13;2u' accept-line       # Shift+Enter 同理，按 Enter 处理
+bindkey -M vicmd '^[[13;2u' accept-line
+
 # -- visual 模式：yank 同步系统剪贴板 --
 vi-yank-to-clipboard() {
   zle vi-yank
