@@ -402,7 +402,8 @@ def derive_groups(provider: str, models: list[dict]) -> dict[str, dict]:
     """把扁平模型列表派生成 opus/sonnet/haiku 三元组。
 
     Claude 家族：每个 opus 版本一组，sonnet 取「版本不高于该 opus 的最新一个」，
-    haiku 取最新一个；非 Claude 模型各自成组，三个槽位填同一个模型。
+    haiku 取最新一个；每个 sonnet 版本再单独成组（三槽位同填该 sonnet，
+    可直接把主模型切到 sonnet）；非 Claude 模型各自成组，三个槽位填同一个模型。
     """
     windows = {m["id"]: m.get("window") for m in models}
     family, others = split_claude_family(models)
@@ -424,6 +425,14 @@ def derive_groups(provider: str, models: list[dict]) -> dict[str, dict]:
             "haiku": finalize_id(haiku[1] if haiku else opus_id, windows),
         }
         groups[f"opus{version[0]}.{version[1]}"] = values
+
+    for version, sonnet_id, _ in sons:
+        model_id = finalize_id(sonnet_id, windows)
+        groups[f"sonnet{version[0]}.{version[1]}"] = {
+            "opus": model_id,
+            "sonnet": model_id,
+            "haiku": model_id,
+        }
 
     for model in pick_others(others):
         model_id = finalize_id(model["id"], windows)
