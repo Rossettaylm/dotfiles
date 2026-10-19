@@ -291,13 +291,6 @@
         "window": 400000
       },
       {
-        "id": "gpt-5.4-demo",
-        "name": "gpt-5.4-demo",
-        "price": "$2.5/$15",
-        "rank": 2.5,
-        "window": 1050000
-      },
-      {
         "id": "gpt-5.4-mini",
         "name": "gpt-5.4-mini",
         "price": "$0.75/$4.5",
@@ -310,13 +303,6 @@
         "price": "$5/$25",
         "rank": 5.0,
         "window": 1100000
-      },
-      {
-        "id": "gpt-5.5-demo",
-        "name": "gpt-5.5-demo",
-        "price": "$5/$25",
-        "rank": 5.0,
-        "window": 1050000
       },
       {
         "id": "gpt-5.6-luna",
