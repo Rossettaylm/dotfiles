@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source "$(dirname "$0")/fzf_utils.sh"
+
 # invoked by pane-focus-in event
 update_mru_pane_ids() {
     o_data=($(tmux show -gqv '@mru_pane_ids'))
@@ -15,7 +17,8 @@ update_mru_pane_ids() {
 # $FZF_PREVIEW_LINES rows. Cursor-agent / pi grow from the top (no alternate
 # screen); slicing by pane_height would preview the empty region below.
 preview_pane() {
-    local pane_id=$1
+    local pane_id
+    pane_id=$(strip_ansi "$1")
     local n=${FZF_PREVIEW_LINES:-40}
     tmux capture-pane -pe -t "$pane_id" | awk -v n="$n" -v ESC=$'\033' '
     function visible(s) {
@@ -36,23 +39,28 @@ preview_pane() {
 }
 
 do_action() {
+    local script_dir
+    script_dir=$(dirname "$0")
     cmd="bash $0 panes_src"
-    preview_cmd="bash $0 preview_pane {1}"
+    # 数据源交给 reload 而不是管道：表宽要按 fzf 的真实几何反推，而管道生产者
+    # 在 fzf 起来之前就写完输出，环境里没有 FZF_COLUMNS（实测为 0）。start:transform
+    # 在布局完成之后执行，此时尺寸可用。
     last_pane_cmd='$(tmux show -gqv "@mru_pane_ids" | cut -d\  -f1)'
-    header='enter=go  ctrl-v=move-h  ctrl-s=move-v  ctrl-t=swap  ctrl-x=kill  ctrl-r=reload  alt-p=preview'
+    header='enter=go  ctrl-v=move-h  ctrl-s=move-v  ctrl-t=swap  ctrl-x=kill  ctrl-r=reload  ctrl-/=layout  alt-p=preview'
     # --tiebreak=index：匹配分优先，同分才回退到 panes_src 的
     # blocked/unread/working/idle 分组 + 组内 MRU 顺序。曾经用 --no-sort 保序，但它是
     # 「完全忽略匹配分」，会让语义弱匹配（如路径里顺带带 config）压过强匹配（TASK 里
     # 连续命中 config）。query 为空时所有分数相同，index 回退等价于纯输入顺序，分组不丢。
     # --nth=3,6 只搜 PATH 和 TASK（编号相对 --with-nth 输出：1=SESSION … 3=PATH …
     # 6=TASK），否则输 idle/working 会把整张表都命中。
-    selected=$(bash $0 panes_src | fzf -m --ansi --preview="$preview_cmd" \
+    selected=$(printf '' | fzf -m "${fzf_popup_opts[@]}" \
+        --preview="bash $0 preview_pane {1}" \
         --tiebreak=index --nth=3,6 \
-        --popup center,100%,85% \
         --border-label ' AI Agents ' \
         --header="$header" \
-        --preview-window='bottom:70%' --reverse --info=inline --header-lines=1 \
         --delimiter='\s{2,}' --with-nth=2..-1 \
+        --bind="start:transform:bash $script_dir/fzf_utils.sh reload $0 panes_src" \
+        --bind="ctrl-_:transform:bash $script_dir/fzf_utils.sh toggle_layout $0 panes_src" \
         --bind="alt-e:abort" \
         --bind="alt-p:toggle-preview" \
         --bind="ctrl-r:reload($cmd)" \
@@ -106,152 +114,32 @@ do_action() {
     fi
 }
 
-# Display-column helpers. 每列宽度是「显示列数」，不是字符数 —— 见下面 dwidth。
-# Columns are joined with two spaces so fzf --delimiter='\s{2,}' still works.
+# 列顺序：PANEID SESSION AGENT PATH STATUS AGE TASK（PANEID 被 --with-nth 藏起来，
+# 只供选中后回查 pane id）。宽度不再是常量：agent_cols 按 popup 实际宽度分配，
+# 富余空间给 TASK，收窄时依次砍 TASK -> PATH -> SESSION -> AGE，其余列是定长内容。
 COL_PANEID=6
 COL_SESSION=12
 COL_AGENT=10
 COL_PATH=32
 COL_STATUS=11
-# 列宽预算：popup 是 -w 100%，可见宽度 = client 宽 - 8（被 --with-nth 藏掉的
-# PANEID 列 + 6 个分隔符 + fzf 左侧留白）。client 119 时可见 109 列，正好装下
-# 6+12+10+32+11+7+27 + 12 个分隔符 = 117 减去藏掉的 8。改列宽要重算这笔账。
 COL_DUR=7
 COL_TASK=27
 
-# ── 显示宽度 ─────────────────────────────────────────────────
-# 中文任务名/路径占 2 列，Nerd Font 图标占 1 列。按 ${#text} 数「字符数」排版
-# 会让含中文的行冲出 popup（实测 27 字符的中文任务渲染 36 列，整行被 fzf 裁掉
-# 尾巴）。这里按 East Asian Width 的 W/F 判定算真实列数。
-WIDE="4352 4447 8986 8987 9001 9002 9193 9196 9200 9200 9203 9203 9725 9726 9748 9749 9800 9811 9855 9855 9875 9875 9889 9889 9898 9899 9917 9918 9924 9925 9934 9934 9940 9940 9962 9962 9970 9973 9978 9978 9981 9981 9989 9989 9994 9995 10024 10024 10060 10062 10067 10071 10133 10135 10160 10160 10175 10175 11035 11036 11088 11088 11093 11093 11904 12019 12032 12245 12272 12283 12288 12350 12353 12438 12441 12543 12549 12771 12784 12871 12880 19903 19968 42124 42128 42182 43360 43388 44032 55203 63744 64109 64112 64217 65040 65049 65072 65131 65281 65376 65504 65510 94176 94180 94192 94193 94208 100343 100352 101589 101632 101640 110576 110882 110928 110930 110948 110951 110960 111355 126980 126980 127183 127183 127374 127374 127377 127386 127488 127490 127504 127547 127552 127560 127568 127569 127584 127589 127744 127776 127789 127891 127904 127946 127951 127955 127968 127984 127988 127988 127992 128252 128255 128317 128331 128359 128378 128378 128405 128406 128420 128420 128507 128591 128640 128709 128716 128716 128720 128722 128725 128727 128733 128735 128747 128748 128756 128764 128992 129003 129008 129008 129292 129535 129648 129652 129656 129660 129664 129670 129680 129708 129712 129722 129728 129733 129744 129753 129760 129767 129776 129782 131072 173791 173824 177976 177984 178205 178208 183969 183984 191456 194560 195101 196608 201546"
-read -r -a WIDE <<<"$WIDE"
-WIDE_N=${#WIDE[@]}
-
-# 码点是否落在 W/F 区间里（二分）。只收已分配码点，未分配的和 Python
-# unicodedata 的判定一致地算窄 —— 真实文本里不会出现。
-cp_wide() {
-    local cp=$1
-    local lo=0
-    local hi=$(( WIDE_N / 2 - 1 ))
-    local mid a b
-    while (( lo <= hi )); do
-        mid=$(( (lo + hi) / 2 ))
-        a=${WIDE[mid * 2]}
-        b=${WIDE[mid * 2 + 1]}
-        if (( cp < a )); then
-            hi=$(( mid - 1 ))
-        elif (( cp > b )); then
-            lo=$(( mid + 1 ))
-        else
-            return 0
-        fi
-    done
-    return 1
-}
-
-# 单个字符占几列。UTF-8 首字节自描述长度，手写解码比 fork python 快两个数量级。
-# 结果写进全局 CW 而不是 stdout：$(cwidth ...) 每个字符 fork 一次子 shell，
-# 20 个 agent 的表格要 6 秒；改成全局变量后同样输入 0.1 秒。
-# LC_ALL=C 让 ${c:i:1} 按字节切片；注意每个 local 单独一行 —— bash 3.2 会先
-# 展开整行的所有词再赋值，`local a=$1 b=${#a}` 里的 ${#a} 取到的是调用方的 a。
-CW=1
-cwidth() {
-    local c=$1
-    local LC_ALL=C
-    local b0 b1 b2 b3 cp
-    printf -v b0 '%d' "'${c:0:1}"
-    (( b0 < 0 )) && b0=$(( b0 + 256 ))
-    if (( b0 < 0x80 )); then
-        CW=1
+AGENT_COL_PREF='6,12,10,24,9,5,20'
+AGENT_COL_FLOOR='6,10,8,10,9,5,10'
+AGENT_COL_SHRINK='3,1,6,5,4,2,0'
+AGENT_COL_GROW=6
+agent_cols() {
+    local avail
+    avail=$(fzf_table_width)
+    if (( avail <= 0 )); then
+        # 拿不到 fzf 尺寸（直接手工跑数据源）：退回固定宽度
+        COL_PANEID=6 COL_SESSION=12 COL_AGENT=10 COL_PATH=32 COL_STATUS=11 COL_DUR=7 COL_TASK=27
         return
     fi
-    printf -v b1 '%d' "'${c:1:1}"
-    (( b1 < 0 )) && b1=$(( b1 + 256 ))
-    if (( b0 < 0xE0 )); then
-        cp=$(( (b0 & 0x1F) << 6 | (b1 & 0x3F) ))
-        if cp_wide "$cp"; then CW=2; else CW=1; fi
-        return
-    fi
-    printf -v b2 '%d' "'${c:2:1}"
-    (( b2 < 0 )) && b2=$(( b2 + 256 ))
-    if (( b0 < 0xF0 )); then
-        cp=$(( (b0 & 0x0F) << 12 | (b1 & 0x3F) << 6 | (b2 & 0x3F) ))
-        if cp_wide "$cp"; then CW=2; else CW=1; fi
-        return
-    fi
-    printf -v b3 '%d' "'${c:3:1}"
-    (( b3 < 0 )) && b3=$(( b3 + 256 ))
-    cp=$(( (b0 & 0x07) << 18 | (b1 & 0x3F) << 12 | (b2 & 0x3F) << 6 | (b3 & 0x3F) ))
-    if cp_wide "$cp"; then CW=2; else CW=1; fi
-}
-
-# 整串的字节数。自带 LC_ALL=C 作用域，不污染调用方 —— 调用方必须保持 UTF-8，
-# 否则 ${text:i:1} 会按字节切片，把一个 3 字节的字符劈成三个乱码字节。
-byte_len() {
-    local text=$1
-    local LC_ALL=C
-    printf '%s' "${#text}"
-}
-
-dwidth() {
-    local text=$1
-    local i=0
-    local w=0
-    local n=${#text}
-    # 纯 ASCII 时字符数 == 字节数 == 列数。表格里 PATH/SESSION/TASK 多数时候是
-    # ASCII，这条快路径省掉整个逐字符解码循环。
-    if (( n == $(byte_len "$text") )); then
-        printf '%s' "$n"
-        return
-    fi
-    while (( i < n )); do
-        cwidth "${text:i:1}"
-        w=$(( w + CW ))
-        (( i++ ))
-    done
-    printf '%s' "$w"
-}
-
-# 按显示列数裁剪 + 右侧补空格到 width 列。tail 模式从尾部截（路径更关心末端）。
-fit_col() {
-    local text=$1
-    local width=$2
-    local mode=${3:-head}
-    local len
-    len=$(dwidth "$text")
-    if (( len > width )); then
-        local budget=$(( width - 1 ))
-        local acc=0
-        local i c
-        local out=''
-        if [[ $mode == tail ]]; then
-            i=${#text}
-            while (( i > 0 )); do
-                c=${text:i-1:1}
-                cwidth "$c"
-                (( acc + CW > budget )) && break
-                out="$c$out"
-                acc=$(( acc + CW ))
-                i=$(( i - 1 ))
-            done
-        else
-            i=0
-            local n=${#text}
-            while (( i < n )); do
-                c=${text:i:1}
-                cwidth "$c"
-                (( acc + CW > budget )) && break
-                out="$out$c"
-                acc=$(( acc + CW ))
-                i=$(( i + 1 ))
-            done
-        fi
-        # 必须写成 "${out}…"：bash 3.2 里 "$out…" 会把 … 的首字节当成变量名
-        # 的一部分吃掉，只留下 \x80\xa6 两个残字节
-        text="${out}…"
-        len=$(( acc + 1 ))
-    fi
-    printf '%s%*s' "$text" $(( width - len )) ''
+    fit_cols "$avail" "$AGENT_COL_PREF" "$AGENT_COL_FLOOR" "$AGENT_COL_GROW" "$AGENT_COL_SHRINK"
+    COL_PANEID=${COLS[0]} COL_SESSION=${COLS[1]} COL_AGENT=${COLS[2]} COL_PATH=${COLS[3]}
+    COL_STATUS=${COLS[4]} COL_DUR=${COLS[5]} COL_TASK=${COLS[6]}
 }
 
 format_status() {
@@ -336,7 +224,8 @@ fmt_age() {
 # 用 execute（而非 execute-silent）弹 y/n：kill 掉正在跑 agent 的 pane 不可撤销，
 # 而这个键紧挨着 ctrl-r，误触代价太大。
 confirm_kill() {
-    local pane_id=$1
+    local pane_id
+    pane_id=$(strip_ansi "$1")
     [[ -n $pane_id ]] || return 0
     printf '\033[1;31m kill pane %s? [y/N] \033[0m' "$pane_id" >/dev/tty
     local answer
@@ -346,6 +235,7 @@ confirm_kill() {
 }
 
 panes_src() {
+    agent_cols
     printf '%s  %s  %s  %s  %s  %s  %s\n' \
         "$(fit_col 'PANEID' "$COL_PANEID")" \
         "$(fit_col 'SESSION' "$COL_SESSION")" \

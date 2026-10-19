@@ -1,24 +1,22 @@
 #!/usr/bin/env bash
 
+source "$(dirname "$0")/fzf_utils.sh"
+
 do_action() {
+    local script_dir
+    script_dir=$(dirname "$0")
     cmd="bash $0 sessions_src"
 
-    header="enter=switch  ctrl-r=rename  alt-bspace=kill  ctrl-n=new  ctrl-f=reload"
+    header="enter=switch  ctrl-r=rename  alt-bspace=kill  ctrl-n=new  ctrl-f=reload  ctrl-/=layout"
 
-    selected=$(bash $0 sessions_src | fzf \
-        --popup center,90%,80% \
+    selected=$(printf '' | fzf "${fzf_popup_opts[@]}" \
         --border-label ' Sessions ' \
-        --ansi \
-        --color='bg:-1,bg+:-1' \
-        --reverse \
-        --info=inline \
-        --header-lines=1 \
         --header="$header" \
         --preview="bash $0 session_preview {1}" \
-        --preview-window=bottom:70%:border-top:wrap \
         --delimiter='\s{2,}' \
-        --with-nth=2.. \
-        --nth=1,2 \
+        --nth=1 \
+        --bind="start:transform:bash $script_dir/fzf_utils.sh reload $0 sessions_src" \
+        --bind="ctrl-_:transform:bash $script_dir/fzf_utils.sh toggle_layout $0 sessions_src" \
         --bind="alt-w:abort" \
         --bind="ctrl-f:reload($cmd)" \
         --bind="ctrl-r:execute(bash $0 rename_session {1})+reload($cmd)" \
@@ -28,16 +26,18 @@ do_action() {
 
     [[ -z $selected ]] && return
 
-    session=$(awk '{print $1}' <<<"$selected")
+    # 行首带 SGR 颜色，先剥掉再取第一列会话名
+    session=$(printf '%s\n' "$selected" | sed $'s/\033\\[[0-9;]*m//g' | awk '{print $1}')
     [[ -n $session ]] && tmux switch-client -t "$session"
 }
 
 session_preview() {
-    local name=$1
+    local name
+    name=$(strip_ansi "$1")
     [[ -z $name ]] && return
 
     local created wins panes
-    created=$(tmux display-message -t "$name" -p '#{t/f/%Y-%m-%d %H:%M:session_created}' 2>/dev/null)
+    created=$(tmux display-message -t "$name" -p '#{t/f/%Y-%m-%d %H%M:session_created}' 2>/dev/null)
     wins=$(tmux list-windows -t "$name" 2>/dev/null | wc -l | tr -d ' ')
     panes=$(tmux list-panes -t "$name" -s 2>/dev/null | wc -l | tr -d ' ')
 
@@ -57,14 +57,16 @@ session_preview() {
 }
 
 rename_session() {
-    local session=$1
+    local session
+    session=$(strip_ansi "$1")
     printf "Rename [%s] → " "$session" >/dev/tty
     read -r newname </dev/tty
     [[ -n $newname ]] && tmux rename-session -t "$session" "$newname"
 }
 
 kill_session() {
-    local session=$1
+    local session
+    session=$(strip_ansi "$1")
     local current
     current=$(tmux display-message -p '#S')
     if [[ $session == "$current" ]]; then
@@ -80,19 +82,49 @@ new_session() {
     [[ -n $newname ]] && tmux new-session -d -s "$newname"
 }
 
+# 列顺序：NAME WINS PANES CREATED MARK。宽度由 fit_cols 按 popup 实际宽度分配，
+# 富余空间给 CREATED；MARK 固定宽度（"(current)" / "(last)"），这样每行等长。
+COL_NAME=20
+COL_WINS=5
+COL_PANES=5
+COL_CREATED=13
+COL_MARK=10
+
+SESS_COL_PREF='20,5,5,13,10'
+SESS_COL_FLOOR='10,4,5,11,9'
+SESS_COL_SHRINK='3,0,1,2,4'
+SESS_COL_GROW=4
+sess_cols() {
+    local avail
+    avail=$(fzf_table_width)
+    if (( avail <= 0 )); then
+        COL_NAME=20 COL_WINS=5 COL_PANES=5 COL_CREATED=13 COL_MARK=10
+        return
+    fi
+    fit_cols "$avail" "$SESS_COL_PREF" "$SESS_COL_FLOOR" "$SESS_COL_GROW" "$SESS_COL_SHRINK"
+    COL_NAME=${COLS[0]} COL_WINS=${COLS[1]} COL_PANES=${COLS[2]} COL_CREATED=${COLS[3]}
+    COL_MARK=${COLS[4]}
+}
+
 sessions_src() {
     local current_session last_session
     current_session=$(tmux display-message -p '#S')
     last_session=$(tmux display-message -p '#{client_last_session}')
+    sess_cols
 
-    printf "%-20s  %-20s  %-5s  %-5s  %s\n" 'NAME' 'SESSION' 'WINS' 'PANES' 'CREATED'
+    printf '%s  %s  %s  %s  %s\n' \
+        "$(fit_col 'NAME' "$COL_NAME")" \
+        "$(fit_col 'WINS' "$COL_WINS")" \
+        "$(fit_col 'PANES' "$COL_PANES")" \
+        "$(fit_col 'CREATED' "$COL_CREATED")" \
+        "$(fit_col '' "$COL_MARK")"
 
     print_line() {
         local name=$1
         local wins panes created marker color
         wins=$(tmux list-windows -t "$name" 2>/dev/null | wc -l | tr -d ' ')
         panes=$(tmux list-panes  -t "$name" -s 2>/dev/null | wc -l | tr -d ' ')
-        created=$(tmux display-message -t "$name" -p '#{t/f/%m-%d %H:%M:session_created}' 2>/dev/null)
+        created=$(tmux display-message -t "$name" -p '#{t/f/%m-%d %H%M:session_created}' 2>/dev/null)
 
         if [[ $name == "$current_session" ]]; then
             marker=" (current)"; color="1;32"
@@ -102,12 +134,14 @@ sessions_src() {
             marker="";           color=""
         fi
 
-        local display
-        printf -v display "%-20s  %-5s  %-5s  %s%s" "$name" "$wins" "$panes" "$created" "$marker"
+        local tail
+        tail="$(fit_col "$wins" "$COL_WINS")  $(fit_col "$panes" "$COL_PANES")  $(fit_col "$created" "$COL_CREATED")  $(fit_col "$marker" "$COL_MARK")"
+        # SGR 只包住名字本身：即使锚在行首被 --with-nth 截掉，第一列仍是纯文本
+        # 会话名，{1} 预览和选中回查都不会拿到转义字符。
         if [[ -n $color ]]; then
-            printf "%-20s  \033[%sm%s\033[0m\n" "$name" "$color" "$display"
+            printf '\033[%sm%s\033[0m  %s\n' "$color" "$(fit_col "$name" "$COL_NAME")" "$tail"
         else
-            printf "%-20s  %s\n" "$name" "$display"
+            printf '%s  %s\n' "$(fit_col "$name" "$COL_NAME")" "$tail"
         fi
     }
 
@@ -120,9 +154,12 @@ sessions_src() {
     fi
 
     # other sessions alphabetically
+    local name p skip
     while read -r name; do
-        local skip=0
-        for p in "${printed[@]}" "$current_session"; do [[ $p == "$name" ]] && skip=1 && break; done
+        skip=0
+        for p in "${printed[@]}" "$current_session"; do
+            [[ $p == "$name" ]] && skip=1 && break
+        done
         (( skip )) && continue
         print_line "$name"
     done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null | sort)
