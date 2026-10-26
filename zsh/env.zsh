@@ -72,6 +72,14 @@ case $(uname) in
     # --- Linux 通用 ---
     export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin
     export PATH=$PATH:/usr/local/mariadb/bin
+    # 公式 API、brew 仓库走清华。portable-ruby 和 bottle 在 ghcr.io，
+    # 清华的 bottles-portable-ruby 已 404，直连 ghcr.io 会停在最后一两 MB。
+    # ARTIFACT_DOMAIN 会把 ghcr.io 换成南大镜像。
+    export HOMEBREW_NO_AUTO_UPDATE=1
+    export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
+    export HOMEBREW_ARTIFACT_DOMAIN="https://ghcr.nju.edu.cn"
+    export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+    export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git"
     # SSH 进来时标记本地是 tmux，让 nvim OSC52 使用 DCS 包裹穿透 tmux
     [ -n "$SSH_TTY" ] && export NVIM_FORCE_TMUX_OSC52=1
 
