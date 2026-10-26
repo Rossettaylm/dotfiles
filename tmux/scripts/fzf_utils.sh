@@ -23,7 +23,11 @@ fzf_layout_preview_window() {
 # 两个 popup 共用的 fzf 参数。--popup 之下 FZF_DEFAULT_OPTS 的 --height/--border 会被忽略。
 fzf_popup_opts=(
     --ansi
-    --color='bg:-1,bg+:-1'
+    --color='bg:-1,bg+:#313244,fg:#a6adc8,fg+:#cdd6f4:bold'
+    --color='hl:#f38ba8,hl+:#f38ba8:bold,pointer:#f5c2e7,marker:#a6e3a1'
+    --color='prompt:#cba6f7,query:#cdd6f4:bold,info:#6c7086,spinner:#f5c2e7'
+    --color='header:#7f849c,border:#585b70,label:#cba6f7:bold,preview-border:#45475a,separator:#45475a'
+    --highlight-line
     --reverse
     --info=inline
     --header-lines=1
