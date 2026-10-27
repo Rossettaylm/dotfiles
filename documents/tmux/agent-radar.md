@@ -81,12 +81,24 @@ client detach 后 `focused_pane_id()` 立即返回空串，焦点状态不会滞
 
 ## agent 类型识别
 
-`pane_current_command` 为 `claude` 直接认；`cursor-agent` 和 `pi` 都跑在 `node` 下，需要第二信号：
+`pane_current_command` 为 `claude` / `omp` 直接认；`cursor-agent` 和 `pi` 都跑在 `node` 下，需要第二信号：
 
 1. pi 空闲时 OSC title 以 `π` 开头（零 fork 快路径）
 2. 否则扫 pane 进程子树按命令行匹配，结果 memo 到 `(pane_id, pane_pid)`
 
 快路径必须配子树兜底：pi 工作时图标是 spinner 而非 `π`，只靠 title 会漏掉正在干活的 pi 面板。
+
+### omp（oh-my-pi）的 title
+
+omp 是 Bun 编译的单文件二进制，`pane_current_command` 就是 `omp`。title 格式 `π <标记> <任务>`（源码 `title-generator.ts` / `run-status.ts`）：
+
+| 标记 | omp 内部状态 | 雷达状态 |
+|------|------|------|
+| `>` | idle / error | `idle` |
+| `!` | blocked | `blocked` |
+| spinner 帧（braille / pulse / dots / line），无动画终端为 `:` | working | `working` |
+
+它同样以 `π` 开头，**不能**套 pi 的「`π` 开头即 idle」。关掉 title 状态显示后退化成 `π` / `π: <任务>`，判为 `unknown`。这是内部实现而非公开协议，omp 升级后若状态全变 `unknown`，先看 title 格式是否变了。
 
 ## 降级行为
 

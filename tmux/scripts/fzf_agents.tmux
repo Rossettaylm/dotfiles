@@ -193,6 +193,10 @@ format_agent() {
             icon=$'\xcf\x80' # U+03C0 π
             color='38;5;80'
             ;;
+        omp)
+            icon=$'\xcf\x80' # U+03C0 π，与 pi 同源，靠颜色区分
+            color='38;5;212'
+            ;;
         *)
             icon=' '
             color='2'

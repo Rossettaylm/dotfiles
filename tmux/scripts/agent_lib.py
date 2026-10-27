@@ -48,10 +48,11 @@ STATE_RANK = ("blocked", "unread", "working", "idle", "unknown")
 
 ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 
-# 只有 claude 和 node 值得进一步识别；node 下面藏着 cursor-agent 和 pi
+# 只有 claude / omp 和 node 值得进一步识别；node 下面藏着 cursor-agent 和 pi
 PANE_FILTER = (
     "#{||:#{==:#{pane_current_command},claude}"
-    ",#{==:#{pane_current_command},node}}"
+    ",#{||:#{==:#{pane_current_command},omp}"
+    ",#{==:#{pane_current_command},node}}}"
 )
 PANE_FIELDS = (
     "#D", "#{session_name}", "#{window_id}", "#{pane_current_command}",
@@ -143,7 +144,7 @@ def _ps_snapshot() -> list[tuple[int, int, str]]:
 
 # ── agent 类型识别 ───────────────────────────────────────────
 #
-# claude 的 pane_current_command 就是 "claude"，直接认。
+# claude / omp 的 pane_current_command 就是自己的名字，直接认。
 # cursor-agent 和 pi 都跑在通用的 node 下面，需要第二个信号区分：
 #   1. pi 空闲时 OSC title 以自己的 'π' 图标开头 —— 零 fork 快路径
 #   2. 否则扫 pane 的进程子树按命令行匹配（memo 到 pane_pid，一个 pane 的
@@ -182,8 +183,8 @@ def _probe_process_tree(pane_pid: int) -> str:
 
 
 def agent_key_for_pane(pane_id: str, pane_pid: str, command: str, title: str) -> str:
-    if command == "claude":
-        return "claude"
+    if command in ("claude", "omp"):
+        return command
     if command != "node":
         return ""
     if title.split(" ", 1)[0] == "π":
@@ -301,10 +302,26 @@ def parse_pi_title(pane_id: str, title: str, probe_screen: bool = True) -> tuple
     return state, task
 
 
+# omp（oh-my-pi）的 title 形如 "π <标记> <任务>"，标记来自其 run-status：
+# '>' idle/error，'!' blocked，其余单字符是 working 的 spinner 帧（无动画终端为 ':'）。
+# 也以 'π' 开头，所以不能套 pi 的「π 开头即 idle」。关掉 title 状态显示时
+# 退化成 "π" / "π: <任务>"，没有状态可读。
+_OMP_MARKS = {">": "idle", "!": "blocked"}
+
+
+def parse_omp_title(pane_id: str, title: str, probe_screen: bool = True) -> tuple[str, str]:
+    parts = title.split(" ", 2)
+    if parts[0] != "π" or len(parts) < 2 or len(parts[1]) != 1:
+        return "unknown", _after_first_space(title)
+    state = _OMP_MARKS.get(parts[1], "working")
+    return state, parts[2] if len(parts) > 2 else ""
+
+
 _PARSERS = {
     "claude": parse_claude_title,
     "cursor": parse_cursor_title,
     "pi": parse_pi_title,
+    "omp": parse_omp_title,
 }
 
 
