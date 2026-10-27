@@ -16,7 +16,7 @@ export PATH=$PATH:$HOME/.cargo/bin
 
 export EDITOR=nvim
 
-# Pi Coding Agent 配置目录（随 dotfiles 跨机器同步）
+# omp 会话目录（读取 PI_CODING_AGENT_DIR；随 dotfiles 同步，勿删 ~/.config/pi）
 export PI_CODING_AGENT_DIR="$HOME/.config/pi"
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
