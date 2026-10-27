@@ -100,6 +100,9 @@ yazi/*
 **/.claude/
 **/*_cache*
 
+# ── 运行时快照（含内部模型目录，勿入库） ─────────────
+zsh/fzf/claude/model_snapshots.json
+
 # ── Thirdparty submodules ────────────────────────────
 !thirdparty/
 thirdparty/*

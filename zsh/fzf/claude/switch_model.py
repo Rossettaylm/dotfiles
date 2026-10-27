@@ -1,10 +1,11 @@
 r"""交互式切换 Claude Code 的 provider 与模型组。
 
-provider 定义网关地址、token 来源环境变量与附加请求头：
+provider 定义网关地址、token 来源环境变量与附加请求头，均取自环境变量（定义在
+仓库外的 ~/.zshrc，缺任一项即中止）：
 
-- llmtoken → https://REDACTED     token 取自 LLMTOKEN_API_KEY
-- tclaude  → https://REDACTED  token 取自 TCLAUDE_AUTH_TOKEN
-             附加 User-Agent: REDACTED/0.1.5
+- llmtoken → 网关 LLMTOKEN_BASE_URL，token 取自 LLMTOKEN_API_KEY
+- tclaude  → 网关 TCLAUDE_BASE_URL， token 取自 TCLAUDE_AUTH_TOKEN
+             附加 User-Agent 取自 TCLAUDE_USER_AGENT
 
 模型组由上游模型列表自动派生，不再手工维护：
 
@@ -30,7 +31,7 @@ provider 的模型组写进 settings 的 modelPicker，使 /model 候选即为�
 settings 会热加载，会话中重新打开 /model 即生效；跨 provider 仍需重启，base URL 只在
 启动时读取）。`--sync-picker` 只刷新候选，不切换。
 
-token 只从环境变量读取，本脚本不硬编码任何凭证。
+本脚本不硬编码任何凭证或网关地址。
 """
 
 import json
@@ -60,16 +61,18 @@ HTTP_TIMEOUT = 15
 ONE_M = 1_000_000
 CONTEXT_KEY = "CLAUDE_CODE_MAX_CONTEXT_TOKENS"
 
+REQUIRED_ENV = ("LLMTOKEN_BASE_URL", "TCLAUDE_BASE_URL", "TCLAUDE_USER_AGENT")
+
 PROVIDERS = {
     "llmtoken": {
-        "base_url": "https://REDACTED",
+        "base_url": os.environ.get("LLMTOKEN_BASE_URL", ""),
         "token_env": "LLMTOKEN_API_KEY",
         "headers": {},
     },
     "tclaude": {
-        "base_url": "https://REDACTED",
+        "base_url": os.environ.get("TCLAUDE_BASE_URL", ""),
         "token_env": "TCLAUDE_AUTH_TOKEN",
-        "headers": {"User-Agent": "REDACTED/0.1.5"},
+        "headers": {"User-Agent": os.environ.get("TCLAUDE_USER_AGENT", "")},
     },
 }
 
@@ -769,6 +772,10 @@ def switch_model():
 
 
 if __name__ == "__main__":
+    missing = [name for name in REQUIRED_ENV if not os.environ.get(name)]
+    if missing:
+        shell.log_err(f"未设置 {', '.join(missing)}（应在 ~/.zshrc 中 export），已中止")
+        sys.exit(1)
     if SYNC_PICKER_FLAG in sys.argv[1:]:
         sync_picker()
     else:
