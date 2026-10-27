@@ -3,7 +3,8 @@
 数据来自 new-api 的 `/api/usage/token/`（token 维度，500000 quota = $1）。
 tclaude 暂无可用的余额接口。
 
-token 只从环境变量读取并放在请求头中，不会输出到终端或错误信息。
+网关地址与 token 只从环境变量读取（定义在仓库外的 ~/.zshrc），token 放在请求头中，
+不会输出到终端或错误信息。
 """
 
 import json
@@ -15,7 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pyutils import shell
 
-LLMTOKEN_BASE_URL = "https://REDACTED"
+LLMTOKEN_BASE_URL_ENV = "LLMTOKEN_BASE_URL"
 LLMTOKEN_TOKEN_ENV = "LLMTOKEN_API_KEY"
 QUOTA_PER_USD = 500000
 HTTP_TIMEOUT = 5
@@ -23,8 +24,11 @@ HTTP_TIMEOUT = 5
 
 def fetch_llmtoken_balance(token: str) -> dict[str, float]:
     """返回 {"used", "available", "granted"}，单位美元；失败时抛出异常。"""
+    base_url = os.environ.get(LLMTOKEN_BASE_URL_ENV)
+    if not base_url:
+        raise ValueError(f"未设置 {LLMTOKEN_BASE_URL_ENV}")
     req = urllib.request.Request(
-        f"{LLMTOKEN_BASE_URL}/api/usage/token/",
+        f"{base_url}/api/usage/token/",
         headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
     )
     with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
