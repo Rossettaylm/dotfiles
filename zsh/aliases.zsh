@@ -94,18 +94,6 @@ alias fman="python3 $ZSH_HOME/fzf/system/tldr_browser.py"
 alias fopen="python3 $ZSH_HOME/fzf/system/app_launcher.py"
 alias fcmd='print -z -- $(python3 $ZSH_HOME/fzf/system/cmd_browser.py)'
 
-# ── Android / QQ 工程 ─────────────────────────────────────────
-alias adbid="adb devices | grep -v List | awk '{print \$1}'"
-alias sp="nohup scrcpy > $HOME/templog/scrcpy.log 2>&1 &"
-alias qguild="./centaur.sh guild -w"
-alias qrundt="./rb -qrun -PDTBuild"
-alias qrun="./rb -qrun"
-alias qc="./rb -qC"
-alias qcdt="./rb -qC -PDTBuild"
-alias qclean="./rb -clean"
-alias qhelp="./rb -help"
-alias qins="adb install -r AQQLite/AQQLiteApp/build/intermediates/qqLite/compact/signed/compact.apk"
-
 # ── Harmony ───────────────────────────────────────────────────
 alias hshot="$HOME/.config/scripts/hdc_screenshot.sh"
 alias hrec="$HOME/.config/scripts/hdc_record.sh"
