@@ -22,9 +22,6 @@ cache_dir = ""
 image_delay = 10
 image_filter = "lanczos3"
 image_quality = 90
-# sixel_fraction = 15
-ueberzug_scale = 1
-ueberzug_offset = [0, 0, 0, 0]
 
 [opener]
 edit = [
@@ -54,9 +51,11 @@ open_with = [
   { run = '$SCRIPTS_HOME/open_with.sh "$@"', block = true, desc = "Open with...(fzf)", for = "macos" },
 ]
 play = [
-  { run = 'mpv --force-window %s', orphan = true, for = "unix" },
-  { run = 'mpv --force-window %s', orphan = true, for = "windows" },
   { run = 'mediainfo %s1; echo "Press enter to exit"; read _', block = true, desc = "Show media info", for = "unix" },
+]
+# Ghostty 1.4+ Kitty graphics：全屏查看图片（GIF 会动），任意键退出
+view_image = [
+  { run = '$SCRIPTS_HOME/view_image.sh %s1', block = true, desc = "View in terminal (kitten icat)", for = "macos" },
 ]
 
 [open]
@@ -73,13 +72,15 @@ rules = [
     "open_with",
     "reveal",
   ] },
-  # Image
+  # Image：o 在终端内全屏查看，O 可选系统预览
   { mime = "image/*", use = [
+    "view_image",
     "open",
     "reveal",
   ] },
-  # Media
+  # Media：o 用系统默认播放器，O 可选 media info
   { mime = "{audio,video}/*", use = [
+    "open",
     "play",
     "reveal",
   ] },
