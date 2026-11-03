@@ -4,11 +4,12 @@ source "$(dirname "$0")/fzf_utils.sh"
 
 # invoked by pane-focus-in event
 update_mru_pane_ids() {
-    o_data=($(tmux show -gqv '@mru_pane_ids'))
+    local live current_pane_id id
+    live=" $(tmux list-panes -aF '#D' | tr '\n' ' ')"
     current_pane_id=$(tmux display-message -p '#D')
-    n_data=($current_pane_id)
-    for i in ${!o_data[@]}; do
-        [[ $current_pane_id != ${o_data[i]} ]] && n_data+=(${o_data[i]})
+    local n_data=("$current_pane_id")
+    for id in $(tmux show -gqv '@mru_pane_ids'); do
+        [[ $id != "$current_pane_id" && $live == *" $id "* ]] && n_data+=("$id")
     done
     tmux set -g '@mru_pane_ids' "${n_data[*]}"
 }
@@ -70,16 +71,11 @@ do_action() {
         --bind="ctrl-t:execute-silent(tmux swap-pane -t $last_pane_cmd -s {1})+reload($cmd)")
     (($?)) && return
 
-    ids_o=($(tmux show -gqv '@mru_pane_ids'))
+    local sel_ids id
+    sel_ids=" $(strip_ansi "$selected" | awk '{printf "%s ", $1}')"
     ids=()
-    for id in ${ids_o[@]}; do
-        while read pane_line; do
-            # Strip ANSI escape codes before field parsing
-            clean_line=$(printf '%s' "$pane_line" | sed $'s/\033\\[[0-9;]*m//g')
-            pane_info=($clean_line)
-            pane_id=${pane_info[0]}
-            [[ $id == $pane_id ]] && ids+=($id)
-        done <<<"$selected"
+    for id in $(tmux show -gqv '@mru_pane_ids'); do
+        [[ $sel_ids == *" $id "* ]] && ids+=("$id")
     done
 
     id_n=${#ids[@]}
@@ -304,7 +300,12 @@ panes_src() {
     done <<<"$panes_info"
 
     mru_ids=($(tmux show -gqv '@mru_pane_ids'))
-    local rank mid i
+    local rank mid i id live kept=()
+    live=" $(tmux list-panes -aF '#D' | tr '\n' ' ')"
+    for id in "${mru_ids[@]}"; do
+        [[ $live == *" $id "* ]] && kept+=("$id")
+    done
+    mru_ids=("${kept[@]}")
     for rank in blocked unread working idle unknown; do
         for mid in "${mru_ids[@]}"; do
             for i in "${!c_ids[@]}"; do
@@ -320,15 +321,10 @@ panes_src() {
         done
     done
 
-    # Keep existing MRU order; only append newly discovered agent panes.
     local new_mru=("${mru_ids[@]}")
-    local id found e
+    local known=" ${mru_ids[*]} "
     for id in "${c_ids[@]}"; do
-        found=0
-        for e in "${new_mru[@]}"; do
-            [[ $e == "$id" ]] && found=1 && break
-        done
-        ((found == 0)) && new_mru+=("$id")
+        [[ $known == *" $id "* ]] || new_mru+=("$id")
     done
     tmux set -g '@mru_pane_ids' "${new_mru[*]}"
 }
