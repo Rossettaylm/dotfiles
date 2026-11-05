@@ -1,5 +1,6 @@
 #!/bin/bash
-# Show an image full-screen via the Kitty graphics protocol (GIFs animate), exit on any key.
+# Show an image centered in a box VIEW_IMAGE_RATIO% (default 60) of the terminal width via the
+# Kitty graphics protocol (GIFs animate), exit on any key.
 # Usage: view_image.sh <file>
 #
 # `kitten icat --hold` never sees keypresses under tmux, so wait for a key here.
@@ -26,6 +27,11 @@ restore() {
 trap restore EXIT
 
 clear
-kitten icat --transfer-mode=file --align center --scale-up "$file"
+read -r rows cols < <(stty size)
+ratio=${VIEW_IMAGE_RATIO:-60}
+width=$((cols * ratio / 100))
+height=$((rows - 1))
+left=$(((cols - width) / 2))
+kitten icat --transfer-mode=file --scale-up --place "${width}x${height}@${left}x0" "$file"
 stty -icanon -echo min 1 time 0
 dd bs=1 count=1 >/dev/null 2>&1
