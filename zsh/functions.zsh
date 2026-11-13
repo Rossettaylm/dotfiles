@@ -134,3 +134,47 @@ utils() {
   cmd=$(python3 $ZSH_HOME/fzf/utils.py "$@")
   [[ -n "$cmd" ]] && print -z "$cmd"
 }
+
+# 输出倒数第 N 条命令（默认 1=上一条）的输出；依赖 prompt.zsh 的 OSC 133 标记，仅限 tmux
+_last_output() {
+  local n=${1:-1}
+  [[ -n $TMUX ]] || { print -u2 "需要在 tmux 中使用"; return 1 }
+  [[ $n == <1-> ]] || { print -u2 "用法: ${funcstack[2]:-$0} [N]"; return 1 }
+  local p=$TMUX_PANE pos='#{e|-:#{copy_cursor_y},#{scroll_position}}' cur last i
+  tmux copy-mode -H -t $p
+  # 第 1 跳落在当前 prompt，再往上 N 跳是目标；send -N 对 previous-prompt 不生效，只能逐跳
+  for i in {1..$n}; do
+    cur=$(tmux send -t $p -X previous-prompt \; display -p -t $p $pos)
+    [[ $cur == $last ]] && { tmux send -t $p -X cancel; print -u2 "scrollback 中找不到第 $n 条命令"; return 1 }
+    last=$cur
+  done
+  # 依次输出：上一跳 prompt、目标 prompt、下一条 prompt、目标输出起点（坐标均为 capture-pane 行号）
+  local -a cmd=(display -p -t $p $pos \; send -t $p -X previous-prompt \; display -p -t $p $pos
+        \; send -t $p -X next-prompt \; display -p -t $p $pos
+        \; send -t $p -X previous-prompt \; send -t $p -X next-prompt -o \; display -p -t $p $pos
+        \; send -t $p -X cancel)
+  local -a r=(${(f)"$(tmux $cmd)"})
+  (( ${#r} == 4 )) || { print -u2 "tmux 坐标获取失败"; return 1 }
+  local prev=$r[1] a=$r[2] e=$r[3] c=$r[4]
+  (( a < prev )) || { print -u2 "scrollback 中找不到第 $n 条命令"; return 1 }
+  (( c > a && c < e )) || { print -u2 "第 $n 条命令无输出"; return 1 }
+  tmux capture-pane -p -J -t $p -S $c -E $((e - 1)) | sed -E 's/[[:space:]]+$//'
+}
+
+# 全量复制上 N 条命令的输出到剪贴板
+cpo() {
+  local out
+  out=$(_last_output "$@") || return
+  print -rn -- "$out" | pbcopy
+  local -a lines=("${(@f)out}")
+  print "已复制 ${#lines} 行"
+}
+
+# 在 nvim scratch 中打开上 N 条命令的输出，自行选择 y 复制，q 退出
+cpv() {
+  local out
+  out=$(_last_output "$@") || return
+  print -r -- "$out" | nvim -n \
+    -c 'setlocal buftype=nofile bufhidden=wipe noswapfile' \
+    -c 'nnoremap <buffer><nowait> q <cmd>q!<CR>' -
+}

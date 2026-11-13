@@ -12,3 +12,9 @@ else
     PROMPT='%F{green}%~%f %# '
   fi
 fi
+
+# OSC 133 语义标记：A=prompt 起点，C=命令输出起点（tmux previous-prompt/next-prompt 依赖，cpo/cpv 用）
+PROMPT=$'%{\e]133;A\e\\%}'"$PROMPT"
+_osc133_output_start() { [[ -t 1 ]] && print -n '\e]133;C\e\\' }
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec _osc133_output_start
