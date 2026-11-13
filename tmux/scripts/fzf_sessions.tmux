@@ -82,28 +82,61 @@ new_session() {
     [[ -n $newname ]] && tmux new-session -d -s "$newname"
 }
 
-# 列顺序：NAME WINS PANES CREATED MARK。宽度由 fit_cols 按 popup 实际宽度分配，
+# 列顺序：NAME WINS PANES AGENTS CREATED MARK。宽度由 fit_cols 按 popup 实际宽度分配，
 # 富余空间给 CREATED；MARK 固定宽度（"(current)" / "(last)"），这样每行等长。
 COL_NAME=20
 COL_WINS=5
 COL_PANES=5
+COL_AGENTS=10
 COL_CREATED=13
 COL_MARK=10
 
-SESS_COL_PREF='20,5,5,13,10'
-SESS_COL_FLOOR='10,4,5,11,9'
-SESS_COL_SHRINK='3,0,1,2,4'
+SESS_COL_PREF='20,5,5,10,13,10'
+SESS_COL_FLOOR='10,4,5,6,11,9'
+SESS_COL_SHRINK='4,0,1,2,3,5'
 SESS_COL_GROW=4
 sess_cols() {
     local avail
     avail=$(fzf_table_width)
     if (( avail <= 0 )); then
-        COL_NAME=20 COL_WINS=5 COL_PANES=5 COL_CREATED=13 COL_MARK=10
+        COL_NAME=20 COL_WINS=5 COL_PANES=5 COL_AGENTS=10 COL_CREATED=13 COL_MARK=10
         return
     fi
     fit_cols "$avail" "$SESS_COL_PREF" "$SESS_COL_FLOOR" "$SESS_COL_GROW" "$SESS_COL_SHRINK"
-    COL_NAME=${COLS[0]} COL_WINS=${COLS[1]} COL_PANES=${COLS[2]} COL_CREATED=${COLS[3]}
-    COL_MARK=${COLS[4]}
+    COL_NAME=${COLS[0]} COL_WINS=${COLS[1]} COL_PANES=${COLS[2]} COL_AGENTS=${COLS[3]}
+    COL_CREATED=${COLS[4]} COL_MARK=${COLS[5]}
+}
+
+# agent_lib.py sessions 的输出：session \t blocked \t unread \t working \t idle。
+# bash 3.2 没有关联数组，用并行数组 + 线性查找（会话数是个位到两位数）。
+load_agent_counts() {
+    a_names=() a_counts=()
+    local name blocked unread working idle
+    while IFS=$'\t' read -r name blocked unread working idle; do
+        [[ -n $name ]] || continue
+        a_names+=("$name")
+        a_counts+=("$blocked $unread $working")
+    done < <(python3 "$(dirname "$0")/agent_lib.py" sessions 2>/dev/null)
+}
+
+# 一格角标：图标与 agentd 状态栏同款；颜色取最紧急的那个状态，fit_col 量宽时不能含 SGR。
+format_agents() {
+    local name=$1 i blocked=0 unread=0 working=0
+    for i in "${!a_names[@]}"; do
+        [[ ${a_names[i]} == "$name" ]] || continue
+        read -r blocked unread working <<<"${a_counts[i]}"
+        break
+    done
+    local text='' color=''
+    (( working )) && { text=$'\xef\x84\x90'"$working"; color='1;33'; }
+    (( unread )) && { text=$'\xef\x83\xb3'"$unread $text"; color='38;5;117'; }
+    (( blocked )) && { text=$'\xef\x81\xb1'"$blocked $text"; color='1;31'; }
+    text=$(fit_col "${text% }" "$COL_AGENTS")
+    if [[ -n $color ]]; then
+        printf '\033[%sm%s\033[0m' "$color" "$text"
+    else
+        printf '%s' "$text"
+    fi
 }
 
 sessions_src() {
@@ -111,11 +144,13 @@ sessions_src() {
     current_session=$(tmux display-message -p '#S')
     last_session=$(tmux display-message -p '#{client_last_session}')
     sess_cols
+    load_agent_counts
 
-    printf '%s  %s  %s  %s  %s\n' \
+    printf '%s  %s  %s  %s  %s  %s\n' \
         "$(fit_col 'NAME' "$COL_NAME")" \
         "$(fit_col 'WINS' "$COL_WINS")" \
         "$(fit_col 'PANES' "$COL_PANES")" \
+        "$(fit_col 'AGENTS' "$COL_AGENTS")" \
         "$(fit_col 'CREATED' "$COL_CREATED")" \
         "$(fit_col '' "$COL_MARK")"
 
@@ -135,7 +170,7 @@ sessions_src() {
         fi
 
         local tail
-        tail="$(fit_col "$wins" "$COL_WINS")  $(fit_col "$panes" "$COL_PANES")  $(fit_col "$created" "$COL_CREATED")  $(fit_col "$marker" "$COL_MARK")"
+        tail="$(fit_col "$wins" "$COL_WINS")  $(fit_col "$panes" "$COL_PANES")  $(format_agents "$name")  $(fit_col "$created" "$COL_CREATED")  $(fit_col "$marker" "$COL_MARK")"
         # SGR 只包住名字本身：即使锚在行首被 --with-nth 截掉，第一列仍是纯文本
         # 会话名，{1} 预览和选中回查都不会拿到转义字符。
         if [[ -n $color ]]; then

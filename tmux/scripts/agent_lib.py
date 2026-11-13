@@ -57,7 +57,18 @@ PANE_FILTER = (
 PANE_FIELDS = (
     "#D", "#{session_name}", "#{window_id}", "#{pane_current_command}",
     "#{pane_current_path}", "#{pane_pid}", "#T", "#{@agent_seen_ts}",
+    "#{@agent_kind}", "#{@agent_state}", "#{@agent_state_ts}",
 )
+
+# 推送式状态：agent 自己的生命周期 hook（agent_hook.py / omp 扩展）写进 pane option。
+# 比轮询标题和爬屏幕可靠，但只在 @agent_kind 与当前识别出的 agent 一致时才采信
+# —— 同一个 pane 先跑 claude 再跑 cursor，残留的 claude 状态不能张冠李戴。
+OPT_KIND = "@agent_kind"
+OPT_STATE = "@agent_state"
+OPT_STATE_TS = "@agent_state_ts"
+OPT_SESSION = "@agent_session"
+PUSH_OPTS = (OPT_KIND, OPT_STATE, OPT_STATE_TS, OPT_SESSION)
+PUSH_STATES = ("blocked", "working", "idle")
 
 # 「client 正盯着这个 pane」：三层缺一不可 —— session_attached 排掉 detached
 # session 的当前 pane，window_active 排掉非当前窗口，pane_active 排掉同窗口的非焦点 pane
@@ -249,10 +260,10 @@ def _pid_alive(pid) -> bool:
     return True
 
 
-def claude_session_status() -> dict[str, str]:
-    """pane_id -> claude 自报的 status。pid 已死的残留文件跳过；
+def claude_session_records() -> dict[str, dict]:
+    """pane_id -> claude 自报的 sessions/<pid>.json 记录。pid 已死的残留文件跳过；
     同一 pane 先后跑过多个 claude 时取 statusUpdatedAt 最新的。"""
-    best: dict[str, tuple[float, str]] = {}
+    best: dict[str, dict] = {}
     for f in CLAUDE_SESSIONS_DIR.glob("*.json"):
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
@@ -260,23 +271,28 @@ def claude_session_status() -> dict[str, str]:
             continue
         if not isinstance(data, dict):
             continue
-        status = data.get("status")
         pane = str(data.get("tmux") or "").rpartition(".")[2]
-        if status not in _CLAUDE_STATUS or not pane.startswith("%"):
+        if not pane.startswith("%") or not _pid_alive(data.get("pid")):
             continue
-        if not _pid_alive(data.get("pid")):
-            continue
-        ts = data.get("statusUpdatedAt") or 0
-        if pane not in best or ts > best[pane][0]:
-            best[pane] = (ts, status)
-    return {pane: status for pane, (_ts, status) in best.items()}
+        ts = data.get("statusUpdatedAt")
+        data["statusUpdatedAt"] = ts / 1000 if isinstance(ts, (int, float)) else 0.0
+        if pane not in best or data["statusUpdatedAt"] > best[pane]["statusUpdatedAt"]:
+            best[pane] = data
+    return best
+
+
+def claude_session_status() -> dict[str, tuple[str, float]]:
+    """pane_id -> (radar 状态, 上报时刻秒)。"""
+    return {
+        pane: (_CLAUDE_STATUS[rec["status"]], rec["statusUpdatedAt"])
+        for pane, rec in claude_session_records().items()
+        if rec.get("status") in _CLAUDE_STATUS
+    }
 
 
 def parse_claude_title(pane_id: str, title: str, probe_screen: bool = True,
-                       status: str = "") -> tuple[str, str]:
-    state = _CLAUDE_STATUS.get(status) or (
-        "idle" if title.split(" ", 1)[0] == "✳" else "working"
-    )
+                       reported: str = "") -> tuple[str, str]:
+    state = reported or ("idle" if title.split(" ", 1)[0] == "✳" else "working")
     # idle 的 claude 不可能停在授权提示上，省掉一次 capture-pane
     if state == "working" and probe_screen and claude_blocked(pane_id):
         state = "blocked"
@@ -408,18 +424,32 @@ def scan(probe_screen: bool = True) -> list[AgentPane]:
         parts = line.split("\t")
         if len(parts) != len(PANE_FIELDS):
             continue
-        pane_id, session, window_id, command, path, pane_pid, title, seen = parts
+        (pane_id, session, window_id, command, path, pane_pid, title, seen,
+         push_kind, push_state, push_ts) = parts
 
         agent = agent_key_for_pane(pane_id, pane_pid, command, title)
         if agent not in _PARSERS:
             continue
 
+        pushed = None
+        if push_kind == agent and push_state in PUSH_STATES:
+            pushed = (push_state, _parse_ts(push_ts))
+
         if agent == "claude":
             if claude_status is None:
                 claude_status = claude_session_status()
+            # hook 和 claude 自报的 sessions/<pid>.json 各有盲区：Esc 打断不触发
+            # Stop hook，自报文件则未必区分授权提示。两路都带时间戳，取最新的。
+            reports = [r for r in (pushed, claude_status.get(pane_id)) if r]
+            latest = max(reports, key=lambda r: r[1]) if reports else None
             state, task = parse_claude_title(
-                pane_id, title, probe_screen, claude_status.get(pane_id, ""),
+                pane_id, title,
+                # hook 赢了就是确切状态，不用再拿屏幕正则去猜 blocked
+                probe_screen and not (latest is not None and latest is pushed),
+                latest[0] if latest else "",
             )
+        elif pushed:
+            state, task = pushed[0], _PARSERS[agent](pane_id, title, False)[1]
         else:
             state, task = _PARSERS[agent](pane_id, title, probe_screen)
         home = os.path.expanduser("~")
@@ -559,16 +589,29 @@ def fmt_duration(since_ts: float, now: float | None = None) -> str:
     return f"{secs // 3600}h{(secs % 3600) // 60:02d}m"
 
 
+def session_counts(panes: list[AgentPane]) -> dict[str, dict[str, int]]:
+    out: dict[str, dict[str, int]] = {}
+    for pane in panes:
+        counts = out.setdefault(pane.session, {})
+        counts[pane.state] = counts.get(pane.state, 0) + 1
+    return out
+
+
 def main() -> None:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "dump"
-    if cmd == "dump":
+    if cmd in ("dump", "sessions"):
         ensure_daemon()
     if cmd == "scan":
         panes = scan()
-    elif cmd == "dump":
+    elif cmd in ("dump", "sessions"):
         panes = load()
     else:
         sys.exit(f"unknown command: {cmd}")
+    if cmd == "sessions":
+        # session \t blocked \t unread \t working \t idle —— 给 fzf 会话列表用
+        for name, counts in session_counts(panes).items():
+            print("\t".join([name] + [str(counts.get(s, 0)) for s in STATE_RANK[:4]]))
+        return
     for pane in sorted(panes, key=sort_key):
         print(pane.to_tsv())
 

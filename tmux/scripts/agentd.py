@@ -129,6 +129,42 @@ def render_toast(events: list[tuple[str, lib.AgentPane]]) -> str:
     return "#[push-default]" + body + "#[pop-default] "
 
 
+# 会话条 / M-w 会话列表的单个会话角标。只列「球在你这边」和在跑的数量，
+# idle 不占位 —— 一屏几十个会话时，安静的会话应该是安静的。
+_BADGE_PARTS = (
+    ("blocked", "@thm_red", ICON_BLOCKED),
+    ("unread", "@thm_sky", ICON_UNREAD),
+    ("working", "@thm_yellow", ICON_WORKING),
+)
+
+
+def render_badge(counts: dict[str, int]) -> str:
+    segs = [
+        f"#[fg=#{{{opt}}}]{icon}{counts[state]}"
+        for state, opt, icon in _BADGE_PARTS if counts.get(state)
+    ]
+    return " ".join(segs)
+
+
+def live_badges() -> dict[str, str]:
+    """session -> 当前已写入的 @agent_badge。每轮现读而不是记在内存里：
+    daemon 重启、session 改名后，内存里的旧名字对不上，残留角标就清不掉。"""
+    raw = lib.tmux("list-sessions", "-F", "#{session_name}\t#{@agent_badge}")
+    return dict(line.split("\t", 1) for line in raw.splitlines() if "\t" in line)
+
+
+def set_badges(badges: dict[str, str]) -> None:
+    args: list[str] = []
+    for name, badge in badges.items():
+        if args:
+            args.append(";")
+        # "=name:" 精确匹配 session（会话名 a 不该命中 abc）；set-option 的 -t
+        # 按 pane 目标解析，少了末尾冒号会报 no such session
+        args += ["set", "-t", f"={name}:", "@agent_badge", badge]
+    if args:
+        lib.tmux(*args, ";", "refresh-client", "-S")
+
+
 def notify_system(events: list[tuple[str, lib.AgentPane]]) -> None:
     blocked = [pane for kind, pane in events if kind == "blocked"]
     if not blocked:
@@ -211,6 +247,7 @@ class Radar:
                 events.append(("idle", pane))
 
         lib.write_cache(panes)
+        self.publish_badges(panes)
 
         counts: dict[str, int] = {}
         blocked_windows: list[str] = []
@@ -265,6 +302,16 @@ class Radar:
         args += [";", "refresh-client", "-S"]
         lib.tmux(*args)
 
+    def publish_badges(self, panes: list[lib.AgentPane]) -> None:
+        """每个 session 一个 @agent_badge（session option），供会话条按 session 渲染。"""
+        per = lib.session_counts(panes)
+        # 只写活着的 session：tmux 的 ; 命令链遇到第一个失败就整串放弃
+        set_badges({
+            name: badge
+            for name, current in live_badges().items()
+            if (badge := render_badge(per.get(name, {}))) != current
+        })
+
     def clear(self) -> None:
         args: list[str] = []
         for key in OPT_KEYS:
@@ -273,6 +320,7 @@ class Radar:
             args += ["set", "-g", key, ""]
         args += [";", "refresh-client", "-S"]
         lib.tmux(*args)
+        set_badges({name: "" for name, current in live_badges().items() if current})
 
 
 def stop_running_instance() -> None:
