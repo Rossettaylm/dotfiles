@@ -52,11 +52,11 @@ do_action() {
     # blocked/unread/working/idle 分组 + 组内 MRU 顺序。曾经用 --no-sort 保序，但它是
     # 「完全忽略匹配分」，会让语义弱匹配（如路径里顺带带 config）压过强匹配（TASK 里
     # 连续命中 config）。query 为空时所有分数相同，index 回退等价于纯输入顺序，分组不丢。
-    # --nth=3,6 只搜 PATH 和 TASK（编号相对 --with-nth 输出：1=SESSION … 3=PATH …
-    # 6=TASK），否则输 idle/working 会把整张表都命中。
+    # --nth=3,4,6 只搜 MODEL、PATH 和 TASK（编号相对 --with-nth 输出：1=SESSION
+    # 2=AGENT 3=MODEL 4=PATH 5=STATUS 6=TASK），否则输 idle/working 会把整张表都命中。
     selected=$(printf '' | fzf -m "${fzf_popup_opts[@]}" \
         --preview="bash $0 preview_pane {1}" \
-        --tiebreak=index --nth=3,6 \
+        --tiebreak=index --nth=3,4,6 \
         --border-label ' AI Agents ' \
         --header="$header" \
         --delimiter='\s{2,}' --with-nth=2..-1 \
@@ -110,32 +110,32 @@ do_action() {
     fi
 }
 
-# 列顺序：PANEID SESSION AGENT PATH STATUS AGE TASK（PANEID 被 --with-nth 藏起来，
+# 列顺序：PANEID SESSION AGENT MODEL PATH STATUS TASK（PANEID 被 --with-nth 藏起来，
 # 只供选中后回查 pane id）。宽度不再是常量：agent_cols 按 popup 实际宽度分配，
-# 富余空间给 TASK，收窄时依次砍 TASK -> PATH -> SESSION -> AGE，其余列是定长内容。
+# 富余空间给 TASK，收窄时依次砍 PATH -> MODEL -> SESSION -> TASK，其余列是定长内容。
 COL_PANEID=6
 COL_SESSION=12
 COL_AGENT=10
+COL_MODEL=20
 COL_PATH=32
 COL_STATUS=11
-COL_DUR=7
 COL_TASK=27
 
-AGENT_COL_PREF='6,12,10,24,9,5,20'
-AGENT_COL_FLOOR='6,10,8,10,9,5,10'
-AGENT_COL_SHRINK='3,1,6,5,4,2,0'
+AGENT_COL_PREF='6,12,10,20,24,9,20'
+AGENT_COL_FLOOR='6,10,8,8,10,9,10'
+AGENT_COL_SHRINK='4,3,1,6,5,2,0'
 AGENT_COL_GROW=6
 agent_cols() {
     local avail
     avail=$(fzf_table_width)
     if (( avail <= 0 )); then
         # 拿不到 fzf 尺寸（直接手工跑数据源）：退回固定宽度
-        COL_PANEID=6 COL_SESSION=12 COL_AGENT=10 COL_PATH=32 COL_STATUS=11 COL_DUR=7 COL_TASK=27
+        COL_PANEID=6 COL_SESSION=12 COL_AGENT=10 COL_MODEL=20 COL_PATH=32 COL_STATUS=11 COL_TASK=27
         return
     fi
     fit_cols "$avail" "$AGENT_COL_PREF" "$AGENT_COL_FLOOR" "$AGENT_COL_GROW" "$AGENT_COL_SHRINK"
-    COL_PANEID=${COLS[0]} COL_SESSION=${COLS[1]} COL_AGENT=${COLS[2]} COL_PATH=${COLS[3]}
-    COL_STATUS=${COLS[4]} COL_DUR=${COLS[5]} COL_TASK=${COLS[6]}
+    COL_PANEID=${COLS[0]} COL_SESSION=${COLS[1]} COL_AGENT=${COLS[2]} COL_MODEL=${COLS[3]}
+    COL_PATH=${COLS[4]} COL_STATUS=${COLS[5]} COL_TASK=${COLS[6]}
 }
 
 format_status() {
@@ -203,24 +203,6 @@ format_agent() {
     printf '\033[%sm%s\033[0m' "$color" "$visible"
 }
 
-# 等待时长只在「球在你这边」时才有意义：blocked 等授权、unread 跑完没看。
-# working 的 since 是「开始干活」时长，idle 是「闲了多久」，都是噪音。
-# 格式对齐 agent_lib.fmt_duration，别两处漂移。
-fmt_age() {
-    local state=$1 since=$2
-    [[ $state == blocked || $state == unread ]] || return 0
-    [[ -n $since && -n $NOW_SECS ]] || return 0
-    local secs=$((NOW_SECS - ${since%.*}))
-    ((secs < 0)) && return 0
-    if ((secs < 60)); then
-        printf '%ds' "$secs"
-    elif ((secs < 3600)); then
-        printf '%dm%02ds' $((secs / 60)) $((secs % 60))
-    else
-        printf '%dh%02dm' $((secs / 3600)) $(((secs % 3600) / 60))
-    fi
-}
-
 # 用 execute（而非 execute-silent）弹 y/n：kill 掉正在跑 agent 的 pane 不可撤销，
 # 而这个键紧挨着 ctrl-r，误触代价太大。
 confirm_kill() {
@@ -240,33 +222,31 @@ panes_src() {
         "$(fit_col 'PANEID' "$COL_PANEID")" \
         "$(fit_col 'SESSION' "$COL_SESSION")" \
         "$(fit_col 'AGENT' "$COL_AGENT")" \
+        "$(fit_col 'MODEL' "$COL_MODEL")" \
         "$(fit_col 'PATH' "$COL_PATH")" \
         "$(fit_col 'STATUS' "$COL_STATUS")" \
-        "$(fit_col 'AGE' "$COL_DUR")" \
         'TASK'
     # Agent detection and title parsing live in agent_lib.py (shared with the
     # agentd daemon, so both can't drift). It serves the daemon's cache when
     # fresh and falls back to a synchronous scan when the daemon isn't running.
     panes_info=$(python3 "$(dirname "$0")/agent_lib.py" dump)
-    # 取一次时间戳给整张表用：每个 pane 各调一次 date 会在 agent 多时明显变慢
-    NOW_SECS=$(date +%s)
 
     c_ids=()
     c_sessions=()
     c_agents=()
+    c_models=()
     c_paths=()
     c_statuses=()
-    c_durs=()
     c_tasks=()
     c_done=()
 
     # TSV from agent_lib.py: pane_id, session, window_id, agent, path, state,
-    # task, since_ts. since_ts 只在这里换算成等待时长；状态栏自己另外格式化。
+    # task, since_ts, model。since_ts 这里用不上，留给状态栏和 M-a 菜单。
     collect_pane() {
         local pane_line=$1
         [[ -z $pane_line ]] && return
-        local pane_id session window_id agent pane_path status task since
-        IFS=$'\t' read -r pane_id session window_id agent pane_path status task since \
+        local pane_id session window_id agent pane_path status task since model
+        IFS=$'\t' read -r pane_id session window_id agent pane_path status task since model \
             <<<"$pane_line"
         [[ -z $pane_id || -z $agent ]] && return
         [[ -z $status ]] && status='unknown'
@@ -275,9 +255,9 @@ panes_src() {
         c_ids+=("$pane_id")
         c_sessions+=("$session")
         c_agents+=("$agent")
+        c_models+=("$model")
         c_paths+=("$pane_path")
         c_statuses+=("$status")
-        c_durs+=("$(fmt_age "$status" "$since")")
         c_tasks+=("$task")
         c_done+=(0)
     }
@@ -288,9 +268,9 @@ panes_src() {
             "$(fit_col "${c_ids[i]}" "$COL_PANEID")" \
             "$(fit_col "${c_sessions[i]}" "$COL_SESSION")" \
             "$(format_agent "${c_agents[i]}")" \
+            "$(fit_col "${c_models[i]}" "$COL_MODEL")" \
             "$(fit_col "${c_paths[i]}" "$COL_PATH" tail)" \
             "$(format_status "${c_statuses[i]}")" \
-            "$(fit_col "${c_durs[i]}" "$COL_DUR")" \
             "$(fit_col "${c_tasks[i]}" "$COL_TASK")"
         c_done[i]=1
     }

@@ -57,7 +57,7 @@ PANE_FILTER = (
 PANE_FIELDS = (
     "#D", "#{session_name}", "#{window_id}", "#{pane_current_command}",
     "#{pane_current_path}", "#{pane_pid}", "#T", "#{@agent_seen_ts}",
-    "#{@agent_kind}", "#{@agent_state}", "#{@agent_state_ts}",
+    "#{@agent_kind}", "#{@agent_state}", "#{@agent_state_ts}", "#{pane_tty}",
 )
 
 # 推送式状态：agent 自己的生命周期 hook（agent_hook.py / omp 扩展）写进 pane option。
@@ -87,6 +87,7 @@ class AgentPane:
     state: str
     task: str
     since_ts: float = 0.0
+    model: str = "-"
     # 已读水位：pane option @agent_seen_ts。不写进 TSV —— 它是 per-client 的
     # 焦点状态，不该污染 daemon 写的那份缓存
     seen_ts: float = 0.0
@@ -97,19 +98,19 @@ class AgentPane:
             # .3f 必须和 mark_seen 写 pane option 的精度一致：用 .0f 会把
             # since_ts 进位到整秒，变成 > 同一时刻的 seen_ts，把「刚跑完正好
             # 被标记已读」的 pane 全误判成 unread
-            self.path, self.state, self.task, f"{self.since_ts:.3f}",
+            self.path, self.state, self.task, f"{self.since_ts:.3f}", self.model,
         ))
 
     @classmethod
     def from_tsv(cls, line: str):
         parts = line.split("\t")
-        if len(parts) != 8:
+        if len(parts) != 9:
             return None
         try:
             since = float(parts[7])
         except ValueError:
             since = 0.0
-        return cls(*parts[:7], since_ts=since)
+        return cls(*parts[:7], since_ts=since, model=parts[8])
 
 
 # ── tmux / 进程调用 ──────────────────────────────────────────
@@ -169,10 +170,11 @@ _AGENT_CMD_PATTERNS = (
     ("pi", re.compile(r"(?:^|/)pi(?:\s|$)|pi-coding-agent")),
 )
 
-_agent_memo: dict[tuple[str, int], str] = {}
+# (pane_id, pane_pid) -> (agent, 命中的进程命令行)；命令行留给 argv_model 读 --model
+_agent_memo: dict[tuple[str, int], tuple[str, str]] = {}
 
 
-def _probe_process_tree(pane_pid: int) -> str:
+def _probe_process_tree(pane_pid: int) -> tuple[str, str]:
     rows = _ps_snapshot()
     children: dict[int, list[tuple[int, str]]] = {}
     own = {pid: cmd for pid, _ppid, cmd in rows}
@@ -186,11 +188,22 @@ def _probe_process_tree(pane_pid: int) -> str:
         for pid, cmd in frontier:
             for agent, pattern in _AGENT_CMD_PATTERNS:
                 if pattern.search(cmd):
-                    return agent
+                    return agent, cmd
             nxt.extend(children.get(pid, ()))
         frontier = nxt
         depth += 1
-    return ""
+    return "", ""
+
+
+def _probe_pane(pane_id: str, pane_pid: str) -> tuple[str, str]:
+    try:
+        pid = int(pane_pid)
+    except ValueError:
+        return "", ""
+    key = (pane_id, pid)
+    if key not in _agent_memo:
+        _agent_memo[key] = _probe_process_tree(pid)
+    return _agent_memo[key]
 
 
 def agent_key_for_pane(pane_id: str, pane_pid: str, command: str, title: str) -> str:
@@ -200,15 +213,7 @@ def agent_key_for_pane(pane_id: str, pane_pid: str, command: str, title: str) ->
         return ""
     if title.split(" ", 1)[0] == "π":
         return "pi"
-
-    try:
-        pid = int(pane_pid)
-    except ValueError:
-        return ""
-    key = (pane_id, pid)
-    if key not in _agent_memo:
-        _agent_memo[key] = _probe_process_tree(pid)
-    return _agent_memo[key]
+    return _probe_pane(pane_id, pane_pid)[0]
 
 
 # ── 状态解析：每个 parse_* 返回 (state, task) ────────────────
@@ -281,11 +286,11 @@ def claude_session_records() -> dict[str, dict]:
     return best
 
 
-def claude_session_status() -> dict[str, tuple[str, float]]:
+def claude_session_status(records: dict[str, dict]) -> dict[str, tuple[str, float]]:
     """pane_id -> (radar 状态, 上报时刻秒)。"""
     return {
         pane: (_CLAUDE_STATUS[rec["status"]], rec["statusUpdatedAt"])
-        for pane, rec in claude_session_records().items()
+        for pane, rec in records.items()
         if rec.get("status") in _CLAUDE_STATUS
     }
 
@@ -339,6 +344,136 @@ _PARSERS = {
     "pi": parse_pi_title,
     "omp": parse_omp_title,
 }
+
+
+# ── 模型识别 ─────────────────────────────────────────────────
+#
+# claude / omp 读会话 transcript 里最近一次用到的模型，能跟上会话内的 /model 切换；
+# cursor / pi 只能读启动参数 --model，会话内切换看不到。
+# 只留最后一段：magpie/group/opus -> opus。
+
+CLAUDE_PROJECTS_DIR = Path.home() / ".claude" / "projects"
+_MODEL_ARG_RE = re.compile(r"(?:^|\s)--model(?:=|\s+)(\S+)")
+# transcript 路径 -> (size, mtime_ns, model)：daemon 每 2 秒扫一轮，文件没变就不重读
+_model_memo: dict[str, tuple[int, int, str]] = {}
+
+
+def _reverse_lines(path: Path, chunk: int = 1 << 16, limit: int = 8 << 20):
+    """从文件尾部倒着逐行产出。limit 封顶读取量：巨型 transcript 里翻不到就算了。"""
+    with open(path, "rb") as f:
+        pos = f.seek(0, os.SEEK_END)
+        buf = b""
+        consumed = 0
+        while pos > 0 and consumed < limit:
+            step = min(chunk, pos)
+            pos -= step
+            consumed += step
+            f.seek(pos)
+            lines = (f.read(step) + buf).split(b"\n")
+            buf = lines[0]
+            yield from reversed(lines[1:])
+        if pos == 0 and buf:
+            yield buf
+
+
+def _transcript_model(path: Path, pick) -> str:
+    try:
+        st = path.stat()
+    except OSError:
+        return ""
+    key = str(path)
+    memo = _model_memo.get(key)
+    if memo and memo[:2] == (st.st_size, st.st_mtime_ns):
+        return memo[2]
+    model = ""
+    try:
+        for raw in _reverse_lines(path):
+            if b'"model"' not in raw:
+                continue
+            try:
+                entry = json.loads(raw)
+            except ValueError:
+                continue
+            if isinstance(entry, dict):
+                model = pick(entry)
+            if model:
+                break
+    except OSError:
+        pass
+    _model_memo[key] = (st.st_size, st.st_mtime_ns, model)
+    return model
+
+
+def _claude_entry_model(entry: dict) -> str:
+    msg = entry.get("message")
+    if entry.get("type") != "assistant" or not isinstance(msg, dict):
+        return ""
+    model = msg.get("model")
+    # 本地合成的消息（如被打断）记成 "<synthetic>"，不是真模型
+    return model if isinstance(model, str) and not model.startswith("<") else ""
+
+
+def _omp_entry_model(entry: dict) -> str:
+    kind = entry.get("type")
+    if kind == "model_change":
+        model = entry.get("model")
+    elif kind == "message" and isinstance(entry.get("message"), dict) \
+            and entry["message"].get("role") == "assistant":
+        model = entry["message"].get("model")
+    else:
+        return ""
+    return model if isinstance(model, str) else ""
+
+
+def claude_transcript(record: dict) -> Path | None:
+    sid, cwd = record.get("sessionId"), record.get("cwd")
+    if not isinstance(sid, str) or not isinstance(cwd, str) or not sid or not cwd:
+        return None
+    path = CLAUDE_PROJECTS_DIR / re.sub(r"[^A-Za-z0-9]", "-", cwd) / f"{sid}.jsonl"
+    if path.exists():
+        return path
+    # 超长 cwd 的目录名会被 claude 截断加 hash，按 session id 兜底找
+    return next(CLAUDE_PROJECTS_DIR.glob(f"*/{sid}.jsonl"), None)
+
+
+def _omp_agent_dirs() -> list[Path]:
+    dirs = [Path.home() / ".omp" / "agent"]
+    custom = os.environ.get("PI_CODING_AGENT_DIR")
+    if custom:
+        dirs.insert(0, Path(custom).expanduser())
+    return dirs
+
+
+def omp_model(tty: str) -> str:
+    """omp 按终端记账：<agent_dir>/terminal-sessions/<tty> 第 2 行是当前会话 jsonl。"""
+    name = os.path.basename(tty)
+    if not name:
+        return ""
+    for base in _omp_agent_dirs():
+        try:
+            lines = (base / "terminal-sessions" / name).read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+        if len(lines) >= 2 and lines[1]:
+            return _transcript_model(Path(lines[1]), _omp_entry_model)
+    return ""
+
+
+def argv_model(pane_id: str, pane_pid: str) -> str:
+    match = _MODEL_ARG_RE.search(_probe_pane(pane_id, pane_pid)[1])
+    return match.group(1) if match else ""
+
+
+def pane_model(agent: str, pane_id: str, pane_pid: str, tty: str,
+               claude_record: dict | None) -> str:
+    if agent == "claude":
+        path = claude_transcript(claude_record) if claude_record else None
+        model = _transcript_model(path, _claude_entry_model) if path else ""
+    elif agent == "omp":
+        model = omp_model(tty)
+    else:
+        model = argv_model(pane_id, pane_pid)
+    return model.rsplit("/", 1)[-1]
 
 
 # ── 已读水位 ─────────────────────────────────────────────────
@@ -419,13 +554,14 @@ def apply_unread(panes: list[AgentPane], focused: str = "") -> list[AgentPane]:
 def scan(probe_screen: bool = True) -> list[AgentPane]:
     raw = tmux("list-panes", "-aF", "\t".join(PANE_FIELDS), "-f", PANE_FILTER)
     panes: list[AgentPane] = []
-    claude_status: dict[str, str] | None = None
+    claude_records: dict[str, dict] | None = None
+    claude_status: dict[str, tuple[str, float]] = {}
     for line in raw.splitlines():
         parts = line.split("\t")
         if len(parts) != len(PANE_FIELDS):
             continue
         (pane_id, session, window_id, command, path, pane_pid, title, seen,
-         push_kind, push_state, push_ts) = parts
+         push_kind, push_state, push_ts, tty) = parts
 
         agent = agent_key_for_pane(pane_id, pane_pid, command, title)
         if agent not in _PARSERS:
@@ -435,9 +571,11 @@ def scan(probe_screen: bool = True) -> list[AgentPane]:
         if push_kind == agent and push_state in PUSH_STATES:
             pushed = (push_state, _parse_ts(push_ts))
 
+        if agent == "claude" and claude_records is None:
+            claude_records = claude_session_records()
+            claude_status = claude_session_status(claude_records)
+
         if agent == "claude":
-            if claude_status is None:
-                claude_status = claude_session_status()
             # hook 和 claude 自报的 sessions/<pid>.json 各有盲区：Esc 打断不触发
             # Stop hook，自报文件则未必区分授权提示。两路都带时间戳，取最新的。
             reports = [r for r in (pushed, claude_status.get(pane_id)) if r]
@@ -461,6 +599,8 @@ def scan(probe_screen: bool = True) -> list[AgentPane]:
             pane_id=pane_id, session=session, window_id=window_id,
             agent=agent, path=path, state=state or "unknown",
             task=task.replace("\t", " ").strip() or "-",
+            model=pane_model(agent, pane_id, pane_pid, tty,
+                             (claude_records or {}).get(pane_id)).replace("\t", " ").strip() or "-",
             seen_ts=_parse_ts(seen),
         ))
     return panes
