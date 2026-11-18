@@ -55,9 +55,9 @@ agentd.py (常驻, 2s 一轮)          ← 唯一写 @agent_* option 的地方
 
 ### 时间戳精度必须一致
 
-`to_tsv()` 写 `since_ts` 用 `.3f`，`mark_seen()` 写 pane option 也用 `.3f`。
+`to_tsv()` 写 `since_ts` 用 `.3f`，`mark_seen()` 写 pane option 也用 `.3f`。`apply_unread()` 的比较同样先 `round(..., 3)`。
 
-曾用 `.0f`：`since=...733.697` 存进 TSV 进位成 `...734.0`，于是 `734.0 > 733.697` 成立，把「刚跑完正好被标记已读」的 pane 全部误判成 unread。真实 server 上表现为角标常亮。（TSV 是纯内部格式，改精度不影响 `len(parts) != 8` 校验和 `fzf_agents.tmux` 的 `IFS read`。）
+只对齐 TSV 不够。冷启动时 `since_ts = now` 留在 daemon 内存里是完整 float，`mark_seen(now)` 写进 option 的是 3 位小数。下一轮 scan 把水位读回来，`1794989820.2264 > 1794989820.226` 成立，刚被标成已读的 pane 全部变成 unread。真实 server 上就是重启 daemon 后角标突然亮 4 个铃铛。
 
 ### 冷启动约定
 
@@ -105,6 +105,13 @@ omp 是 Bun 编译的单文件二进制，`pane_current_command` 就是 `omp`。
 daemon 没跑时（`agent_lib.load()` 读不到缓存）走 `scan()` 兜底：状态照常解析，但拿不到 `since_ts`，因此**没有等待时长，也不派生 unread**。跟状态栏「daemon 挂了整段消失」是同一类降级。
 
 `ensure_daemon()` 在每个交互入口（M-n / M-a / M-e）兜一次底，覆盖「已 attach 状态下 daemon 崩溃」——`client-attached` hook 只在 attach 那一刻触发。
+
+## 状态栏为什么会比 agent 慢一拍
+
+两层，叠在一起就是「明明跑完了，底部数字还是旧的」：
+
+1. **采样。** agentd 默认 2s 才扫一轮 pane。`agent_hook.py` 写完 `@agent_state` 后发 `SIGUSR1`，sleep 立刻被打断。omp / cursor / pi 的状态在 OSC title 里，tmux 3.6 没有 `pane-title-changed`，daemon 另起一个线程每 200ms 读一次 `pane_title`，只比较状态标记，变了才发同一个信号。连发先睡 50ms 再扫，合成一轮。
+2. **重绘。** `@agent_summary` 只有各状态的个数。个数不变但 pane 之间对调了 working/idle，字符串不变，`publish()` 以前直接 return，状态栏要干等到 `status-interval`（默认 15s）。现在 pane 级指纹（pane id + state，不含时长）变了也会 `refresh-client -S`。blocked 的秒数仍然只在个数或分钟进位时跳，不为每秒重绘。
 
 ## 缓存路径要按 tmux server 分命名空间
 

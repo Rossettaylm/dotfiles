@@ -16,6 +16,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 import traceback
 from pathlib import Path
@@ -27,6 +28,7 @@ import agent_lib as lib
 LOG_DIR = Path.home() / "templog"
 
 DEFAULT_INTERVAL = 2.0
+TITLE_POLL = 0.2
 DEFAULT_TOAST_SECS = 4.0
 
 ICON_BLOCKED = ""  # nf-fa-warning
@@ -206,6 +208,7 @@ class Radar:
         self.written: dict[str, str] = {}
         self.toast_until = 0.0
         self.toast_value = ""
+        self.prev_fp = ""
 
     def tick(self) -> None:
         now = time.time()
@@ -284,11 +287,21 @@ class Radar:
             "@agent_blocked_panes": _joined(blocked_panes),
             "@agent_unread_windows": _joined(unread_windows),
             "@agent_unread_panes": _joined(unread_panes),
-        })
+        }, redraw=self.fingerprint(panes) != self.prev_fp)
 
         self.prev = {pane.pane_id: pane for pane in panes}
+        self.prev_fp = self.fingerprint(panes)
 
-    def publish(self, values: dict[str, str]) -> None:
+    @staticmethod
+    def fingerprint(panes: list[lib.AgentPane]) -> str:
+        """状态栏数字不变也要能发现 pane 级对调。不带 since_ts：带上整秒会让 blocked 每秒都重绘。"""
+        return "\n".join(
+            f"{p.pane_id}\t{p.state}"
+            for p in sorted(panes, key=lambda p: p.pane_id)
+        )
+
+
+    def publish(self, values: dict[str, str], redraw: bool = False) -> None:
         args: list[str] = []
         for key, value in values.items():
             if self.written.get(key) == value:
@@ -297,7 +310,9 @@ class Radar:
                 args.append(";")
             args += ["set", "-g", key, value]
             self.written[key] = value
-        if not args:
+        # 计数没变时 option 字符串不变，但 pane 之间可能刚对调 working/idle。
+        # 不重绘的话状态栏要干等到 status-interval（默认 15s）。
+        if not args and not redraw:
             return
         args += [";", "refresh-client", "-S"]
         lib.tmux(*args)
@@ -346,20 +361,86 @@ def acquire() -> bool:
     return True
 
 
+
+def _title_mark(title: str) -> str:
+    """OSC title -> 状态标记。spinner 帧都算 working，shell 标题返回空。"""
+    if title.startswith("\u03c0 "):
+        mark = title.split(" ", 2)[1]
+        if len(mark) != 1:
+            return ""
+        if mark == ">":
+            return "idle"
+        if mark == "!":
+            return "blocked"
+        return "working"
+    if title == "\u03c0":
+        return "idle"
+    if title.startswith("\u03c0"):
+        return ""
+    if " - " not in title:
+        return ""
+    suffix = title.rsplit(" - ", 1)[-1].lower()
+    if "waiting for confirmation" in suffix or "waiting for you" in suffix:
+        return "blocked"
+    if "ready" in suffix:
+        return "idle"
+    return "working"
+
+
+def _watch_titles(poke: threading.Event, stop: threading.Event) -> None:
+    """tmux 3.6 没有 pane-title-changed。只盯状态标记，变了才叫醒 tick。"""
+    seen: dict[str, str] = {}
+    while not stop.is_set():
+        raw = lib.tmux("list-panes", "-aF", "#D\t#{pane_title}")
+        changed = False
+        live: set[str] = set()
+        for line in raw.splitlines():
+            pane_id, _, title = line.partition("\t")
+            if not pane_id:
+                continue
+            live.add(pane_id)
+            mark = _title_mark(title)
+            if not mark:
+                continue
+            if pane_id in seen and seen[pane_id] != mark:
+                changed = True
+            seen[pane_id] = mark
+        for gone in set(seen) - live:
+            del seen[gone]
+        if changed:
+            poke.set()
+        stop.wait(TITLE_POLL)
+
+
 def run(once: bool = False) -> None:
     radar = Radar()
     me = str(os.getpid())
+    poke = threading.Event()
+    stop = threading.Event()
+
+    def _poke(_signum, _frame):
+        poke.set()
+
+    if not once:
+        signal.signal(signal.SIGUSR1, _poke)
+        threading.Thread(target=_watch_titles, args=(poke, stop), daemon=True).start()
     try:
         while True:
             if not lib.server_alive():
                 return
+            poke.clear()
             radar.tick()
             if once:
                 return
-            time.sleep(opt_float("@agent_radar_interval", DEFAULT_INTERVAL))
+            interval = opt_float("@agent_radar_interval", DEFAULT_INTERVAL)
+            if poke.wait(interval):
+                # hook 连发时合并成一轮，避免把 scan 打成忙等
+                time.sleep(0.05)
+                poke.clear()
             if lib.tmux("show", "-gqv", "@agent_radar_pid").strip() != me:
                 return
     finally:
+        stop.set()
         if not once and owner_pid() == os.getpid():
             lib.tmux("set", "-gu", "@agent_radar_pid")
             radar.clear()

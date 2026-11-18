@@ -539,7 +539,10 @@ def apply_unread(panes: list[AgentPane], focused: str = "") -> list[AgentPane]:
         if pane.since_ts <= 0:
             # 拿不到「跑完时刻」就无从判断，保守地留在原状态
             continue
-        if pane.since_ts > pane.seen_ts:
+        # 两边都截到存储精度再比。since_ts 在 daemon 内存里是完整 float，
+        # seen_ts 从 pane option 读回来只有 3 位小数：冷启动 mark_seen(now)
+        # 之后，1794989820.2264 > 1794989820.226 会把刚标成已读的 pane 全部变 unread
+        if round(pane.since_ts, 3) > round(pane.seen_ts, 3):
             if pane.state == "idle":
                 pane.state = "unread"
         elif pane.state == "unread":

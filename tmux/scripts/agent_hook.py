@@ -15,6 +15,7 @@ agentd 每轮 scan 时读这些 option（见 agent_lib.PUSH_OPTS），比解析�
 import json
 import os
 import subprocess
+import signal
 import sys
 import time
 
@@ -50,6 +51,25 @@ def claude_state(event: dict) -> str:
     return ""
 
 
+def wake_radar() -> None:
+    """agentd 在 sleep 里，不叫醒的话状态栏要等下一轮 interval。"""
+    raw = subprocess.run(
+        ("tmux", "show", "-gqv", "@agent_radar_pid"),
+        capture_output=True, text=True, timeout=3,
+    ).stdout.strip()
+    try:
+        pid = int(raw)
+    except ValueError:
+        return
+    if pid <= 0:
+        return
+    try:
+        os.kill(pid, signal.SIGUSR1)
+    except OSError:
+        pass
+
+
+
 def publish(pane: str, kind: str, state: str, session: str) -> None:
     if state == "end":
         args = []
@@ -65,6 +85,8 @@ def publish(pane: str, kind: str, state: str, session: str) -> None:
             args += ["set", "-p", "-t", pane, SESSION, session, ";"]
     subprocess.run(("tmux", *args[:-1]), stdout=subprocess.DEVNULL,
                    stderr=subprocess.DEVNULL, timeout=3)
+    wake_radar()
+
 
 
 def main() -> None:
